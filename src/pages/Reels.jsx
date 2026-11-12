@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Heart, Plus, Volume2, VolumeX } from 'lucide-react'
+import { Heart, MessageCircle, Plus, Volume2, VolumeX } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { CATEGORIES, SELECT_POST } from '../lib/constants'
 import UploadSheet from '../components/UploadSheet'
 import Avatar from '../components/Avatar'
+import CommentsSheet from '../components/CommentsSheet'
 
 function Reel({ post, muted, setMuted, onChange }) {
   const { user } = useAuth()
   const ref = useRef()
+  const [showComments, setShowComments] = useState(false)
   const liked = post.likes?.some((l) => l.user_id === user.id)
   useEffect(() => {
     const io = new IntersectionObserver(([e]) => (e.isIntersecting ? ref.current?.play().catch(() => {}) : ref.current?.pause()), { threshold: 0.7 })
@@ -28,6 +30,9 @@ function Reel({ post, muted, setMuted, onChange }) {
         <button onClick={like} className="flex flex-col items-center gap-1">
           <Heart size={32} fill={liked ? '#FF5C8A' : 'none'} stroke={liked ? '#FF5C8A' : 'white'} /><span className="text-sm font-semibold">{post.likes?.length || 0}</span>
         </button>
+        <button onClick={() => setShowComments(true)} className="flex flex-col items-center gap-1">
+          <MessageCircle size={30} /><span className="text-sm font-semibold">{post.comments?.[0]?.count || 0}</span>
+        </button>
         <button onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={28} /> : <Volume2 size={28} />}</button>
       </div>
       <div className="absolute bottom-28 left-4 right-20 space-y-2 text-white">
@@ -35,6 +40,7 @@ function Reel({ post, muted, setMuted, onChange }) {
         {post.content && <p className="line-clamp-3 text-sm">{post.content}</p>}
         {post.category && <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs backdrop-blur">{post.category}</span>}
       </div>
+      {showComments && <CommentsSheet post={post} onClose={() => setShowComments(false)} onChange={onChange} />}
     </section>
   )
 }

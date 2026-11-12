@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
-import { ArrowLeft, Plus, Heart, X } from 'lucide-react'
+import { ArrowLeft, Plus, Heart, MessageCircle, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { CATEGORIES, SELECT_POST, fmt } from '../lib/constants'
 import UploadSheet from '../components/UploadSheet'
 import Avatar from '../components/Avatar'
+import CommentsSheet from '../components/CommentsSheet'
 
 export default function Videos() {
   const nav = useNavigate()
@@ -14,6 +15,7 @@ export default function Videos() {
   const [items, setItems] = useState(null)
   const [open, setOpen] = useState(false)
   const [playing, setPlaying] = useState(null)
+  const [showComments, setShowComments] = useState(false)
   const load = useCallback(async () => {
     let q = supabase.from('posts').select(SELECT_POST).eq('kind', 'video').order('created_at', { ascending: false }).limit(40)
     if (cat !== 'সব') q = q.eq('category', cat)
@@ -68,12 +70,16 @@ export default function Videos() {
                 <button onClick={() => like(playing)} className="flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-2">
                   <Heart size={18} fill={playing.likes?.some((l) => l.user_id === user.id) ? '#FF5C8A' : 'none'} />{playing.likes?.length || 0}
                 </button>
+                <button onClick={() => setShowComments(true)} className="flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-2">
+                  <MessageCircle size={18} />{playing.comments?.[0]?.count || 0}
+                </button>
               </div>
               {playing.content && <p className="text-white/80">{playing.content}</p>}
             </div>
           </div>
         </div>
       )}
+      {playing && showComments && <CommentsSheet post={playing} onClose={() => setShowComments(false)} onChange={load} />}
       {open && <UploadSheet kind="video" onClose={() => setOpen(false)} onDone={load} />}
     </div>
   )
