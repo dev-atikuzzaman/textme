@@ -1,4 +1,4 @@
-const V = 'apon-v2'
+const V = 'apon-v3'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -29,7 +29,25 @@ self.addEventListener('fetch', (e) => {
     }))
   )
 })
+self.addEventListener('push', (e) => {
+  let d = {}
+  try { d = e.data.json() } catch { d = { body: e.data ? e.data.text() : '' } }
+  e.waitUntil(self.registration.showNotification(d.title || 'আপন', {
+    body: d.body || '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { url: d.url || '/notifications' },
+  }))
+})
+
 self.addEventListener('notificationclick', (e) => {
   e.notification.close()
-  e.waitUntil(clients.matchAll({ type: 'window' }).then((l) => (l.length ? l[0].focus() : clients.openWindow('/notifications'))))
+  const url = (e.notification.data && e.notification.data.url) || '/'
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      const c = list.find((x) => 'focus' in x)
+      if (c) return c.focus().then(() => ('navigate' in c ? c.navigate(url) : null))
+      return clients.openWindow(url)
+    })
+  )
 })
