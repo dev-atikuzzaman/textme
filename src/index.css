@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body { @apply bg-mist text-ink font-sans antialiased; -webkit-tap-highlight-color: transparent; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition active:scale-95 disabled:opacity-50; }
+.btn-primary { @apply btn text-white bg-gradient-to-r from-brand to-coral shadow-soft; }
+.btn-soft { @apply btn bg-white text-ink; }
+.input { @apply w-full rounded-2xl border-0 bg-white px-4 py-3 outline-none ring-1 ring-ink/10 focus:ring-2 focus:ring-brand; }
