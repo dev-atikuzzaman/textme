@@ -11,6 +11,8 @@ import Friends from './pages/Friends'
 import Messages from './pages/Messages'
 import Chat from './pages/Chat'
 import Profile from './pages/Profile'
+import Notifications from './pages/Notifications'
+import Post from './pages/Post'
 
 function Guard({ children }) {
   const { user, loading } = useAuth()
@@ -32,6 +34,8 @@ export default function App() {
           <Route path="messages" element={<Messages />} />
           <Route path="chat/:id" element={<Chat />} />
           <Route path="profile/:id?" element={<Profile />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="post/:id" element={<Post />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
