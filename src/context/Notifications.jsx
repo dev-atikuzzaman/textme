@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
+import { syncPush } from '../lib/push'
 
 const Ctx = createContext(null)
 export const useNotifs = () => useContext(Ctx)
@@ -32,11 +33,6 @@ export function NotifProvider({ children }) {
   const announce = useCallback((title, body, to) => {
     setToast({ title, body, to })
     setTimeout(() => setToast(null), 4000)
-    if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-      navigator.serviceWorker?.ready
-        .then((r) => r.showNotification(title, { body, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png' }))
-        .catch(() => {})
-    }
   }, [])
 
   const markAllRead = useCallback(async () => {
@@ -46,6 +42,7 @@ export function NotifProvider({ children }) {
 
   useEffect(() => {
     load()
+    syncPush()
     const nameOf = async (id) => (await supabase.from('profiles').select('full_name').eq('id', id).single()).data?.full_name || 'কেউ'
     const ch = supabase.channel(`notif-${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
