@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "আপন",
+  "short_name": "আপন",
+  "description": "পরিবার ও আত্মীয়দের জন্য সোশ্যাল স্পেস",
+  "lang": "bn",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F1FF",
+  "theme_color": "#6D4AFF",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
