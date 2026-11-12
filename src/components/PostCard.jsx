@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Trash2 } from 'lucide-react'
+import { Heart, MessageCircle, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { PRIVACY, fmt } from '../lib/constants'
 import Avatar from './Avatar'
+import CommentsSheet from './CommentsSheet'
 
 export default function PostCard({ post, onChange }) {
   const { user } = useAuth()
+  const [showComments, setShowComments] = useState(false)
   const liked = post.likes?.some((l) => l.user_id === user.id)
   const P = PRIVACY.find((p) => p.id === post.privacy)
   const toggle = async () => {
@@ -33,9 +36,15 @@ export default function PostCard({ post, onChange }) {
       {post.media_url && (post.media_type === 'video'
         ? <video src={post.media_url} controls playsInline preload="metadata" className="max-h-[480px] w-full rounded-2xl bg-black" />
         : <img src={post.media_url} alt="" loading="lazy" className="w-full rounded-2xl object-cover" />)}
-      <button onClick={toggle} className={`flex items-center gap-1.5 text-sm font-semibold ${liked ? 'text-coral' : 'text-ink/60'}`}>
-        <Heart size={20} fill={liked ? 'currentColor' : 'none'} />{post.likes?.length || 0}
-      </button>
+      <div className="flex gap-5">
+        <button onClick={toggle} className={`flex items-center gap-1.5 text-sm font-semibold ${liked ? 'text-coral' : 'text-ink/60'}`}>
+          <Heart size={20} fill={liked ? 'currentColor' : 'none'} />{post.likes?.length || 0}
+        </button>
+        <button onClick={() => setShowComments(true)} className="flex items-center gap-1.5 text-sm font-semibold text-ink/60">
+          <MessageCircle size={20} />{post.comments?.[0]?.count || 0}
+        </button>
+      </div>
+      {showComments && <CommentsSheet post={post} onClose={() => setShowComments(false)} onChange={onChange} />}
     </article>
   )
 }
