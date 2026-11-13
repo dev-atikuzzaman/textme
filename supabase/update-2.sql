@@ -32,7 +32,7 @@ language plpgsql security definer set search_path = public, extensions as $$
 begin
   perform net.http_post(
     url := 'https://uvpwnislgslfidvwecpw.supabase.co/functions/v1/send-push',
-    headers := jsonb_build_object('Content-Type', 'application/json', 'x-webhook-secret', '...'),
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-webhook-secret', 'P7UY!qg-Qz=v+vU!P@%W]_RAbM<7$m>_'),
     body := jsonb_build_object('table', tg_table_name, 'record', to_jsonb(new))
   );
   return new;
