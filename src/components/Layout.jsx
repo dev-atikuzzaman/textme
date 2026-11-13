@@ -1,6 +1,7 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
 import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Bell } from 'lucide-react'
 import { NotifProvider, useNotifs } from '../context/Notifications'
+import { CallProvider } from '../context/Call'
 import InstallBanner from './InstallBanner'
 
 const tabs = [
@@ -49,5 +50,5 @@ function Shell() {
 }
 
 export default function Layout() {
-  return <NotifProvider><Shell /></NotifProvider>
+  return <NotifProvider><CallProvider><Shell /></CallProvider></NotifProvider>
 }
