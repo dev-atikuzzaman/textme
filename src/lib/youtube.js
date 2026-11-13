@@ -22,6 +22,9 @@ export async function startYoutubeConnect() {
   const { data, error } = await supabase.functions.invoke('yt-connect')
   if (error) {
     let detail = error.message
+    if (error.name === 'FunctionsFetchError') {
+      throw new Error('yt-connect ফাংশনে পৌঁছানো যায়নি — ফাংশনটি ডিপ্লয় করা আছে কিনা, নাম ঠিক আছে কিনা এবং ইন্টারনেট দেখুন')
+    }
     try {
       const b = await error.context.json()
       detail = `${error.context.status} ${b.error || b.message || JSON.stringify(b)}`
