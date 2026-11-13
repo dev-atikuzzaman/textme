@@ -141,7 +141,7 @@ export default function ExternalFeed({ tab, cat, reloadKey = 0, note = '' }) {
 
   const connect = async () => {
     setBusy(true); setMsg('')
-    try { await startYoutubeConnect() } catch { setBusy(false); setMsg('কানেক্ট শুরু করা যায়নি') }
+    try { await startYoutubeConnect() } catch (e) { setBusy(false); setMsg('কানেক্ট শুরু করা যায়নি: ' + e.message) }
   }
   const disconnect = async () => { await disconnectYoutube(); autoSynced.current = false; setReload((n) => n + 1) }
   const remove = async (v) => { await supabase.from('external_videos').delete().eq('id', v.id); setReload((n) => n + 1) }
