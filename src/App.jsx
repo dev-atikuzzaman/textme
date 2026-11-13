@@ -7,6 +7,7 @@ import Setup from './pages/Setup'
 import Auth from './pages/Auth'
 import Feed from './pages/Feed'
 import Reels from './pages/Reels'
+import Share from './pages/Share'
 import Videos from './pages/Videos'
 import Friends from './pages/Friends'
 import Messages from './pages/Messages'
@@ -73,6 +74,7 @@ export default function App() {
         <Route element={<Guard><Layout /></Guard>}>
           <Route index element={<Feed />} />
           <Route path="reels" element={<Reels />} />
+          <Route path="share" element={<Share />} />
           <Route path="videos" element={<Videos />} />
           <Route path="friends" element={<Friends />} />
           <Route path="messages" element={<Messages />} />
