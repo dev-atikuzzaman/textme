@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Heart, MessageCircle, Plus, Volume2, VolumeX } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
@@ -6,6 +7,8 @@ import { CATEGORIES, SELECT_POST } from '../lib/constants'
 import UploadSheet from '../components/UploadSheet'
 import Avatar from '../components/Avatar'
 import CommentsSheet from '../components/CommentsSheet'
+import ExternalFeed from '../components/ExternalFeed'
+import AddLinkSheet from '../components/AddLinkSheet'
 
 function Reel({ post, muted, setMuted, onChange }) {
   const { user } = useAuth()
@@ -45,10 +48,24 @@ function Reel({ post, muted, setMuted, onChange }) {
   )
 }
 
+const TABS = [
+  { id: 'own', label: 'আপন' },
+  { id: 'sub', label: 'সাবস্ক্রিপশন' },
+  { id: 'bd', label: 'বাংলাদেশ' },
+  { id: 'world', label: 'আন্তর্জাতিক' },
+  { id: 'topic', label: 'বিষয়ভিত্তিক' },
+  { id: 'fb', label: 'ফেসবুক' },
+]
+
 export default function Reels() {
+  const [sp] = useSearchParams()
+  const first = sp.get('tab') || (sp.get('yt') ? 'sub' : 'own')
+  const [tab, setTab] = useState(TABS.some((t) => t.id === first) ? first : 'own')
   const [cat, setCat] = useState('সব')
   const [items, setItems] = useState(null)
   const [open, setOpen] = useState(false)
+  const [linkOpen, setLinkOpen] = useState(false)
+  const [linkKey, setLinkKey] = useState(0)
   const [muted, setMuted] = useState(true)
   const load = useCallback(async () => {
     let q = supabase.from('posts').select(SELECT_POST).eq('kind', 'reel').order('created_at', { ascending: false }).limit(30)
@@ -56,23 +73,45 @@ export default function Reels() {
     const { data } = await q
     setItems(data || [])
   }, [cat])
-  useEffect(() => { load() }, [load])
+  useEffect(() => { if (tab === 'own') load() }, [load, tab])
+
+  const showCats = tab === 'own' || tab === 'topic'
+  const canAdd = tab === 'own' || tab === 'fb'
+  const ytNote = ['denied', 'error'].includes(sp.get('yt')) ? 'কানেক্ট সম্পন্ন হয়নি, আবার চেষ্টা করুন।' : ''
 
   return (
     <div className="fixed inset-0 z-40 bg-black">
-      <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-black/60 to-transparent p-4">
-        <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">
-          {['সব', ...CATEGORIES].map((c) => (
-            <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold ${cat === c ? 'bg-white text-ink' : 'bg-white/20 text-white backdrop-blur'}`}>{c}</button>
-          ))}
+      <div className="absolute inset-x-0 top-0 z-10 space-y-2 bg-gradient-to-b from-black/70 to-transparent px-4 pb-6 pt-[max(1rem,env(safe-area-inset-top))]">
+        <div className="flex items-center gap-2">
+          <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">
+            {TABS.map((t) => (
+              <button key={t.id} onClick={() => setTab(t.id)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-bold ${tab === t.id ? 'bg-white text-ink' : 'bg-white/20 text-white backdrop-blur'}`}>{t.label}</button>
+            ))}
+          </div>
+          {canAdd && (
+            <button onClick={() => (tab === 'own' ? setOpen(true) : setLinkOpen(true))} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-coral text-white"><Plus /></button>
+          )}
         </div>
-        <button onClick={() => setOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-coral text-white"><Plus /></button>
+        {showCats && (
+          <div className="no-scrollbar flex gap-2 overflow-x-auto">
+            {['সব', ...CATEGORIES].map((c) => (
+              <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${cat === c ? 'bg-brand text-white' : 'border border-white/30 text-white/80'}`}>{c}</button>
+            ))}
+          </div>
+        )}
       </div>
-      <div className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll">
-        {items?.length === 0 && <p className="grid h-full place-items-center px-10 text-center text-white/70">এই বিষয়ে এখনও কোনো রিল নেই। + চেপে প্রথম রিলটি আপলোড করুন।</p>}
-        {items?.map((p) => <Reel key={p.id} post={p} muted={muted} setMuted={setMuted} onChange={load} />)}
-      </div>
+
+      {tab === 'own' ? (
+        <div className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll">
+          {items?.length === 0 && <p className="grid h-full place-items-center px-10 text-center text-white/70">এই বিষয়ে এখনও কোনো রিল নেই। + চেপে প্রথম রিলটি আপলোড করুন।</p>}
+          {items?.map((p) => <Reel key={p.id} post={p} muted={muted} setMuted={setMuted} onChange={load} />)}
+        </div>
+      ) : (
+        <ExternalFeed tab={tab} cat={cat} reloadKey={linkKey} note={ytNote} />
+      )}
+
       {open && <UploadSheet kind="reel" onClose={() => setOpen(false)} onDone={load} />}
+      {linkOpen && <AddLinkSheet onClose={() => setLinkOpen(false)} onDone={() => setLinkKey((n) => n + 1)} />}
     </div>
   )
 }
