@@ -24,16 +24,16 @@ export default function EditPostSheet({ post, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-[66] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="pop-in max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto rounded-t-[32px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+      <div className="pop-in max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">পোস্ট এডিট</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-mist"><X size={18} /></button>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
         </div>
         {post.kind === 'video' && <input className="input" placeholder="শিরোনাম" value={title} onChange={(e) => setTitle(e.target.value)} />}
         <textarea className="input min-h-[140px]" value={content} onChange={(e) => setContent(e.target.value)} placeholder="কী লিখতে চান?" autoFocus />
-        {post.media_url && <p className="text-xs text-ink/50">ছবি/ভিডিও বদলানো যায় না — শুধু লেখা ও গোপনীয়তা এডিট হবে।</p>}
+        {post.media_url && <p className="text-xs text-fg/50">ছবি/ভিডিও বদলানো যায় না — শুধু লেখা ও গোপনীয়তা এডিট হবে।</p>}
         <PrivacyPicker value={privacy} onChange={setPrivacy} />
-        {err && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-600">{err}</p>}
+        {err && <p className="rounded-xl bg-danger/15 p-3 text-sm text-danger">{err}</p>}
         <button disabled={busy} onClick={save} className="btn-primary w-full">{busy ? 'সেভ হচ্ছে…' : 'সেভ করুন'}</button>
       </div>
     </div>
