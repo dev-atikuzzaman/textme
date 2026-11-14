@@ -14,16 +14,16 @@ export default function ContactSheet({ onClose, onSend }) {
   }
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md space-y-3 rounded-t-[32px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md space-y-3 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">কন্টাক্ট শেয়ার</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-mist"><X size={18} /></button>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
         </div>
-        {canPick && <button onClick={pick} className="btn-soft w-full !bg-mist"><BookUser size={18} />ফোনবুক থেকে বাছুন</button>}
+        {canPick && <button onClick={pick} className="btn-soft w-full !bg-surface2"><BookUser size={18} />ফোনবুক থেকে বাছুন</button>}
         <input className="input" placeholder="নাম" value={name} onChange={(e) => setName(e.target.value)} />
         <input className="input" type="tel" inputMode="tel" placeholder="ফোন নম্বর" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <button disabled={!name.trim() || !phone.trim()} onClick={() => onSend({ name: name.trim(), phone: phone.trim() })} className="btn-primary w-full">পাঠান</button>
-        {!canPick && <p className="text-center text-xs text-ink/50">সরাসরি ফোনবুক বাছাই শুধু Android Chrome-এ চলে। অন্য ডিভাইসে নাম ও নম্বর লিখে দিন।</p>}
+        {!canPick && <p className="text-center text-xs text-fg/50">সরাসরি ফোনবুক বাছাই শুধু Android Chrome-এ চলে। অন্য ডিভাইসে নাম ও নম্বর লিখে দিন।</p>}
       </div>
     </div>
   )

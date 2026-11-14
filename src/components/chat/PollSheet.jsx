@@ -9,16 +9,16 @@ export default function PollSheet({ onClose, onCreate }) {
   const set = (i, v) => setOpts(opts.map((o, j) => (j === i ? v : o)))
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={onClose}>
-      <div className="max-h-[90vh] w-full max-w-md space-y-3 overflow-y-auto rounded-t-[32px] bg-white p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[90vh] w-full max-w-md space-y-3 overflow-y-auto rounded-t-[32px] bg-surface p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">পোল তৈরি করুন</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-mist"><X size={18} /></button>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
         </div>
         <input className="input" placeholder="প্রশ্ন লিখুন" value={q} onChange={(e) => setQ(e.target.value)} maxLength={150} />
         {opts.map((o, i) => (
           <div key={i} className="flex gap-2">
             <input className="input" placeholder={`অপশন ${i + 1}`} value={o} onChange={(e) => set(i, e.target.value)} maxLength={80} />
-            {opts.length > 2 && <button onClick={() => setOpts(opts.filter((_, j) => j !== i))} className="px-2 text-ink/40"><Trash2 size={18} /></button>}
+            {opts.length > 2 && <button onClick={() => setOpts(opts.filter((_, j) => j !== i))} className="px-2 text-fg/40"><Trash2 size={18} /></button>}
           </div>
         ))}
         {opts.length < 6 && (

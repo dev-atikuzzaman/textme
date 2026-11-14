@@ -14,8 +14,8 @@ function callText(m, mine) {
 }
 
 export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenImage }) {
-  const sub = mine ? 'text-white/70' : 'text-ink/45'
-  const chip = mine ? 'bg-white/15' : 'bg-mist'
+  const sub = mine ? 'text-inverse/60' : 'text-fg/45'
+  const chip = mine ? 'bg-black/10' : 'bg-surface2'
   const loading = <div className="h-40 w-52 animate-pulse rounded-2xl bg-black/10" />
   let body
 
@@ -64,7 +64,7 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
             const pct = votes.length ? Math.round((c * 100) / votes.length) : 0
             return (
               <button key={i} onClick={() => onVote(m, i)} className={`relative mb-1.5 block w-full overflow-hidden rounded-xl text-left ${chip}`}>
-                <span className={`absolute inset-y-0 left-0 ${mine ? 'bg-white/30' : 'bg-brand/20'}`} style={{ width: `${pct}%` }} />
+                <span className={`absolute inset-y-0 left-0 ${mine ? 'bg-black/15' : 'bg-brand/25'}`} style={{ width: `${pct}%` }} />
                 <span className="relative flex justify-between gap-2 px-3 py-2 text-sm"><span>{mv === i ? '✓ ' : ''}{o}</span><b>{c}</b></span>
               </button>
             )
@@ -86,7 +86,7 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
 
   return (
     <div className={`flex ${mine ? 'justify-end' : ''}`}>
-      <div className={`max-w-[82%] rounded-3xl px-3.5 py-2.5 ${mine ? 'rounded-br-lg bg-gradient-to-br from-brand to-coral text-white' : 'rounded-bl-lg bg-white'}`}>
+      <div className={`max-w-[82%] rounded-3xl px-3.5 py-2.5 ${mine ? 'rounded-br-lg bg-gradient-to-br from-brand to-coral text-inverse' : 'rounded-bl-lg bg-surface'}`}>
         {body}
         <p className={`mt-1 text-right text-[10px] ${sub}`}>{time(m.created_at)}</p>
       </div>
