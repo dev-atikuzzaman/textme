@@ -18,7 +18,7 @@ function ago(d) {
   return `${bn(Math.round(m / 1440))} দিন`
 }
 
-export default function CommentItem({ c, canDelete, onDelete, onOpenImage }) {
+export default function CommentItem({ c, isReply = false, postOwnerId, parentAuthorId, nameOf, active, canDelete, onDelete, onReply, onOpenImage }) {
   const { user } = useAuth()
   const [rx, setRx] = useState(c.comment_reactions || [])
   const [who, setWho] = useState(false)
@@ -43,14 +43,22 @@ export default function CommentItem({ c, canDelete, onDelete, onOpenImage }) {
   }
 
   const top = REACTIONS.map((r) => ({ ...r, n: rx.filter((x) => x.type === r.id).length })).filter((r) => r.n).sort((a, b) => b.n - a.n).slice(0, 3)
+  const showMention = isReply && c.reply_to && c.reply_to !== parentAuthorId
 
   return (
-    <div className="flex gap-3">
-      <Link to={`/profile/${c.user_id}`}><Avatar p={c.profiles} size={36} /></Link>
+    <div className="flex gap-2.5" data-cid={c.id}>
+      <Link to={`/profile/${c.user_id}`}><Avatar p={c.profiles} size={isReply ? 30 : 36} /></Link>
       <div className="min-w-0 flex-1">
-        <div className="relative inline-block max-w-full rounded-3xl rounded-tl-lg bg-surface2 px-4 py-2.5">
-          <p className="text-sm font-bold">{c.profiles?.full_name}</p>
-          {c.content && <p className="whitespace-pre-wrap break-words">{c.content}</p>}
+        <div className={`relative inline-block max-w-full rounded-3xl rounded-tl-lg bg-surface2 px-4 py-2.5 transition ${active ? 'ring-2 ring-brand/60' : ''}`}>
+          <p className="flex items-center gap-2 text-sm font-bold">
+            {c.profiles?.full_name}
+            {c.user_id === postOwnerId && <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold text-brand">লেখক</span>}
+          </p>
+          {(c.content || showMention) && (
+            <p className="whitespace-pre-wrap break-words">
+              {showMention && <span className="mr-1 font-bold text-brand">@{nameOf(c.reply_to)}</span>}{c.content}
+            </p>
+          )}
           {c.media_url && c.media_type === 'image' && <img src={c.media_url} alt="" loading="lazy" onClick={() => onOpenImage(c.media_url)} className="mt-2 max-h-64 rounded-2xl object-cover" />}
           {c.media_url && c.media_type === 'video' && <video src={c.media_url} controls playsInline preload="metadata" className="mt-2 max-h-64 rounded-2xl bg-black" />}
           {c.media_url && c.media_type === 'file' && <FileCard url={c.media_url} name={c.media_name} size={c.media_size} className="mt-2 !bg-surface" />}
@@ -60,8 +68,9 @@ export default function CommentItem({ c, canDelete, onDelete, onOpenImage }) {
             </button>
           )}
         </div>
-        <div className={`flex items-center gap-4 px-2 text-xs text-fg/55 ${top.length ? 'mt-4' : 'mt-1.5'}`}>
+        <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 px-2 text-xs text-fg/55 ${top.length ? 'mt-4' : 'mt-1.5'}`}>
           <ReactionBar compact mine={mine} onReact={react} />
+          <button onClick={onReply} className="font-bold text-fg/60 transition active:scale-95 active:text-brand">উত্তর দিন</button>
           <span>{ago(c.created_at)}</span>
           {canDelete && <button onClick={onDelete} className="flex items-center gap-1 font-bold text-danger/80"><Trash2 size={12} />মুছুন</button>}
         </div>
