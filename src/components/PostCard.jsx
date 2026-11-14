@@ -14,6 +14,7 @@ import PostMenu from './post/PostMenu'
 import EditPostSheet from './post/EditPostSheet'
 import ReactionsSheet from './post/ReactionsSheet'
 import FileCard from './FileCard'
+import ShareSheet from './post/ShareSheet'
 import Lightbox from './post/Lightbox'
 import AutoVideo from './post/AutoVideo'
 
@@ -71,7 +72,8 @@ export default function PostCard({ post, onChange, onHide }) {
     setSheet(null)
     try { await navigator.clipboard.writeText(url); flash('লিংক কপি হয়েছে') } catch { flash(url) }
   }
-  const share = async () => {
+  const share = () => setSheet('share')
+  const nativeShare = async () => {
     setSheet(null)
     try {
       if (navigator.share) await navigator.share({ title: 'আপন', text: text.slice(0, 80), url })
@@ -150,6 +152,7 @@ export default function PostCard({ post, onChange, onHide }) {
       {note && <p className="mt-2 rounded-xl bg-surface2 p-2.5 text-center text-sm font-semibold text-fg/70">{note}</p>}
 
       {sheet === 'comments' && <CommentsSheet post={post} onClose={() => setSheet(null)} onChange={onChange} />}
+      {sheet === 'share' && <ShareSheet url={url} text={text} onClose={() => setSheet(null)} onCopy={copy} onNative={nativeShare} />}
       {sheet === 'zoom' && <Lightbox src={post.media_url} onClose={() => setSheet(null)} />}
       {sheet === 'who' && <ReactionsSheet table="likes" col="post_id" id={post.id} onClose={() => setSheet(null)} />}
       {sheet === 'edit' && <EditPostSheet post={post} onClose={() => setSheet(null)} onSaved={onChange} />}
