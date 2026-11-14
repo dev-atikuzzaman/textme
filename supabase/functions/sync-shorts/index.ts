@@ -1,17 +1,15 @@
 // ইউটিউব শর্টস সিঙ্ক। ডিপ্লয়: supabase functions deploy sync-shorts --no-verify-jwt
-// ১) cron (x-webhook-secret হেডার): parts = trending | subs | topics
+// ১) cron (x-webhook-secret হেডার): parts = subs
 // ২) লগ-ইন করা ইউজার: parts = ['mine'] (শুধু নিজের সাবস্ক্রিপশন, ১০ মিনিটে একবার)
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret' }
+let cors: Record<string, string> = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret' }
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } })
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
 const KEY = Deno.env.get('YOUTUBE_API_KEY')!
 const API = 'https://www.googleapis.com/youtube/v3'
 const MAX_SECONDS = 180 // শর্টস এখন সর্বোচ্চ ৩ মিনিট
-const WORLD = ['US', 'GB', 'IN', 'BR', 'JP', 'ID']
-const CATEGORIES = ['বিনোদন', 'ধর্ম', 'রান্না', 'ভ্রমণ', 'শিক্ষা', 'প্রযুক্তি', 'খেলা', 'পরিবার'] // src/lib/constants.js এর সাথে মেলান
 
 const chunk = <T,>(a: T[], n: number): T[][] => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n))
 
@@ -28,9 +26,9 @@ const secs = (d?: string) => {
 }
 
 // videos.list এর একটি আইটেম থেকে সারি বানায়; শর্টস না হলে বা embed বন্ধ থাকলে null
-function toRow(it: any) {
+function toRow(it: any, max = MAX_SECONDS) {
   const d = secs(it.contentDetails?.duration)
-  if (!d || d > MAX_SECONDS) return null
+  if (!d || d > max) return null
   if (it.status?.embeddable === false || it.status?.privacyStatus !== 'public') return null
   if (it.snippet?.liveBroadcastContent && it.snippet.liveBroadcastContent !== 'none') return null
   return {
@@ -43,11 +41,11 @@ function toRow(it: any) {
   }
 }
 
-async function details(ids: string[]) {
+async function details(ids: string[], max = MAX_SECONDS) {
   const rows: any[] = []
   for (const c of chunk([...new Set(ids)], 50)) {
     const d = await yt('videos', { part: 'snippet,contentDetails,status', id: c.join(',') })
-    for (const it of d.items ?? []) { const r = toRow(it); if (r) rows.push(r) }
+    for (const it of d.items ?? []) { const r = toRow(it, max); if (r) rows.push(r) }
   }
   return rows
 }
@@ -70,42 +68,6 @@ async function save(rows: any[], feed: string, category?: string) {
     ...(category ? { category } : {}),
   }))
   for (const c of chunk(out, 200)) await db.from('external_videos').upsert(c, { onConflict: 'source,external_id' })
-}
-
-async function doTrending(out: Record<string, unknown>) {
-  const jobs = [{ region: 'BD', feed: 'trending_bd', pages: 4 }, ...WORLD.map((region) => ({ region, feed: 'trending_world', pages: 3 }))]
-  for (const j of jobs) {
-    try {
-      const rows: any[] = []
-      let pageToken: string | undefined
-      for (let i = 0; i < j.pages; i++) {
-        const d = await yt('videos', {
-          part: 'snippet,contentDetails,status', chart: 'mostPopular', regionCode: j.region, maxResults: '50',
-          ...(pageToken ? { pageToken } : {}),
-        })
-        for (const it of d.items ?? []) { const r = toRow(it); if (r) rows.push(r) }
-        pageToken = d.nextPageToken
-        if (!pageToken) break
-      }
-      await save(rows, j.feed)
-      out[`trending_${j.region}`] = rows.length
-    } catch (e: any) { out[`trending_${j.region}`] = `error ${e.status ?? e.message}` }
-  }
-}
-
-async function doTopics(out: Record<string, unknown>) {
-  const after = new Date(Date.now() - 14 * 864e5).toISOString()
-  for (const c of CATEGORIES) {
-    try {
-      const s = await yt('search', {
-        part: 'snippet', type: 'video', videoDuration: 'short', q: `${c} shorts`, regionCode: 'BD',
-        relevanceLanguage: 'bn', order: 'viewCount', maxResults: '25', publishedAfter: after,
-      })
-      const rows = await details((s.items ?? []).map((i: any) => i.id?.videoId).filter(Boolean))
-      await save(rows, 'topic', c)
-      out[`topic_${c}`] = rows.length
-    } catch (e: any) { out[`topic_${c}`] = `error ${e.status ?? e.message}` }
-  }
 }
 
 async function refreshAccess(refresh: string) {
@@ -165,16 +127,14 @@ async function doChannels(channels: string[], out: Record<string, unknown>) {
 }
 
 Deno.serve(async (req) => {
+  cors = { ...cors, 'Access-Control-Allow-Headers': req.headers.get('access-control-request-headers') ?? cors['Access-Control-Allow-Headers'] }
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const body = await req.json().catch(() => ({}))
   const out: Record<string, unknown> = {}
 
   try {
     if (req.headers.get('x-webhook-secret') === Deno.env.get('WEBHOOK_SECRET')) {
-      const parts: string[] = body.parts ?? ['trending', 'subs']
-      if (parts.includes('trending')) await doTrending(out)
-      if (parts.includes('topics')) await doTopics(out)
-      if (parts.includes('subs')) {
+      if ((body.parts ?? ['subs']).includes('subs')) {
         const { data: users } = await db.from('yt_connections').select('user_id')
         for (const u of users ?? []) {
           try { await syncUserSubs(u.user_id) } catch (e: any) { out[`user_${u.user_id.slice(0, 8)}`] = `error ${e.message}` }
