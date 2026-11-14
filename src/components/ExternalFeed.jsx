@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Volume2, VolumeX, ExternalLink, Trash2, Play, RefreshCw } from 'lucide-react'
+import { Volume2, VolumeX, ExternalLink, Play, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { startYoutubeConnect, syncMyShorts, disconnectYoutube } from '../lib/youtube'
-
-const since = (days) => new Date(Date.now() - days * 864e5).toISOString()
 
 function ytSrc(id, muted) {
   const p = new URLSearchParams({
@@ -15,21 +13,12 @@ function ytSrc(id, muted) {
   return `https://www.youtube.com/embed/${id}?${p}`
 }
 
-function fbSrc(url) {
-  const p = new URLSearchParams({
-    href: url, show_text: 'false', autoplay: 'true',
-    width: String(Math.min(window.innerWidth, 500)), height: String(window.innerHeight),
-  })
-  return `https://www.facebook.com/plugins/video.php?${p}`
-}
-
-function ExtReel({ v, index, active, onActive, muted, setMuted, mine, onDelete }) {
+function ExtReel({ v, index, active, onActive, muted, setMuted }) {
   const sec = useRef(null)
   const frame = useRef(null)
-  const isYt = v.source === 'youtube'
-  const thumb = v.thumbnail || (isYt ? `https://i.ytimg.com/vi/${v.external_id}/hqdefault.jpg` : null)
-  // শুধু সক্রিয় রিলে iframe বসে; আইফ্রেম বদলালে ইউআরএল আবার তৈরি হয়, মিউট বদলালে নয়
-  const src = useMemo(() => (active ? (isYt ? ytSrc(v.external_id, muted) : fbSrc(v.url)) : null), [active, v.id])
+  const thumb = v.thumbnail || `https://i.ytimg.com/vi/${v.external_id}/hqdefault.jpg`
+  // শুধু সক্রিয় রিলে iframe বসে
+  const src = useMemo(() => (active ? ytSrc(v.external_id, muted) : null), [active, v.id])
 
   useEffect(() => {
     const io = new IntersectionObserver(([e]) => e.isIntersecting && onActive(index), { threshold: 0.6 })
@@ -38,54 +27,35 @@ function ExtReel({ v, index, active, onActive, muted, setMuted, mine, onDelete }
   }, [index, onActive])
 
   useEffect(() => {
-    if (isYt && active) {
-      frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: muted ? 'mute' : 'unMute', args: [] }), '*')
-    }
+    if (active) frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: muted ? 'mute' : 'unMute', args: [] }), '*')
   }, [muted])
 
   return (
     <section ref={sec} className="relative h-full snap-start snap-always overflow-hidden bg-black">
-      {thumb && <img src={thumb} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-md" />}
+      <img src={thumb} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-md" />
       {src && (
         <iframe key={v.id} ref={frame} src={src} title={v.title || 'ভিডিও'} loading="lazy"
           allow="autoplay; encrypted-media; picture-in-picture" className="absolute inset-0 h-full w-full border-0" />
       )}
-      {isYt && active && <div className="absolute inset-0" onClick={() => setMuted(!muted)} />}
+      {active && <div className="absolute inset-0" onClick={() => setMuted(!muted)} />}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/80 to-transparent" />
-
       <div className="absolute bottom-28 right-4 z-10 flex flex-col items-center gap-4 text-white">
-        {isYt && (
-          <button onClick={() => setMuted(!muted)} className="grid h-11 w-11 place-items-center rounded-full bg-white/20 backdrop-blur">
-            {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-          </button>
-        )}
+        <button onClick={() => setMuted(!muted)} className="grid h-11 w-11 place-items-center rounded-full bg-white/20 backdrop-blur">
+          {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+        </button>
         <a href={v.url} target="_blank" rel="noopener noreferrer" className="grid h-11 w-11 place-items-center rounded-full bg-white/20 backdrop-blur">
           <ExternalLink size={20} />
         </a>
-        {mine && (
-          <button onClick={() => onDelete(v)} className="grid h-11 w-11 place-items-center rounded-full bg-white/20 backdrop-blur">
-            <Trash2 size={20} />
-          </button>
-        )}
       </div>
-
       <div className="pointer-events-none absolute bottom-28 left-4 right-20 z-10 text-white">
-        <p className="text-sm font-bold">{v.channel_title || (isYt ? 'ইউটিউব' : 'ফেসবুক')}</p>
+        <p className="text-sm font-bold">{v.channel_title || 'ইউটিউব'}</p>
         {v.title && <p className="mt-1 line-clamp-2 text-sm text-white/90">{v.title}</p>}
       </div>
     </section>
   )
 }
 
-const EMPTY = {
-  sub: 'এখনও কোনো শর্টস পাওয়া যায়নি।',
-  bd: 'এখনও ডাটা আসেনি। সার্ভারের সিঙ্ক একবার চললেই এখানে ভিডিও আসবে।',
-  world: 'এখনও ডাটা আসেনি। সার্ভারের সিঙ্ক একবার চললেই এখানে ভিডিও আসবে।',
-  topic: 'এই বিষয়ে এখনও ভিডিও আসেনি।',
-  fb: 'ফেসবুকে রিল দেখে Share → আপন চাপুন, অথবা উপরের + দিয়ে লিংক পেস্ট করুন।',
-}
-
-export default function ExternalFeed({ tab, cat, reloadKey = 0, note = '' }) {
+export default function ExternalFeed({ note = '' }) {
   const { user } = useAuth()
   const [items, setItems] = useState(null)
   const [conn, setConn] = useState(undefined)
@@ -100,28 +70,19 @@ export default function ExternalFeed({ tab, cat, reloadKey = 0, note = '' }) {
     let off = false
     setItems(null); setActive(0); setMsg('')
     ;(async () => {
+      const { data: c } = await supabase.from('yt_connections').select('*').eq('user_id', user.id).maybeSingle()
+      if (off) return
+      setConn(c || null)
       let rows = []
-      if (tab === 'sub') {
-        const { data: c } = await supabase.from('yt_connections').select('*').eq('user_id', user.id).maybeSingle()
-        if (off) return
-        setConn(c || null)
-        if (c) rows = (await supabase.rpc('my_sub_shorts', { p_limit: 60 })).data || []
-      } else if (tab === 'bd' || tab === 'world') {
-        rows = (await supabase.from('external_videos').select('*').eq('source', 'youtube')
-          .contains('feeds', [tab === 'bd' ? 'trending_bd' : 'trending_world']).gte('fetched_at', since(3))
-          .order('published_at', { ascending: false }).limit(60)).data || []
-      } else if (tab === 'topic') {
-        let q = supabase.from('external_videos').select('*').eq('source', 'youtube').contains('feeds', ['topic']).gte('fetched_at', since(14))
-        if (cat && cat !== 'সব') q = q.eq('category', cat)
-        rows = (await q.order('published_at', { ascending: false }).limit(60)).data || []
-      } else {
-        rows = (await supabase.from('external_videos').select('*').eq('source', 'facebook')
-          .order('created_at', { ascending: false }).limit(60)).data || []
+      if (c) {
+        const { data, error } = await supabase.rpc('my_sub_shorts', { p_limit: 60 })
+        if (error && !off) setMsg('ফিড লোড করা যায়নি: ' + error.message)
+        rows = data || []
       }
       if (!off) setItems(rows)
     })()
     return () => { off = true }
-  }, [tab, cat, reload, reloadKey, user.id])
+  }, [reload, user.id])
 
   const sync = async () => {
     setBusy(true); setMsg('')
@@ -133,22 +94,18 @@ export default function ExternalFeed({ tab, cat, reloadKey = 0, note = '' }) {
 
   // কানেক্ট করা আছে অথচ তালিকা খালি: একবার নিজে থেকে সিঙ্ক
   useEffect(() => {
-    if (tab === 'sub' && conn && items && items.length === 0 && !autoSynced.current) {
-      autoSynced.current = true
-      sync()
-    }
-  }, [tab, conn, items])
+    if (conn && items && items.length === 0 && !autoSynced.current) { autoSynced.current = true; sync() }
+  }, [conn, items])
 
   const connect = async () => {
     setBusy(true); setMsg('')
     try { await startYoutubeConnect() } catch (e) { setBusy(false); setMsg('কানেক্ট শুরু করা যায়নি: ' + e.message) }
   }
   const disconnect = async () => { await disconnectYoutube(); autoSynced.current = false; setReload((n) => n + 1) }
-  const remove = async (v) => { await supabase.from('external_videos').delete().eq('id', v.id); setReload((n) => n + 1) }
 
   const center = 'grid h-full place-items-center px-8 text-center text-white'
 
-  if (tab === 'sub' && conn === null && items !== null) {
+  if (conn === null && items !== null) {
     return (
       <div className={center}>
         <div>
@@ -169,9 +126,9 @@ export default function ExternalFeed({ tab, cat, reloadKey = 0, note = '' }) {
     return (
       <div className={center}>
         <div>
-          <p className="text-white/80">{busy ? 'আপনার চ্যানেলগুলোর শর্টস আনা হচ্ছে…' : EMPTY[tab]}</p>
+          <p className="text-white/80">{busy ? 'আপনার চ্যানেলগুলোর শর্টস আনা হচ্ছে…' : 'এখনও কোনো শর্টস পাওয়া যায়নি।'}</p>
           {msg && <p className="mt-2 text-sm text-coral">{msg}</p>}
-          {tab === 'sub' && conn && !busy && (
+          {conn && !busy && (
             <div className="mt-4 flex justify-center gap-2">
               <button className="btn-soft" onClick={sync}><RefreshCw size={16} /> সিঙ্ক</button>
               <button className="btn bg-white/15 text-white" onClick={disconnect}>বিচ্ছিন্ন করুন</button>
@@ -183,23 +140,20 @@ export default function ExternalFeed({ tab, cat, reloadKey = 0, note = '' }) {
   }
 
   return (
-    <div key={tab + cat} className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll">
+    <div className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll">
       {items.map((v, i) => (
-        <ExtReel key={v.id} v={v} index={i} active={i === active} onActive={setActive}
-          muted={muted} setMuted={setMuted} mine={v.added_by === user.id} onDelete={remove} />
+        <ExtReel key={v.id} v={v} index={i} active={i === active} onActive={setActive} muted={muted} setMuted={setMuted} />
       ))}
-      {tab === 'sub' && (
-        <section className="grid h-full snap-start place-items-center px-8 text-center text-white">
-          <div>
-            <p className="text-white/80">আর কিছু নেই</p>
-            <div className="mt-4 flex justify-center gap-2">
-              <button className="btn-soft" disabled={busy} onClick={sync}><RefreshCw size={16} /> {busy ? 'সিঙ্ক হচ্ছে…' : 'সিঙ্ক'}</button>
-              <button className="btn bg-white/15 text-white" onClick={disconnect}>বিচ্ছিন্ন করুন</button>
-            </div>
-            {msg && <p className="mt-3 text-sm text-coral">{msg}</p>}
+      <section className="grid h-full snap-start place-items-center px-8 text-center text-white">
+        <div>
+          <p className="text-white/80">আর কিছু নেই</p>
+          <div className="mt-4 flex justify-center gap-2">
+            <button className="btn-soft" disabled={busy} onClick={sync}><RefreshCw size={16} /> {busy ? 'সিঙ্ক হচ্ছে…' : 'সিঙ্ক'}</button>
+            <button className="btn bg-white/15 text-white" onClick={disconnect}>বিচ্ছিন্ন করুন</button>
           </div>
-        </section>
-      )}
+          {msg && <p className="mt-3 text-sm text-coral">{msg}</p>}
+        </div>
+      </section>
     </div>
   )
 }
