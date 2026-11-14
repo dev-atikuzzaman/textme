@@ -11,9 +11,11 @@ export default function Feed() {
   const { profile } = useAuth()
   const [posts, setPosts] = useState(null)
   const [open, setOpen] = useState(false)
+  const [loadErr, setLoadErr] = useState('')
   const load = useCallback(async () => {
-    const { data } = await supabase.from('posts').select(SELECT_POST).eq('kind', 'post')
+    const { data, error } = await supabase.from('posts').select(SELECT_POST).eq('kind', 'post')
       .order('created_at', { ascending: false }).limit(50)
+    setLoadErr(error ? error.message : '')
     setPosts(data || [])
   }, [])
   useEffect(() => { load() }, [load])
@@ -25,6 +27,7 @@ export default function Feed() {
         <span className="flex-1 text-ink/50">মনে কী আছে{profile ? `, ${profile.full_name.split(' ')[0]}` : ''}?</span>
         <ImageIcon className="text-brand" />
       </button>
+      {loadErr && <p className="rounded-2xl bg-white p-4 text-sm text-coral">পোস্ট লোড করা যায়নি: {loadErr}</p>}
       {posts === null && <p className="py-10 text-center text-ink/50">লোড হচ্ছে…</p>}
       {posts?.length === 0 && <p className="py-10 text-center text-ink/60">এখনও কোনো পোস্ট নেই। প্রথম পোস্টটি আপনিই করুন, অথবা বন্ধুদের যোগ করুন।</p>}
       {posts?.map((p) => <PostCard key={p.id} post={p} onChange={load} />)}

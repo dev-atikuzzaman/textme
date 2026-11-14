@@ -8,7 +8,6 @@ import UploadSheet from '../components/UploadSheet'
 import Avatar from '../components/Avatar'
 import CommentsSheet from '../components/CommentsSheet'
 import ExternalFeed from '../components/ExternalFeed'
-import AddLinkSheet from '../components/AddLinkSheet'
 
 function Reel({ post, muted, setMuted, onChange }) {
   const { user } = useAuth()
@@ -51,10 +50,6 @@ function Reel({ post, muted, setMuted, onChange }) {
 const TABS = [
   { id: 'own', label: 'আপন' },
   { id: 'sub', label: 'সাবস্ক্রিপশন' },
-  { id: 'bd', label: 'বাংলাদেশ' },
-  { id: 'world', label: 'আন্তর্জাতিক' },
-  { id: 'topic', label: 'বিষয়ভিত্তিক' },
-  { id: 'fb', label: 'ফেসবুক' },
 ]
 
 export default function Reels() {
@@ -64,19 +59,19 @@ export default function Reels() {
   const [cat, setCat] = useState('সব')
   const [items, setItems] = useState(null)
   const [open, setOpen] = useState(false)
-  const [linkOpen, setLinkOpen] = useState(false)
-  const [linkKey, setLinkKey] = useState(0)
+  const [loadErr, setLoadErr] = useState('')
   const [muted, setMuted] = useState(true)
   const load = useCallback(async () => {
     let q = supabase.from('posts').select(SELECT_POST).eq('kind', 'reel').order('created_at', { ascending: false }).limit(30)
     if (cat !== 'সব') q = q.eq('category', cat)
-    const { data } = await q
+    const { data, error } = await q
+    setLoadErr(error ? error.message : '')
     setItems(data || [])
   }, [cat])
   useEffect(() => { if (tab === 'own') load() }, [load, tab])
 
-  const showCats = tab === 'own' || tab === 'topic'
-  const canAdd = tab === 'own' || tab === 'fb'
+  const showCats = tab === 'own'
+  const canAdd = tab === 'own'
   const ytNote = ['denied', 'error'].includes(sp.get('yt')) ? 'কানেক্ট সম্পন্ন হয়নি, আবার চেষ্টা করুন।' : ''
 
   return (
@@ -89,7 +84,7 @@ export default function Reels() {
             ))}
           </div>
           {canAdd && (
-            <button onClick={() => (tab === 'own' ? setOpen(true) : setLinkOpen(true))} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-coral text-white"><Plus /></button>
+            <button onClick={() => setOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-coral text-white"><Plus /></button>
           )}
         </div>
         {showCats && (
@@ -103,15 +98,15 @@ export default function Reels() {
 
       {tab === 'own' ? (
         <div className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll">
-          {items?.length === 0 && <p className="grid h-full place-items-center px-10 text-center text-white/70">এই বিষয়ে এখনও কোনো রিল নেই। + চেপে প্রথম রিলটি আপলোড করুন।</p>}
+          {loadErr && <p className="grid h-full place-items-center px-8 text-center text-sm text-coral">রিল লোড করা যায়নি: {loadErr}</p>}
+          {!loadErr && items?.length === 0 && <p className="grid h-full place-items-center px-10 text-center text-white/70">এই বিষয়ে এখনও কোনো রিল নেই। + চেপে প্রথম রিলটি আপলোড করুন।</p>}
           {items?.map((p) => <Reel key={p.id} post={p} muted={muted} setMuted={setMuted} onChange={load} />)}
         </div>
       ) : (
-        <ExternalFeed tab={tab} cat={cat} reloadKey={linkKey} note={ytNote} />
+        <ExternalFeed note={ytNote} />
       )}
 
       {open && <UploadSheet kind="reel" onClose={() => setOpen(false)} onDone={load} />}
-      {linkOpen && <AddLinkSheet onClose={() => setLinkOpen(false)} onDone={() => setLinkKey((n) => n + 1)} />}
     </div>
   )
 }

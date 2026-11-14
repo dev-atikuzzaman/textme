@@ -16,10 +16,12 @@ export default function Videos() {
   const [open, setOpen] = useState(false)
   const [playing, setPlaying] = useState(null)
   const [showComments, setShowComments] = useState(false)
+  const [loadErr, setLoadErr] = useState('')
   const load = useCallback(async () => {
     let q = supabase.from('posts').select(SELECT_POST).eq('kind', 'video').order('created_at', { ascending: false }).limit(40)
     if (cat !== 'সব') q = q.eq('category', cat)
-    const { data } = await q
+    const { data, error } = await q
+    setLoadErr(error ? error.message : '')
     setItems(data || [])
     setPlaying((p) => (p ? (data || []).find((x) => x.id === p.id) || null : null))
   }, [cat])
@@ -44,6 +46,7 @@ export default function Videos() {
           <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold ${cat === c ? 'bg-ink text-white' : 'bg-white'}`}>{c}</button>
         ))}
       </div>
+      {loadErr && <p className="rounded-2xl bg-white p-4 text-sm text-coral">ভিডিও লোড করা যায়নি: {loadErr}</p>}
       {items?.length === 0 && <p className="py-10 text-center text-ink/60">এই বিভাগে এখনও কোনো ভিডিও নেই।</p>}
       <div className="space-y-5">
         {items?.map((v) => (
