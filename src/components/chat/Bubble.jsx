@@ -1,4 +1,5 @@
-import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff } from 'lucide-react'
+import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck } from 'lucide-react'
+import { linkify } from '../../lib/linkify'
 import { fmtSize, mmss, downloadVcf } from '../../lib/media'
 
 const time = (d) => new Date(d).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
@@ -81,14 +82,14 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
       break
     }
     default:
-      body = <p className="whitespace-pre-wrap break-words">{m.content}</p>
+      body = <p className="whitespace-pre-wrap break-words">{linkify(m.content || '')}</p>
   }
 
   return (
     <div className={`flex ${mine ? 'justify-end' : ''}`}>
       <div className={`max-w-[82%] rounded-3xl px-3.5 py-2.5 ${mine ? 'rounded-br-lg bg-gradient-to-br from-brand to-coral text-inverse' : 'rounded-bl-lg bg-surface'}`}>
         {body}
-        <p className={`mt-1 text-right text-[10px] ${sub}`}>{time(m.created_at)}</p>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${sub}`}>{time(m.created_at)}{mine && (m.read_at ? <CheckCheck size={14} className="text-sky-800" /> : <Check size={14} />)}</p>
       </div>
     </div>
   )
