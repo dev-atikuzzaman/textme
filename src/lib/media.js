@@ -26,3 +26,8 @@ export const mediaPathFromUrl = (url) => {
   const m = url?.split('/object/public/media/')[1]
   return m ? decodeURIComponent(m.split('?')[0]) : null
 }
+
+export const extOf = (f) => {
+  const e = (f.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5)
+  return e || (f.type.split('/')[1] || 'bin').replace(/[^a-z0-9]/g, '').slice(0, 5)
+}

@@ -9,10 +9,10 @@ export const fmt = (d) => new Date(d).toLocaleString('bn-BD', { dateStyle: 'medi
 export const SELECT_POST = '*, profiles!posts_user_id_fkey(id,username,full_name,avatar_url), likes(user_id,type), comments(count)'
 
 export const REACTIONS = [
-  { id: 'like', emoji: '👍', label: 'লাইক', color: 'text-blue-600' },
-  { id: 'love', emoji: '❤️', label: 'ভালোবাসা', color: 'text-rose-500' },
-  { id: 'haha', emoji: '😂', label: 'হাহা', color: 'text-amber-500' },
-  { id: 'wow', emoji: '😮', label: 'ওয়াও', color: 'text-amber-500' },
-  { id: 'sad', emoji: '😢', label: 'দুঃখ', color: 'text-amber-500' },
-  { id: 'angry', emoji: '😡', label: 'রাগ', color: 'text-orange-600' },
+  { id: 'like', emoji: '👍', label: 'লাইক', color: 'text-sky-400' },
+  { id: 'love', emoji: '❤️', label: 'ভালোবাসা', color: 'text-rose-400' },
+  { id: 'haha', emoji: '😂', label: 'হাহা', color: 'text-amber-400' },
+  { id: 'wow', emoji: '😮', label: 'ওয়াও', color: 'text-amber-400' },
+  { id: 'sad', emoji: '😢', label: 'দুঃখ', color: 'text-amber-400' },
+  { id: 'angry', emoji: '😡', label: 'রাগ', color: 'text-orange-400' },
 ]
