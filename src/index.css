@@ -8,3 +8,7 @@ body { @apply bg-mist text-ink font-sans antialiased; -webkit-tap-highlight-colo
 .btn-primary { @apply btn text-white bg-gradient-to-r from-brand to-coral shadow-soft; }
 .btn-soft { @apply btn bg-white text-ink; }
 .input { @apply w-full rounded-2xl border-0 bg-white px-4 py-3 outline-none ring-1 ring-ink/10 focus:ring-2 focus:ring-brand; }
+@keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.85); } to { opacity: 1; transform: none; } }
+.pop-in { animation: pop-in .16s ease-out; }
+@keyframes heart-burst { 0% { opacity: 0; transform: scale(.3); } 30% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.7); } }
+.heart-burst { animation: heart-burst .7s ease-out forwards; }
