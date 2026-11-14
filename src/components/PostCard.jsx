@@ -11,6 +11,7 @@ import ReactionBar from './post/ReactionBar'
 import PostMenu from './post/PostMenu'
 import EditPostSheet from './post/EditPostSheet'
 import ReactionsSheet from './post/ReactionsSheet'
+import FileCard from './FileCard'
 
 export default function PostCard({ post, onChange }) {
   const { user } = useAuth()
@@ -80,7 +81,7 @@ export default function PostCard({ post, onChange }) {
   const top = [...counts].sort((a, b) => b.n - a.n).slice(0, 3)
 
   return (
-    <article className="relative rounded-[28px] bg-white p-4 shadow-soft">
+    <article className="relative rounded-[28px] bg-surface p-4 shadow-soft">
       {post.pinned_at && (
         <div className="-mx-4 -mt-4 mb-3 flex items-center gap-1.5 rounded-t-[28px] bg-brand/10 px-4 py-2 text-xs font-bold text-brand"><Pin size={13} />পিন করা পোস্ট</div>
       )}
@@ -89,9 +90,9 @@ export default function PostCard({ post, onChange }) {
         <Link to={`/profile/${post.user_id}`}><Avatar p={post.profiles} /></Link>
         <div className="min-w-0 flex-1">
           <p className="truncate font-bold">{post.profiles?.full_name}</p>
-          <p className="flex items-center gap-1 text-xs text-ink/50">{P && <P.Icon size={12} />}{fmt(post.created_at)}{post.edited_at && ' • সম্পাদিত'}</p>
+          <p className="flex items-center gap-1 text-xs text-fg/50">{P && <P.Icon size={12} />}{fmt(post.created_at)}{post.edited_at && ' • সম্পাদিত'}</p>
         </div>
-        <button onClick={() => setSheet('menu')} aria-label="অপশন" className="grid h-9 w-9 place-items-center rounded-full text-ink/50 transition active:bg-mist"><MoreHorizontal size={22} /></button>
+        <button onClick={() => setSheet('menu')} aria-label="অপশন" className="grid h-9 w-9 place-items-center rounded-full text-fg/50 transition active:bg-surface2"><MoreHorizontal size={22} /></button>
       </div>
 
       {post.title && <h3 className="mt-3 font-bold">{post.title}</h3>}
@@ -103,8 +104,10 @@ export default function PostCard({ post, onChange }) {
       )}
 
       {post.media_url && (
-        <div className="relative mt-3" onDoubleClick={doubleTap}>
-          {post.media_type === 'video'
+        <div className="relative mt-3" onDoubleClick={post.media_type === 'file' ? undefined : doubleTap}>
+          {post.media_type === 'file'
+            ? <FileCard url={post.media_url} name={post.media_name} size={post.media_size} />
+            : post.media_type === 'video'
             ? <video src={post.media_url} controls playsInline preload="metadata" className="max-h-[480px] w-full rounded-2xl bg-black" />
             : <img src={post.media_url} alt="" loading="lazy" className="w-full rounded-2xl object-cover" />}
           {burst && <span className="heart-burst pointer-events-none absolute inset-0 grid place-items-center text-7xl">❤️</span>}
@@ -112,10 +115,10 @@ export default function PostCard({ post, onChange }) {
       )}
 
       {(likes.length > 0 || commentCount > 0) && (
-        <div className="mt-3 flex items-center justify-between text-sm text-ink/60">
+        <div className="mt-3 flex items-center justify-between text-sm text-fg/60">
           {likes.length > 0 ? (
             <button onClick={() => setSheet('who')} className="flex items-center gap-1.5">
-              <span className="flex -space-x-1.5">{top.map((r) => <span key={r.id} className="grid h-6 w-6 place-items-center rounded-full bg-white text-sm ring-2 ring-white">{r.emoji}</span>)}</span>
+              <span className="flex -space-x-1.5">{top.map((r) => <span key={r.id} className="grid h-6 w-6 place-items-center rounded-full bg-surface2 text-sm ring-2 ring-surface">{r.emoji}</span>)}</span>
               <b>{likes.length}</b>
             </button>
           ) : <span />}
@@ -123,15 +126,15 @@ export default function PostCard({ post, onChange }) {
         </div>
       )}
 
-      <div className="mt-2 flex border-t border-ink/5 pt-1.5">
+      <div className="mt-2 flex border-t border-fg/5 pt-1.5">
         <ReactionBar mine={mine} onReact={react} />
-        <button onClick={() => setSheet('comments')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-ink/60 transition active:scale-95"><MessageCircle size={20} />কমেন্ট</button>
-        <button onClick={share} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-ink/60 transition active:scale-95"><Share2 size={19} />শেয়ার</button>
+        <button onClick={() => setSheet('comments')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/60 transition active:scale-95"><MessageCircle size={20} />কমেন্ট</button>
+        <button onClick={share} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/60 transition active:scale-95"><Share2 size={19} />শেয়ার</button>
       </div>
-      {note && <p className="mt-2 rounded-xl bg-mist p-2.5 text-center text-sm font-semibold text-ink/70">{note}</p>}
+      {note && <p className="mt-2 rounded-xl bg-surface2 p-2.5 text-center text-sm font-semibold text-fg/70">{note}</p>}
 
       {sheet === 'comments' && <CommentsSheet post={post} onClose={() => setSheet(null)} onChange={onChange} />}
-      {sheet === 'who' && <ReactionsSheet post={{ ...post, likes }} onClose={() => setSheet(null)} />}
+      {sheet === 'who' && <ReactionsSheet table="likes" col="post_id" id={post.id} onClose={() => setSheet(null)} />}
       {sheet === 'edit' && <EditPostSheet post={post} onClose={() => setSheet(null)} onSaved={onChange} />}
       {sheet === 'menu' && (
         <PostMenu own={own} canPin={post.kind === 'post'} pinned={!!post.pinned_at}

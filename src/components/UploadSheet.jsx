@@ -4,14 +4,11 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { CATEGORIES } from '../lib/constants'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../lib/upload'
+import { extOf, fmtSize } from '../lib/media'
 import PrivacyPicker from './PrivacyPicker'
 
 const TITLES = { post: 'নতুন পোস্ট', reel: 'নতুন রিল', video: 'ভিডিও আপলোড' }
 const mb = (b) => (b / 1048576).toFixed(1)
-const extOf = (f) => {
-  const e = (f.name.split('.').pop() || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5)
-  return e || (f.type.split('/')[1] || 'bin').replace(/[^a-z0-9]/g, '').slice(0, 5)
-}
 
 export default function UploadSheet({ kind = 'post', onClose, onDone }) {
   const { user } = useAuth()
@@ -22,6 +19,7 @@ export default function UploadSheet({ kind = 'post', onClose, onDone }) {
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [pct, setPct] = useState(0)
+  const [preview, setPreview] = useState(null)
   const [err, setErr] = useState('')
   const ref = useRef()
   const needsVideo = kind !== 'post'
@@ -30,10 +28,10 @@ export default function UploadSheet({ kind = 'post', onClose, onDone }) {
     const f = e.target.files[0]; e.target.value = ''
     if (!f) return
     setErr('')
-    const okType = needsVideo ? f.type.startsWith('video/') : /^(image|video)\//.test(f.type)
-    if (!okType) return setErr(needsVideo ? 'শুধু ভিডিও ফাইল বাছুন' : 'শুধু ছবি বা ভিডিও বাছুন')
+    if (needsVideo && !f.type.startsWith('video/')) return setErr('শুধু ভিডিও ফাইল বাছুন')
     if (f.size > MAX_UPLOAD) return setErr(`ফাইলটি ${mb(f.size)}MB — সর্বোচ্চ ৫০MB। ছোট ভিডিও বাছুন বা ভিডিও কমপ্রেস করুন।`)
     setFile(f)
+    setPreview(f.type.startsWith('image/') ? URL.createObjectURL(f) : null)
   }
 
   const submit = async () => {
@@ -44,16 +42,17 @@ export default function UploadSheet({ kind = 'post', onClose, onDone }) {
     setBusy(true); setPct(0)
     let path = null
     try {
-      let media_url = null, media_type = null
+      let media_url = null, media_type = null, media_name = null, media_size = null
       if (file) {
         path = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(file)}`
         await uploadToStorage('media', path, file, setPct)
         media_url = supabase.storage.from('media').getPublicUrl(path).data.publicUrl
-        media_type = file.type.startsWith('video') ? 'video' : 'image'
+        media_name = file.name; media_size = file.size
+        media_type = file.type.startsWith('video/') ? 'video' : file.type.startsWith('image/') ? 'image' : 'file'
       }
       const { error } = await supabase.from('posts').insert({
         user_id: user.id, kind, content: content.trim() || null, title: title.trim() || null,
-        category: kind === 'post' ? null : category, privacy, media_url, media_type,
+        category: kind === 'post' ? null : category, privacy, media_url, media_type, media_name, media_size,
       })
       if (error) {
         if (path) supabase.storage.from('media').remove([path]) // অপ্রয়োজনীয় ফাইল জমে না থাকার জন্য
@@ -65,33 +64,34 @@ export default function UploadSheet({ kind = 'post', onClose, onDone }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={busy ? undefined : onClose}>
-      <div className="max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto rounded-t-[32px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{TITLES[kind]}</h2>
-          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-mist disabled:opacity-40"><X size={18} /></button>
+          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2 disabled:opacity-40"><X size={18} /></button>
         </div>
         {kind === 'video' && <input className="input" placeholder="শিরোনাম" value={title} onChange={(e) => setTitle(e.target.value)} />}
         <textarea className="input min-h-[96px]" placeholder={kind === 'post' ? 'মনে কী আছে?' : 'বিবরণ (ঐচ্ছিক)'} value={content} onChange={(e) => setContent(e.target.value)} />
         {kind !== 'post' && (
           <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
             {CATEGORIES.map((c) => (
-              <button key={c} onClick={() => setCategory(c)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold ${category === c ? 'bg-ink text-white' : 'bg-mist'}`}>{c}</button>
+              <button key={c} onClick={() => setCategory(c)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold ${category === c ? 'bg-ink text-white' : 'bg-surface2'}`}>{c}</button>
             ))}
           </div>
         )}
-        <input ref={ref} type="file" hidden accept={needsVideo ? 'video/*' : 'image/*,video/*'} onChange={pick} />
-        <button disabled={busy} onClick={() => ref.current.click()} className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand/40 bg-mist py-5 font-semibold text-brand">
+        <input ref={ref} type="file" hidden accept={needsVideo ? 'video/*' : undefined} onChange={pick} />
+        <button disabled={busy} onClick={() => ref.current.click()} className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand/40 bg-surface2 py-5 font-semibold text-brand">
           <ImagePlus size={20} />
-          <span className="min-w-0 truncate">{file ? `${file.name} (${mb(file.size)}MB)` : needsVideo ? 'ভিডিও বেছে নিন' : 'ছবি বা ভিডিও যোগ করুন'}</span>
+          <span className="min-w-0 truncate">{file ? `${file.name} (${mb(file.size)}MB)` : needsVideo ? 'ভিডিও বেছে নিন' : 'ছবি, ভিডিও বা যেকোনো ফাইল যোগ করুন'}</span>
         </button>
+        {preview && <img src={preview} alt="" className="max-h-48 w-full rounded-2xl object-cover" />}
         <PrivacyPicker value={privacy} onChange={setPrivacy} />
         {busy && file && (
           <div>
-            <div className="h-2 overflow-hidden rounded-full bg-mist"><div className="h-full rounded-full bg-gradient-to-r from-brand to-coral transition-all" style={{ width: `${pct}%` }} /></div>
-            <p className="mt-1 text-center text-xs text-ink/60">আপলোড হচ্ছে… {pct}% — পেজ বন্ধ করবেন না</p>
+            <div className="h-2 overflow-hidden rounded-full bg-surface2"><div className="h-full rounded-full bg-gradient-to-r from-brand to-coral text-inverse transition-all" style={{ width: `${pct}%` }} /></div>
+            <p className="mt-1 text-center text-xs text-fg/60">আপলোড হচ্ছে… {pct}% — পেজ বন্ধ করবেন না</p>
           </div>
         )}
-        {err && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-600">{err}</p>}
+        {err && <p className="rounded-xl bg-danger/15 p-3 text-sm text-danger">{err}</p>}
         <button disabled={busy} onClick={submit} className="btn-primary w-full">{busy ? 'অপেক্ষা করুন…' : 'প্রকাশ করুন'}</button>
       </div>
     </div>

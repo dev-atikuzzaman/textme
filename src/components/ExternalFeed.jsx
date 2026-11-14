@@ -109,11 +109,11 @@ export default function ExternalFeed({ note = '' }) {
     return (
       <div className={center}>
         <div>
-          <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-brand to-coral"><Play size={30} /></div>
+          <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-brand to-coral text-inverse"><Play size={30} /></div>
           <p className="font-bold">ইউটিউব কানেক্ট করুন</p>
           <p className="mt-2 text-sm text-white/70">আপনার সাবস্ক্রাইব করা চ্যানেলগুলোর শর্টস এখানে দেখতে পাবেন। শুধু পড়ার অনুমতি নেওয়া হয়, কিছু পোস্ট বা মোছা হয় না।</p>
-          {note && <p className="mt-3 text-sm text-coral">{note}</p>}
-          {msg && <p className="mt-3 text-sm text-coral">{msg}</p>}
+          {note && <p className="mt-3 text-sm text-danger">{note}</p>}
+          {msg && <p className="mt-3 text-sm text-danger">{msg}</p>}
           <button className="btn-primary mt-5" disabled={busy} onClick={connect}>{busy ? 'অপেক্ষা করুন…' : 'ইউটিউব কানেক্ট করুন'}</button>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function ExternalFeed({ note = '' }) {
       <div className={center}>
         <div>
           <p className="text-white/80">{busy ? 'আপনার চ্যানেলগুলোর শর্টস আনা হচ্ছে…' : 'এখনও কোনো শর্টস পাওয়া যায়নি।'}</p>
-          {msg && <p className="mt-2 text-sm text-coral">{msg}</p>}
+          {msg && <p className="mt-2 text-sm text-danger">{msg}</p>}
           {conn && !busy && (
             <div className="mt-4 flex justify-center gap-2">
               <button className="btn-soft" onClick={sync}><RefreshCw size={16} /> সিঙ্ক</button>
@@ -151,7 +151,7 @@ export default function ExternalFeed({ note = '' }) {
             <button className="btn-soft" disabled={busy} onClick={sync}><RefreshCw size={16} /> {busy ? 'সিঙ্ক হচ্ছে…' : 'সিঙ্ক'}</button>
             <button className="btn bg-white/15 text-white" onClick={disconnect}>বিচ্ছিন্ন করুন</button>
           </div>
-          {msg && <p className="mt-3 text-sm text-coral">{msg}</p>}
+          {msg && <p className="mt-3 text-sm text-danger">{msg}</p>}
         </div>
       </section>
     </div>
