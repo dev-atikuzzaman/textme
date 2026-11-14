@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Heart, MessageCircle, Plus, Volume2, VolumeX } from 'lucide-react'
+import { Heart, MessageCircle, Plus, Volume2, VolumeX, Share2, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
+import { useSaved } from '../context/Saved'
+import ShareSheet from '../components/post/ShareSheet'
 import { CATEGORIES, SELECT_POST } from '../lib/constants'
 import UploadSheet from '../components/UploadSheet'
 import Avatar from '../components/Avatar'
@@ -13,6 +15,12 @@ function Reel({ post, muted, setMuted, onChange }) {
   const { user } = useAuth()
   const ref = useRef()
   const [showComments, setShowComments] = useState(false)
+  const [share, setShare] = useState(false)
+  const [burst, setBurst] = useState(false)
+  const { ids, toggle } = useSaved()
+  const saved = ids.has(post.id)
+  const clickT = useRef()
+  const url = `${window.location.origin}/post/${post.id}`
   const liked = post.likes?.some((l) => l.user_id === user.id)
   useEffect(() => {
     const io = new IntersectionObserver(([e]) => (e.isIntersecting ? ref.current?.play().catch(() => {}) : ref.current?.pause()), { threshold: 0.7 })
@@ -24,9 +32,14 @@ function Reel({ post, muted, setMuted, onChange }) {
     else await supabase.from('likes').insert({ post_id: post.id, user_id: user.id })
     onChange()
   }
+  const tap = () => { clearTimeout(clickT.current); clickT.current = setTimeout(() => setMuted(!muted), 250) }
+  const dbl = () => { clearTimeout(clickT.current); if (!liked) like(); setBurst(true); setTimeout(() => setBurst(false), 700) }
+  const copy = async () => { try { await navigator.clipboard.writeText(url) } catch { /* ignore */ } setShare(false) }
+  const native = async () => { setShare(false); try { await navigator.share({ title: 'আপন', text: (post.content || '').slice(0, 80), url }) } catch { /* বাতিল */ } }
   return (
     <section className="relative h-full snap-start">
-      <video ref={ref} src={post.media_url} loop muted={muted} playsInline onClick={() => setMuted(!muted)} className="h-full w-full object-cover" />
+      <video ref={ref} src={post.media_url} loop muted={muted} playsInline onClick={tap} onDoubleClick={dbl} className="h-full w-full object-cover" />
+      {burst && <span className="heart-burst pointer-events-none absolute inset-0 grid place-items-center text-8xl">❤️</span>}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
       <div className="absolute bottom-28 right-4 flex flex-col items-center gap-5 text-white">
         <button onClick={like} className="flex flex-col items-center gap-1">
@@ -35,6 +48,8 @@ function Reel({ post, muted, setMuted, onChange }) {
         <button onClick={() => setShowComments(true)} className="flex flex-col items-center gap-1">
           <MessageCircle size={30} /><span className="text-sm font-semibold">{post.comments?.[0]?.count || 0}</span>
         </button>
+        <button onClick={() => setShare(true)} className="flex flex-col items-center gap-1" aria-label="শেয়ার"><Share2 size={28} /><span className="text-xs font-semibold">শেয়ার</span></button>
+        <button onClick={() => toggle(post.id)} aria-label="সেভ"><Bookmark size={28} fill={saved ? '#F5B942' : 'none'} stroke={saved ? '#F5B942' : 'white'} /></button>
         <button onClick={() => setMuted(!muted)}>{muted ? <VolumeX size={28} /> : <Volume2 size={28} />}</button>
       </div>
       <div className="absolute bottom-28 left-4 right-20 space-y-2 text-white">
@@ -42,6 +57,7 @@ function Reel({ post, muted, setMuted, onChange }) {
         {post.content && <p className="line-clamp-3 text-sm">{post.content}</p>}
         {post.category && <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs backdrop-blur">{post.category}</span>}
       </div>
+      {share && <ShareSheet url={url} text={post.content || ''} onClose={() => setShare(false)} onCopy={copy} onNative={native} />}
       {showComments && <CommentsSheet post={post} onClose={() => setShowComments(false)} onChange={onChange} />}
     </section>
   )
@@ -75,7 +91,7 @@ export default function Reels() {
   const ytNote = ['denied', 'error'].includes(sp.get('yt')) ? 'কানেক্ট সম্পন্ন হয়নি, আবার চেষ্টা করুন।' : ''
 
   return (
-    <div className="fixed inset-0 z-40 bg-black">
+    <div className="fixed inset-0 z-40 mx-auto max-w-md bg-black sm:max-w-lg lg:left-64">
       <div className="absolute inset-x-0 top-0 z-10 space-y-2 bg-gradient-to-b from-black/70 to-transparent px-4 pb-6 pt-[max(1rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2">
           <div className="no-scrollbar flex flex-1 gap-2 overflow-x-auto">

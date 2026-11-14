@@ -4,6 +4,8 @@ import { ArrowLeft, Send, Plus, Mic, Phone, Video, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useCall } from '../context/Call'
+import { useInbox } from '../context/Inbox'
+import { usePresence } from '../context/Presence'
 import { safeName, mmss } from '../lib/media'
 import Avatar from '../components/Avatar'
 import Bubble from '../components/chat/Bubble'
@@ -18,6 +20,10 @@ export default function Chat() {
   const { id } = useParams()
   const { user } = useAuth()
   const { startCall, inCall } = useCall()
+  const { reload: reloadInbox } = useInbox()
+  const { isOnline } = usePresence()
+  const [typing, setTyping] = useState(false)
+  const typeCh = useRef(), typingT = useRef(), lastTyping = useRef(0)
   const nav = useNavigate()
   const [other, setOther] = useState(null)
   const [msgs, setMsgs] = useState([])
@@ -52,6 +58,8 @@ export default function Chat() {
 
   useEffect(() => {
     setMsgs([])
+    const markRead = () => supabase.rpc('mark_chat_read', { p_other: id }).then(({ error }) => { if (!error) reloadInbox() })
+    markRead()
     supabase.from('profiles').select('*').eq('id', id).single().then(({ data }) => setOther(data))
     supabase.from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${user.id})`)
@@ -61,6 +69,7 @@ export default function Chat() {
       if (!n?.id) return
       if (!((n.sender_id === id && n.receiver_id === user.id) || (n.sender_id === user.id && n.receiver_id === id))) return
       addMsg(n); sign([n]); loadVotes([n])
+      if (n.sender_id === id && !n.read_at) markRead()
     }
     const ch = supabase.channel(`chat-${user.id}-${id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, onChange)
@@ -68,7 +77,24 @@ export default function Chat() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'poll_votes' }, () => loadVotes(msgsRef.current))
       .subscribe()
     return () => { supabase.removeChannel(ch) }
-  }, [id, user.id, addMsg, sign, loadVotes])
+  }, [id, user.id, addMsg, sign, loadVotes, reloadInbox])
+
+  // "লিখছে…" ইন্ডিকেটর (Realtime broadcast, কোনো SQL লাগে না)
+  useEffect(() => {
+    const ch = supabase.channel(`typing-${[user.id, id].sort().join('-')}`)
+    ch.on('broadcast', { event: 'typing' }, ({ payload }) => {
+      if (payload?.from !== id) return
+      setTyping(true); clearTimeout(typingT.current); typingT.current = setTimeout(() => setTyping(false), 3000)
+    }).subscribe()
+    typeCh.current = ch
+    return () => { clearTimeout(typingT.current); supabase.removeChannel(ch); typeCh.current = null; setTyping(false) }
+  }, [id, user.id])
+  const sendTyping = () => {
+    const n = Date.now()
+    if (n - lastTyping.current < 2000 || !typeCh.current) return
+    lastTyping.current = n
+    typeCh.current.send({ type: 'broadcast', event: 'typing', payload: { from: user.id } })
+  }
 
   useEffect(() => { end.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
 
@@ -144,10 +170,11 @@ export default function Chat() {
   useEffect(() => () => { clearInterval(recTimer.current); mr.current?.stream.getTracks().forEach((t) => t.stop()) }, [])
 
   return (
-    <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-forest">
+    <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-forest sm:max-w-xl lg:left-64 lg:max-w-3xl">
       <header className="flex items-center gap-3 bg-surface p-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm">
         <button onClick={() => nav(-1)} className="grid h-10 w-10 place-items-center rounded-full bg-surface2"><ArrowLeft size={20} /></button>
-        <Avatar p={other} size={40} /><b className="min-w-0 flex-1 truncate">{other?.full_name}</b>
+        <Avatar p={other} size={40} online={isOnline(id)} />
+        <div className="min-w-0 flex-1 leading-tight"><b className="block truncate">{other?.full_name}</b><span className="text-xs text-brand">{typing ? 'লিখছে…' : isOnline(id) ? 'অনলাইন' : ''}</span></div>
         <button disabled={inCall || !other} onClick={() => startCall(other, 'audio')} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Phone size={19} /></button>
         <button disabled={inCall || !other} onClick={() => startCall(other, 'video')} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Video size={19} /></button>
       </header>
@@ -173,7 +200,7 @@ export default function Chat() {
       ) : (
         <form onSubmit={sendText} className="flex items-center gap-2 bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button type="button" onClick={() => setSheet('menu')} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface2 text-brand"><Plus size={22} /></button>
-          <input className="input" placeholder="মেসেজ লিখুন…" value={text} onChange={(e) => setText(e.target.value)} />
+          <input className="input" placeholder="মেসেজ লিখুন…" value={text} onChange={(e) => { setText(e.target.value); sendTyping() }} />
           {text.trim()
             ? <button className="btn-primary !px-4"><Send size={20} /></button>
             : <button type="button" onClick={startRec} className="btn-primary !px-4"><Mic size={20} /></button>}

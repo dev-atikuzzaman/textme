@@ -9,6 +9,7 @@ import PostCard from '../components/PostCard'
 import PostSkeleton from '../components/PostSkeleton'
 import UploadSheet from '../components/UploadSheet'
 import StoriesBar from '../components/home/StoriesBar'
+import ActiveFriends from '../components/home/ActiveFriends'
 import Avatar from '../components/Avatar'
 
 const PAGE = 10
@@ -120,6 +121,7 @@ export default function Feed() {
   return (
     <div className="space-y-4">
       <StoriesBar />
+      <ActiveFriends />
 
       <div className="rounded-[28px] bg-surface p-4 shadow-soft">
         <button onClick={() => setOpen({})} className="flex w-full items-center gap-3 text-left">
@@ -135,11 +137,11 @@ export default function Feed() {
         </div>
       </div>
 
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
+      <div className="flex gap-1.5">
         {FILTERS.map(({ id, label, Icon }) => (
           <button key={id} onClick={() => setFilter(id)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition active:scale-95 ${filter === id ? 'bg-gradient-to-r from-brand to-coral text-inverse' : 'bg-surface text-fg/70 shadow-soft'}`}>
-            <Icon size={16} />{label}
+            className={`flex min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-full px-1.5 py-2 text-[12.5px] font-bold transition active:scale-95 sm:gap-1.5 sm:text-sm max-[380px]:text-[11.5px] ${filter === id ? 'bg-gradient-to-r from-brand to-coral text-inverse' : 'bg-surface text-fg/70 shadow-soft'}`}>
+            <Icon size={15} className="max-[400px]:hidden" />{label}
           </button>
         ))}
       </div>
