@@ -37,17 +37,17 @@ export default function Videos() {
   return (
     <div className="space-y-4 pt-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-white"><ArrowLeft size={20} /></button>
+        <button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
         <h2 className="flex-1 text-2xl font-extrabold">ভিডিও</h2>
         <button onClick={() => setOpen(true)} className="btn-primary !px-4 !py-2.5"><Plus size={18} />আপলোড</button>
       </div>
       <div className="no-scrollbar flex gap-2 overflow-x-auto">
         {['সব', ...CATEGORIES].map((c) => (
-          <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold ${cat === c ? 'bg-ink text-white' : 'bg-white'}`}>{c}</button>
+          <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold ${cat === c ? 'bg-ink text-white' : 'bg-surface'}`}>{c}</button>
         ))}
       </div>
-      {loadErr && <p className="rounded-2xl bg-white p-4 text-sm text-coral">ভিডিও লোড করা যায়নি: {loadErr}</p>}
-      {items?.length === 0 && <p className="py-10 text-center text-ink/60">এই বিভাগে এখনও কোনো ভিডিও নেই।</p>}
+      {loadErr && <p className="rounded-2xl bg-surface p-4 text-sm text-danger">ভিডিও লোড করা যায়নি: {loadErr}</p>}
+      {items?.length === 0 && <p className="py-10 text-center text-fg/60">এই বিভাগে এখনও কোনো ভিডিও নেই।</p>}
       <div className="space-y-5">
         {items?.map((v) => (
           <button key={v.id} onClick={() => setPlaying(v)} className="block w-full text-left">
@@ -56,7 +56,7 @@ export default function Videos() {
               <Avatar p={v.profiles} size={38} />
               <div className="min-w-0">
                 <p className="truncate font-bold">{v.title}</p>
-                <p className="text-xs text-ink/55">{v.profiles?.full_name} • {v.category} • {fmt(v.created_at)}</p>
+                <p className="text-xs text-fg/55">{v.profiles?.full_name} • {v.category} • {fmt(v.created_at)}</p>
               </div>
             </div>
           </button>

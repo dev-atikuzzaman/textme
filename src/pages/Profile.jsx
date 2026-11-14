@@ -63,29 +63,29 @@ export default function Profile() {
     setBusy(false)
   }
 
-  if (!p) return <p className="py-10 text-center text-ink/50">লোড হচ্ছে…</p>
+  if (!p) return <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>
   const Row = ({ onClick, Icon, children, danger }) => (
-    <button onClick={onClick} disabled={busy} className={`flex w-full items-center gap-3 rounded-2xl bg-mist p-4 font-semibold disabled:opacity-50 ${danger ? 'text-coral' : ''}`}><Icon size={20} />{children}</button>
+    <button onClick={onClick} disabled={busy} className={`flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold disabled:opacity-50 ${danger ? 'text-danger' : ''}`}><Icon size={20} />{children}</button>
   )
 
   return (
     <div className="space-y-4 pt-2">
-      <div className="rounded-[32px] bg-gradient-to-br from-brand to-coral p-6 text-center text-white shadow-soft">
+      <div className="rounded-[32px] bg-gradient-to-br from-brand to-coral p-6 text-center text-inverse shadow-soft">
         <button onClick={() => (own ? setSheet('avatar') : p.avatar_url && setSheet('view'))} className="relative mx-auto block w-fit">
           <Avatar p={p} size={96} />
-          {own && <span className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-white text-brand"><Camera size={18} /></span>}
+          {own && <span className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-surface text-brand"><Camera size={18} /></span>}
         </button>
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
         {edit ? (
-          <div className="mt-4 space-y-2 text-ink">
+          <div className="mt-4 space-y-2 text-fg">
             <input className="input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
             <textarea className="input" placeholder="নিজের সম্পর্কে লিখুন" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
             <button onClick={save} className="btn-soft w-full">সেভ করুন</button>
           </div>
         ) : (<>
           <h2 className="mt-3 text-2xl font-extrabold">{p.full_name}</h2>
-          <p className="text-white/80">@{p.username}</p>
-          {p.bio && <p className="mt-2 text-white/90">{p.bio}</p>}
+          <p className="text-inverse/70">@{p.username}</p>
+          {p.bio && <p className="mt-2 text-inverse/80">{p.bio}</p>}
         </>)}
       </div>
       {own && !edit && (
@@ -94,19 +94,19 @@ export default function Profile() {
             <button onClick={() => setEdit(true)} className="btn-soft flex-1">প্রোফাইল এডিট</button>
             <button onClick={() => setSheet('password')} className="btn-soft flex-1"><KeyRound size={18} />পাসওয়ার্ড</button>
           </div>
-          <button onClick={() => supabase.auth.signOut()} className="btn-soft w-full !text-coral"><LogOut size={18} />লগ-আউট</button>
+          <button onClick={() => supabase.auth.signOut()} className="btn-soft w-full !text-danger"><LogOut size={18} />লগ-আউট</button>
         </div>
       )}
       <h3 className="px-1 font-bold">পোস্ট ও ভিডিও</h3>
-      {posts.length === 0 && <p className="py-6 text-center text-ink/60">দেখানোর মতো কিছু নেই।</p>}
+      {posts.length === 0 && <p className="py-6 text-center text-fg/60">দেখানোর মতো কিছু নেই।</p>}
       {posts.map((x) => <PostCard key={x.id} post={x} onChange={load} />)}
 
       {sheet === 'avatar' && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={() => setSheet(null)}>
-          <div className="w-full max-w-md space-y-2 rounded-t-[32px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-ink" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md space-y-2 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-fg" onClick={(e) => e.stopPropagation()}>
             <div className="mb-1 flex items-center justify-between">
               <h2 className="text-lg font-bold">প্রোফাইল ছবি</h2>
-              <button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full bg-mist"><X size={18} /></button>
+              <button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
             </div>
             {p.avatar_url && <Row Icon={Eye} onClick={() => setSheet('view')}>ছবি দেখুন</Row>}
             <Row Icon={ImagePlus} onClick={() => fileRef.current.click()}>{busy ? 'আপলোড হচ্ছে…' : p.avatar_url ? 'নতুন ছবি দিন' : 'ছবি যোগ করুন'}</Row>

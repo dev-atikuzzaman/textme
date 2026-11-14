@@ -22,14 +22,14 @@ export default function Feed() {
 
   return (
     <div className="space-y-4">
-      <button onClick={() => setOpen(true)} className="flex w-full items-center gap-3 rounded-[28px] bg-white p-4 text-left shadow-soft">
+      <button onClick={() => setOpen(true)} className="flex w-full items-center gap-3 rounded-[28px] bg-surface p-4 text-left shadow-soft">
         <Avatar p={profile} />
-        <span className="flex-1 text-ink/50">মনে কী আছে{profile ? `, ${profile.full_name.split(' ')[0]}` : ''}?</span>
+        <span className="flex-1 text-fg/50">মনে কী আছে{profile ? `, ${profile.full_name.split(' ')[0]}` : ''}?</span>
         <ImageIcon className="text-brand" />
       </button>
-      {loadErr && <p className="rounded-2xl bg-white p-4 text-sm text-coral">পোস্ট লোড করা যায়নি: {loadErr}</p>}
-      {posts === null && <p className="py-10 text-center text-ink/50">লোড হচ্ছে…</p>}
-      {posts?.length === 0 && <p className="py-10 text-center text-ink/60">এখনও কোনো পোস্ট নেই। প্রথম পোস্টটি আপনিই করুন, অথবা বন্ধুদের যোগ করুন।</p>}
+      {loadErr && <p className="rounded-2xl bg-surface p-4 text-sm text-danger">পোস্ট লোড করা যায়নি: {loadErr}</p>}
+      {posts === null && <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>}
+      {posts?.length === 0 && <p className="py-10 text-center text-fg/60">এখনও কোনো পোস্ট নেই। প্রথম পোস্টটি আপনিই করুন, অথবা বন্ধুদের যোগ করুন।</p>}
       {posts?.map((p) => <PostCard key={p.id} post={p} onChange={load} />)}
       {open && <UploadSheet kind="post" onClose={() => setOpen(false)} onDone={load} />}
     </div>

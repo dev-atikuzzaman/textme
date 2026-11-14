@@ -16,9 +16,9 @@ export default function Post() {
   useEffect(() => { load() }, [load])
   return (
     <div className="space-y-4 pt-2">
-      <button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-white"><ArrowLeft size={20} /></button>
-      {post === undefined && <p className="py-10 text-center text-ink/50">লোড হচ্ছে…</p>}
-      {post === null && <p className="py-10 text-center text-ink/60">পোস্টটি পাওয়া যায়নি বা মুছে ফেলা হয়েছে।</p>}
+      <button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
+      {post === undefined && <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>}
+      {post === null && <p className="py-10 text-center text-fg/60">পোস্টটি পাওয়া যায়নি বা মুছে ফেলা হয়েছে।</p>}
       {post && <PostCard post={post} onChange={load} />}
     </div>
   )

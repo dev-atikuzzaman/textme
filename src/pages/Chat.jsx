@@ -144,12 +144,12 @@ export default function Chat() {
   useEffect(() => () => { clearInterval(recTimer.current); mr.current?.stream.getTracks().forEach((t) => t.stop()) }, [])
 
   return (
-    <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-mist">
-      <header className="flex items-center gap-3 bg-white p-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm">
-        <button onClick={() => nav(-1)} className="grid h-10 w-10 place-items-center rounded-full bg-mist"><ArrowLeft size={20} /></button>
+    <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-forest">
+      <header className="flex items-center gap-3 bg-surface p-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm">
+        <button onClick={() => nav(-1)} className="grid h-10 w-10 place-items-center rounded-full bg-surface2"><ArrowLeft size={20} /></button>
         <Avatar p={other} size={40} /><b className="min-w-0 flex-1 truncate">{other?.full_name}</b>
-        <button disabled={inCall || !other} onClick={() => startCall(other, 'audio')} className="grid h-10 w-10 place-items-center rounded-full bg-mist text-brand disabled:opacity-40"><Phone size={19} /></button>
-        <button disabled={inCall || !other} onClick={() => startCall(other, 'video')} className="grid h-10 w-10 place-items-center rounded-full bg-mist text-brand disabled:opacity-40"><Video size={19} /></button>
+        <button disabled={inCall || !other} onClick={() => startCall(other, 'audio')} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Phone size={19} /></button>
+        <button disabled={inCall || !other} onClick={() => startCall(other, 'video')} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Video size={19} /></button>
       </header>
 
       <div className="flex-1 space-y-2 overflow-y-auto p-4">
@@ -161,18 +161,18 @@ export default function Chat() {
       </div>
 
       {busy && <p className="px-4 pb-1 text-sm text-brand">আপলোড হচ্ছে…</p>}
-      {err && <p className="px-4 pb-1 text-sm text-coral">{err}</p>}
+      {err && <p className="px-4 pb-1 text-sm text-danger">{err}</p>}
 
       {rec ? (
-        <div className="flex items-center gap-3 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <button onClick={() => stopRec(false)} className="grid h-11 w-11 place-items-center rounded-full bg-mist text-coral"><Trash2 size={20} /></button>
-          <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
+        <div className="flex items-center gap-3 bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <button onClick={() => stopRec(false)} className="grid h-11 w-11 place-items-center rounded-full bg-surface2 text-danger"><Trash2 size={20} /></button>
+          <span className="h-3 w-3 animate-pulse rounded-full bg-danger/150" />
           <span className="flex-1 font-semibold tabular-nums">রেকর্ড হচ্ছে… {mmss(rec.secs)}</span>
           <button onClick={() => stopRec(true)} className="btn-primary !px-4"><Send size={20} /></button>
         </div>
       ) : (
-        <form onSubmit={sendText} className="flex items-center gap-2 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <button type="button" onClick={() => setSheet('menu')} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-mist text-brand"><Plus size={22} /></button>
+        <form onSubmit={sendText} className="flex items-center gap-2 bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <button type="button" onClick={() => setSheet('menu')} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface2 text-brand"><Plus size={22} /></button>
           <input className="input" placeholder="মেসেজ লিখুন…" value={text} onChange={(e) => setText(e.target.value)} />
           {text.trim()
             ? <button className="btn-primary !px-4"><Send size={20} /></button>
