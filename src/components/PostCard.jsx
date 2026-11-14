@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MoreHorizontal, MessageCircle, Share2, Pin } from 'lucide-react'
+import { MoreHorizontal, MessageCircle, Share2, Pin, Bookmark } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
+import { useSaved } from '../context/Saved'
+import { linkify } from '../lib/linkify'
 import { PRIVACY, REACTIONS, fmt } from '../lib/constants'
 import { mediaPathFromUrl } from '../lib/media'
 import Avatar from './Avatar'
@@ -12,9 +14,14 @@ import PostMenu from './post/PostMenu'
 import EditPostSheet from './post/EditPostSheet'
 import ReactionsSheet from './post/ReactionsSheet'
 import FileCard from './FileCard'
+import Lightbox from './post/Lightbox'
+import AutoVideo from './post/AutoVideo'
 
-export default function PostCard({ post, onChange }) {
+export default function PostCard({ post, onChange, onHide }) {
   const { user } = useAuth()
+  const { ids: savedIds, toggle: toggleSave } = useSaved()
+  const saved = savedIds.has(post.id)
+  const clickT = useRef()
   const [likes, setLikes] = useState(post.likes || [])
   const [sheet, setSheet] = useState(null) // comments | menu | edit | who
   const [expanded, setExpanded] = useState(false)
@@ -52,6 +59,14 @@ export default function PostCard({ post, onChange }) {
     if (mine !== 'love') react('love')
     setBurst(true); setTimeout(() => setBurst(false), 700)
   }
+  const doSave = async () => {
+    setSheet(null)
+    const r = await toggleSave(post.id)
+    flash(r.ok ? (r.saved ? 'সেভ করা হয়েছে' : 'সেভ থেকে সরানো হয়েছে') : 'সেভ করা যায়নি — update-12.sql চালান')
+  }
+  const doHide = () => { setSheet(null); onHide?.(post.id) }
+  const zoom = () => { clearTimeout(clickT.current); clickT.current = setTimeout(() => setSheet('zoom'), 250) }
+  const dbl = () => { clearTimeout(clickT.current); doubleTap() }
   const copy = async () => {
     setSheet(null)
     try { await navigator.clipboard.writeText(url); flash('লিংক কপি হয়েছে') } catch { flash(url) }
@@ -98,18 +113,18 @@ export default function PostCard({ post, onChange }) {
       {post.title && <h3 className="mt-3 font-bold">{post.title}</h3>}
       {text && (
         <div className="mt-3">
-          <p className={`whitespace-pre-wrap break-words leading-relaxed ${long && !expanded ? 'line-clamp-6' : ''}`}>{text}</p>
+          <p className={`whitespace-pre-wrap break-words leading-relaxed ${long && !expanded ? 'line-clamp-6' : ''}`}>{linkify(text)}</p>
           {long && !expanded && <button onClick={() => setExpanded(true)} className="mt-1 text-sm font-bold text-brand">আরও দেখুন</button>}
         </div>
       )}
 
       {post.media_url && (
-        <div className="relative mt-3" onDoubleClick={post.media_type === 'file' ? undefined : doubleTap}>
+        <div className="relative mt-3" onDoubleClick={post.media_type === 'file' ? undefined : dbl} onClick={post.media_type === 'image' ? zoom : undefined}>
           {post.media_type === 'file'
             ? <FileCard url={post.media_url} name={post.media_name} size={post.media_size} />
             : post.media_type === 'video'
-            ? <video src={post.media_url} controls playsInline preload="metadata" className="max-h-[480px] w-full rounded-2xl bg-black" />
-            : <img src={post.media_url} alt="" loading="lazy" className="w-full rounded-2xl object-cover" />}
+            ? <AutoVideo src={post.media_url} />
+            : <img src={post.media_url} alt="" loading="lazy" className="w-full cursor-zoom-in rounded-2xl object-cover" />}
           {burst && <span className="heart-burst pointer-events-none absolute inset-0 grid place-items-center text-7xl">❤️</span>}
         </div>
       )}
@@ -130,14 +145,16 @@ export default function PostCard({ post, onChange }) {
         <ReactionBar mine={mine} onReact={react} />
         <button onClick={() => setSheet('comments')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/60 transition active:scale-95"><MessageCircle size={20} />কমেন্ট</button>
         <button onClick={share} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/60 transition active:scale-95"><Share2 size={19} />শেয়ার</button>
+        <button onClick={doSave} aria-label={saved ? 'সেভ থেকে সরান' : 'সেভ করুন'} className={`grid w-12 shrink-0 place-items-center rounded-2xl transition active:scale-90 ${saved ? 'text-coral' : 'text-fg/60'}`}><Bookmark size={20} fill={saved ? 'currentColor' : 'none'} /></button>
       </div>
       {note && <p className="mt-2 rounded-xl bg-surface2 p-2.5 text-center text-sm font-semibold text-fg/70">{note}</p>}
 
       {sheet === 'comments' && <CommentsSheet post={post} onClose={() => setSheet(null)} onChange={onChange} />}
+      {sheet === 'zoom' && <Lightbox src={post.media_url} onClose={() => setSheet(null)} />}
       {sheet === 'who' && <ReactionsSheet table="likes" col="post_id" id={post.id} onClose={() => setSheet(null)} />}
       {sheet === 'edit' && <EditPostSheet post={post} onClose={() => setSheet(null)} onSaved={onChange} />}
       {sheet === 'menu' && (
-        <PostMenu own={own} canPin={post.kind === 'post'} pinned={!!post.pinned_at}
+        <PostMenu own={own} canPin={post.kind === 'post'} pinned={!!post.pinned_at} saved={saved} onSave={doSave} onHide={onHide ? doHide : undefined}
           onClose={() => setSheet(null)} onPin={pin} onEdit={() => setSheet('edit')} onCopy={copy} onShare={share} onDelete={del} />
       )}
     </article>

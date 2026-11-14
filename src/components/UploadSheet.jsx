@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X, ImagePlus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
@@ -10,7 +10,7 @@ import PrivacyPicker from './PrivacyPicker'
 const TITLES = { post: 'নতুন পোস্ট', reel: 'নতুন রিল', video: 'ভিডিও আপলোড' }
 const mb = (b) => (b / 1048576).toFixed(1)
 
-export default function UploadSheet({ kind = 'post', onClose, onDone }) {
+export default function UploadSheet({ kind = 'post', accept, autoPick, onClose, onDone }) {
   const { user } = useAuth()
   const [content, setContent] = useState('')
   const [title, setTitle] = useState('')
@@ -23,6 +23,7 @@ export default function UploadSheet({ kind = 'post', onClose, onDone }) {
   const [err, setErr] = useState('')
   const ref = useRef()
   const needsVideo = kind !== 'post'
+  useEffect(() => { if (autoPick) ref.current?.click() }, []) // eslint-disable-line
 
   const pick = (e) => {
     const f = e.target.files[0]; e.target.value = ''
@@ -78,7 +79,7 @@ export default function UploadSheet({ kind = 'post', onClose, onDone }) {
             ))}
           </div>
         )}
-        <input ref={ref} type="file" hidden accept={needsVideo ? 'video/*' : undefined} onChange={pick} />
+        <input ref={ref} type="file" hidden accept={accept ?? (needsVideo ? 'video/*' : undefined)} onChange={pick} />
         <button disabled={busy} onClick={() => ref.current.click()} className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand/40 bg-surface2 py-5 font-semibold text-brand">
           <ImagePlus size={20} />
           <span className="min-w-0 truncate">{file ? `${file.name} (${mb(file.size)}MB)` : needsVideo ? 'ভিডিও বেছে নিন' : 'ছবি, ভিডিও বা যেকোনো ফাইল যোগ করুন'}</span>
