@@ -10,6 +10,7 @@ export const useNotifs = () => useContext(Ctx)
 export const NOTIF_TEXT = {
   like: 'আপনার পোস্টে লাইক দিয়েছেন',
   comment: 'আপনার পোস্টে কমেন্ট করেছেন',
+  reply: 'আপনার কমেন্টের উত্তর দিয়েছেন',
   friend_request: 'আপনাকে ফ্রেন্ড রিকুয়েস্ট পাঠিয়েছেন',
   friend_accept: 'আপনার ফ্রেন্ড রিকুয়েস্ট গ্রহণ করেছেন',
 }
