@@ -25,7 +25,7 @@ export default function Profile() {
   const load = useCallback(async () => {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single()
     setP(prof); setForm({ full_name: prof?.full_name || '', bio: prof?.bio || '' })
-    const { data } = await supabase.from('posts').select(SELECT_POST).eq('user_id', uid).order('created_at', { ascending: false })
+    const { data } = await supabase.from('posts').select(SELECT_POST).eq('user_id', uid).order('pinned_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
     setPosts(data || [])
   }, [uid])
   useEffect(() => { load() }, [load])

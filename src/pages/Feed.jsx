@@ -14,7 +14,7 @@ export default function Feed() {
   const [loadErr, setLoadErr] = useState('')
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('posts').select(SELECT_POST).eq('kind', 'post')
-      .order('created_at', { ascending: false }).limit(50)
+      .order('pinned_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).limit(50)
     setLoadErr(error ? error.message : '')
     setPosts(data || [])
   }, [])
