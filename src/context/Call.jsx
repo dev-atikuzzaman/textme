@@ -218,12 +218,12 @@ export function CallProvider({ children }) {
           {!showCenter && <div className="flex-1" />}
           <div className="relative z-10 flex items-center justify-center gap-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-6">
             {call.dir === 'in' && call.state === 'ringing' ? (<>
-              <Btn onClick={decline} className="bg-red-500"><PhoneOff size={28} /></Btn>
-              <Btn onClick={accept} className="bg-emerald-500"><Phone size={28} /></Btn>
+              <Btn onClick={decline} className="bg-danger/150"><PhoneOff size={28} /></Btn>
+              <Btn onClick={accept} className="bg-success/150"><Phone size={28} /></Btn>
             </>) : (<>
               <Btn onClick={toggleMic} className={muted ? 'bg-white text-ink' : 'bg-white/20'}>{muted ? <MicOff size={26} /> : <Mic size={26} />}</Btn>
               {isVideo && <Btn onClick={toggleCam} className={camOff ? 'bg-white text-ink' : 'bg-white/20'}>{camOff ? <VideoOff size={26} /> : <Video size={26} />}</Btn>}
-              <Btn onClick={hangup} className="bg-red-500"><PhoneOff size={28} /></Btn>
+              <Btn onClick={hangup} className="bg-danger/150"><PhoneOff size={28} /></Btn>
             </>)}
           </div>
         </div>
