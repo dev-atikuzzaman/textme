@@ -4,6 +4,7 @@ import webpush from 'npm:web-push@3.6.7'
 const TEXT: Record<string, string> = {
   like: 'আপনার পোস্টে লাইক দিয়েছেন',
   comment: 'আপনার পোস্টে কমেন্ট করেছেন',
+  reply: 'আপনার কমেন্টের উত্তর দিয়েছেন',
   friend_request: 'আপনাকে ফ্রেন্ড রিকুয়েস্ট পাঠিয়েছেন',
   friend_accept: 'আপনার ফ্রেন্ড রিকুয়েস্ট গ্রহণ করেছেন',
 }
