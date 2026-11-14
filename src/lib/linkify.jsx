@@ -7,6 +7,12 @@ export function linkify(text) {
   return text.split(RE).map((part, i) => {
     if (/^https?:\/\//.test(part)) {
       const [, url, tail] = part.match(/^(.*?)([.,;:!?)]*)$/)
+      let u = null
+      try { u = new URL(url) } catch { /* ignore */ }
+      if (u && u.origin === window.location.origin) {
+        const label = u.pathname.startsWith('/post/') ? 'পোস্টটি দেখুন →' : url
+        return <span key={i}><Link to={u.pathname + u.search} className="font-semibold text-brand underline">{label}</Link>{tail}</span>
+      }
       return <span key={i}><a href={url} target="_blank" rel="noopener noreferrer" className="break-all text-brand underline">{url}</a>{tail}</span>
     }
     if (part.startsWith('#')) {
