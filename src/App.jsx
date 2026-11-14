@@ -14,6 +14,7 @@ import Chat from './pages/Chat'
 import Profile from './pages/Profile'
 import Notifications from './pages/Notifications'
 import Post from './pages/Post'
+import SearchPage from './pages/Search'
 
 // ছোট "ডিং" সাউন্ড, কোনো ফাইল লাগে না
 function playDing(ctx) {
@@ -80,6 +81,7 @@ export default function App() {
           <Route path="profile/:id?" element={<Profile />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="post/:id" element={<Post />} />
+          <Route path="search" element={<SearchPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
