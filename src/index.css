@@ -1,13 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body { @apply bg-mist text-ink font-sans antialiased; -webkit-tap-highlight-color: transparent; }
+
+/* Premium Forest থিম — রঙের মান (R G B) */
+:root {
+  --ink: 4 16 10;
+  --fg: 234 255 242;
+  --surface: 15 42 30;
+  --surface2: 21 56 42;
+  --brand: 43 217 172;
+  --coral: 245 185 66;
+  --danger: 248 113 113;
+  --success: 74 222 128;
+  --inverse: 6 21 14;
+  color-scheme: dark;
+}
+html { font-size: 16.5px; overflow-x: hidden; }
+body {
+  @apply font-sans antialiased;
+  margin: 0; overflow-x: hidden; max-width: 100vw;
+  color: rgb(var(--fg));
+  background: linear-gradient(160deg, #060f0b 0%, #0a2118 42%, #0e3524 100%);
+  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
+}
+.bg-forest { background: linear-gradient(160deg, #060f0b 0%, #0a2118 42%, #0e3524 100%); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgb(var(--surface2)); }
+::-webkit-scrollbar-thumb { background: rgba(110,210,165,.25); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--brand)); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .btn { @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition active:scale-95 disabled:opacity-50; }
-.btn-primary { @apply btn text-white bg-gradient-to-r from-brand to-coral shadow-soft; }
-.btn-soft { @apply btn bg-white text-ink; }
-.input { @apply w-full rounded-2xl border-0 bg-white px-4 py-3 outline-none ring-1 ring-ink/10 focus:ring-2 focus:ring-brand; }
+.btn-primary { @apply btn text-inverse bg-gradient-to-r from-brand to-coral shadow-soft; }
+.btn-soft { @apply btn bg-surface2 text-fg; }
+.input { @apply w-full rounded-2xl border-0 bg-surface2 px-4 py-3 text-fg outline-none ring-1 ring-fg/15 placeholder:text-fg/40 focus:ring-2 focus:ring-brand; }
 @keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.85); } to { opacity: 1; transform: none; } }
 .pop-in { animation: pop-in .16s ease-out; }
 @keyframes heart-burst { 0% { opacity: 0; transform: scale(.3); } 30% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.7); } }
