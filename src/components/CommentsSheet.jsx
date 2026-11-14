@@ -12,7 +12,7 @@ export default function CommentsSheet({ post, onClose, onChange }) {
   const end = useRef()
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('comments').select('*, profiles(id,full_name,avatar_url)')
+    const { data } = await supabase.from('comments').select('*, profiles!comments_user_id_fkey(id,full_name,avatar_url)')
       .eq('post_id', post.id).order('created_at')
     setItems(data || [])
   }, [post.id])
