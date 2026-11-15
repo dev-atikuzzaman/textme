@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Lock, Globe, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X } from 'lucide-react'
+import { ArrowLeft, MessageCircle, Lock, Globe, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { SELECT_POST } from '../lib/constants'
@@ -97,37 +97,45 @@ export default function Group() {
   return (
     <div className="space-y-4 pt-2">
       <div className="flex items-center gap-3">
-        <button onClick={() => nav('/groups')} aria-label="পেছনে" className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
-        <h2 className="min-w-0 flex-1 truncate text-xl font-extrabold">{g.name}</h2>
+        <button onClick={() => nav(-1)} aria-label="পেছনে" className="grid h-10 w-10 place-items-center rounded-full bg-surface"><ArrowLeft size={20} /></button>
+        <p className="flex-1 truncate font-bold text-fg/70">গ্রুপ ইনফো</p>
       </div>
 
-      <div className="rounded-[32px] bg-gradient-to-br from-brand to-coral p-5 text-inverse shadow-soft">
-        <div className="flex items-center gap-4">
-          <button disabled={!isAdmin || busy} onClick={() => fileRef.current.click()} className="relative shrink-0">
-            <Avatar p={gp} size={72} />
-            {isAdmin && <span className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-surface text-brand"><Camera size={15} /></span>}
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
-          <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-inverse/80">{g.privacy === 'public' ? <Globe size={14} /> : <Lock size={14} />}{g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'} • {members.length.toLocaleString('bn-BD')} জন সদস্য</p>
-            {g.about && <p className="mt-1 line-clamp-3 text-inverse/90">{g.about}</p>}
+      <div className="rounded-[32px] bg-surface p-5 text-center shadow-soft">
+        <button disabled={!isAdmin || busy} onClick={() => fileRef.current.click()} className="relative mx-auto block">
+          <Avatar p={gp} size={96} />
+          {isAdmin && <span className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-brand text-inverse"><Camera size={16} /></span>}
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
+        <h2 className="mt-3 text-2xl font-bold">{g.name}</h2>
+        <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm text-fg/60">{g.privacy === 'public' ? <Globe size={14} /> : <Lock size={14} />}{g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'} • {members.length.toLocaleString('bn-BD')} জন সদস্য</p>
+        {g.about && <p className="mx-auto mt-2 max-w-sm text-sm text-fg/80">{g.about}</p>}
+
+        {!me && g.privacy === 'public' && <button disabled={busy} onClick={join} className="btn-primary mt-4 w-full">গ্রুপে যোগ দিন</button>}
+        {me && (
+          <div className="mt-4 flex items-start justify-center gap-5">
+            {[
+              ['chat', MessageCircle, 'চ্যাট', () => setSp({ tab: 'chat' }, { replace: true }), true],
+              ['add', UserPlus, 'যোগ করুন', () => setSheet('add'), isAdmin],
+              ['edit', Pencil, 'এডিট', () => setSheet('edit'), isAdmin],
+              ['leave', LogOut, 'ছাড়ুন', leave, true, true],
+            ].filter((x) => x[4]).map(([k, I, label, fn, , danger]) => (
+              <button key={k} onClick={fn} className="flex w-16 flex-col items-center gap-1.5">
+                <span className={`grid h-12 w-12 place-items-center rounded-full bg-surface2 transition active:scale-90 ${danger ? 'text-danger' : 'text-brand'}`}><I size={21} /></span>
+                <span className={`text-xs font-semibold ${danger ? 'text-danger' : 'text-fg/80'}`}>{label}</span>
+              </button>
+            ))}
           </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {!me && g.privacy === 'public' && <button disabled={busy} onClick={join} className="btn-soft flex-1">গ্রুপে যোগ দিন</button>}
-          {me && isAdmin && <button onClick={() => setSheet('add')} className="btn-soft flex-1 whitespace-nowrap !px-2 text-[13px]"><UserPlus size={16} />যোগ করুন</button>}
-          {me && isAdmin && <button onClick={() => setSheet('edit')} className="btn-soft flex-1 whitespace-nowrap !px-2 text-[13px]"><Pencil size={15} />এডিট</button>}
-          {me && <button onClick={leave} className="btn-soft flex-1 whitespace-nowrap !px-2 text-[13px] !text-danger"><LogOut size={15} />ছাড়ুন</button>}
-        </div>
+        )}
       </div>
 
       {!me ? (
         <p className="rounded-3xl bg-surface p-6 text-center text-fg/65">পোস্ট, চ্যাট ও সদস্যদের দেখতে গ্রুপে যোগ দিন।</p>
       ) : (<>
-        <div className="flex gap-2">
+        <div className="flex border-b border-fg/10">
           {TABS.map(([t, label]) => (
             <button key={t} onClick={() => setSp({ tab: t }, { replace: true })}
-              className={`flex-1 rounded-full py-2.5 text-sm font-bold transition active:scale-95 ${tab === t ? 'bg-gradient-to-r from-brand to-coral text-inverse' : 'bg-surface text-fg/70 shadow-soft'}`}>{label}</button>
+              className={`relative flex-1 py-3 text-sm font-bold transition ${tab === t ? 'text-brand' : 'text-fg/55'}`}>{label}{tab === t && <span className="absolute inset-x-6 bottom-0 h-[3px] rounded-full bg-brand" />}</button>
           ))}
         </div>
 
