@@ -7,6 +7,8 @@ import { playSend } from '../../lib/sound'
 import { linkify } from '../../lib/linkify'
 import Lightbox from '../post/Lightbox'
 
+const NAME_COLORS = ['text-emerald-300', 'text-sky-300', 'text-amber-300', 'text-pink-300', 'text-violet-300', 'text-orange-300', 'text-teal-300', 'text-lime-300']
+const nameColor = (id = '') => NAME_COLORS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % NAME_COLORS.length]
 const time = (d) => new Date(d).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
 
 // WhatsApp-স্টাইল গ্রুপ চ্যাট (রিয়েলটাইম)
@@ -61,7 +63,7 @@ export default function GroupChat({ groupId, who }) {
 
   let lastDay = ''
   return (
-    <div className="flex h-[calc(100dvh-20rem)] min-h-[360px] flex-col overflow-hidden rounded-[28px] bg-surface/60 shadow-soft">
+    <div className="flex h-[calc(100dvh-20rem)] min-h-[360px] flex-col overflow-hidden rounded-[28px] bg-ink/40 shadow-soft ring-1 ring-fg/5">
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {msgs === null && <p className="py-8 text-center text-fg/50">লোড হচ্ছে…</p>}
         {msgs?.length === 0 && <p className="py-8 text-center text-fg/50">এখনও কোনো মেসেজ নেই। প্রথম মেসেজটি আপনিই পাঠান 👋</p>}
@@ -74,11 +76,11 @@ export default function GroupChat({ groupId, who }) {
             <div key={m.id}>
               {sep && <p className="my-2 text-center text-xs text-fg/40">{day}</p>}
               <div className={`flex ${mine ? 'justify-end' : ''}`}>
-                <div className={`max-w-[80%] rounded-3xl px-3.5 py-2 ${mine ? 'rounded-br-lg bg-gradient-to-br from-brand to-coral text-inverse' : 'rounded-bl-lg bg-surface'}`}>
-                  {showName && <p className="mb-0.5 text-xs font-bold text-brand">{who[m.sender_id]?.full_name || 'সদস্য'}</p>}
+                <div className={`max-w-[80%] rounded-2xl px-3 py-1.5 ${mine ? 'rounded-tr-sm bg-bubble text-white' : 'rounded-tl-sm bg-surface2'}`}>
+                  {showName && <p className={`mb-0.5 text-xs font-bold ${nameColor(m.sender_id)}`}>{who[m.sender_id]?.full_name || 'সদস্য'}</p>}
                   {m.media_url && <img src={m.media_url} alt="" loading="lazy" onClick={() => setZoom(m.media_url)} className="mb-1 max-h-64 cursor-zoom-in rounded-2xl object-cover" />}
                   {m.content && <p className="whitespace-pre-wrap break-words">{linkify(m.content)}</p>}
-                  <p className={`mt-0.5 text-right text-[10px] ${mine ? 'text-inverse/60' : 'text-fg/45'}`}>{time(m.created_at)}</p>
+                  <p className={`mt-0.5 text-right text-[10px] ${mine ? 'text-white/60' : 'text-fg/45'}`}>{time(m.created_at)}</p>
                 </div>
               </div>
             </div>
