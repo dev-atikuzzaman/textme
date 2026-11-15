@@ -51,24 +51,34 @@ self.addEventListener('push', (e) => {
       return
     }
 
-    // অ্যাপ ব্যাকগ্রাউন্ড ট্যাব/উইন্ডোতে খোলা থাকলে (বিশেষত পিসিতে) পেজকে দিয়েও "ডিং" বাজানো হয় —
-    // কারণ সিস্টেম নোটিফিকেশনের সাউন্ড ডিভাইসের সেটিংয়ে বন্ধ থাকতে পারে
-    if (!isCall) list.forEach((c) => c.postMessage({ type: 'PLAY_SOUND', payload: d }))
+    // ব্যাকগ্রাউন্ডে চালু থাকা (hidden) ট্যাব/PWA-তেও অ্যাপের ডিং বাজাই
+    list.forEach((c) => c.postMessage({ type: 'PLAY_SOUND', payload: d }))
 
     // অ্যাপ বন্ধ বা ব্যাকগ্রাউন্ডে: সাউন্ড/ভাইব্রেশনসহ সিস্টেম পপ-আপ
-    await self.registration.showNotification(d.title || 'আপন', {
+    const tag = d.tag || d.url || 'apon'
+    const show = () => self.registration.showNotification(d.title || 'আপন', {
       body: d.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
       data: { url: d.url || '/notifications', type: d.type || '' },
-      tag: d.tag || d.url || 'apon',
-      renotify: true,
+      tag,
+      renotify: true,   // একই tag-এ আবার এলেও সাউন্ড/ভাইব্রেশন হবে
       silent: false,
-      timestamp: Date.now(),
       requireInteraction: isCall, // কল নোটিফিকেশন নিজে থেকে মিলিয়ে যাবে না
       vibrate: isCall ? [600, 250, 600, 250, 600, 250, 600] : [200, 100, 200],
       actions: isCall ? [{ action: 'answer', title: '📞 ধরুন' }, { action: 'decline', title: 'কেটে দিন' }] : [],
     })
+    await show()
+
+    // কল: রিংয়ের মতো প্রতি ৪ সেকেন্ডে (সর্বোচ্চ ~28 সেকেন্ড) আবার সাউন্ড; ধরলে/কাটলে নোটিফিকেশন বন্ধ হলেই থামে
+    if (isCall) {
+      for (let i = 0; i < 7; i++) {
+        await new Promise((r) => setTimeout(r, 4000))
+        const open = await self.registration.getNotifications({ tag })
+        if (!open.length) break
+        await show()
+      }
+    }
   })())
 })
 
