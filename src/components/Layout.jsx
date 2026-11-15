@@ -5,6 +5,7 @@ import { CallProvider } from '../context/Call'
 import { SavedProvider } from '../context/Saved'
 import { PresenceProvider } from '../context/Presence'
 import { InboxProvider, useInbox } from '../context/Inbox'
+import { ChatPrefsProvider } from '../context/ChatPrefs'
 import InstallBanner from './InstallBanner'
 import PushBanner from './PushBanner'
 
@@ -88,6 +89,6 @@ function Shell() {
 
 export default function Layout() {
   return (
-    <NotifProvider><CallProvider><PresenceProvider><InboxProvider><SavedProvider><Shell /></SavedProvider></InboxProvider></PresenceProvider></CallProvider></NotifProvider>
+    <NotifProvider><CallProvider><PresenceProvider><InboxProvider><SavedProvider><ChatPrefsProvider><Shell /></ChatPrefsProvider></SavedProvider></InboxProvider></PresenceProvider></CallProvider></NotifProvider>
   )
 }
