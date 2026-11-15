@@ -18,46 +18,22 @@ import SearchPage from './pages/Search'
 import Groups from './pages/Groups'
 import Group from './pages/Group'
 import PageView from './pages/PageView'
+import { unlockAudio, audioReady, playDing } from './lib/sound'
 
-// ছোট "ডিং" সাউন্ড, কোনো ফাইল লাগে না
-function playDing(ctx) {
-  const osc = ctx.createOscillator()
-  const gain = ctx.createGain()
-  osc.type = 'sine'
-  osc.frequency.setValueAtTime(880, ctx.currentTime)
-  osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12)
-  gain.gain.setValueAtTime(0.0001, ctx.currentTime)
-  gain.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + 0.02)
-  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45)
-  osc.connect(gain).connect(ctx.destination)
-  osc.start()
-  osc.stop(ctx.currentTime + 0.5)
-}
-
-// অ্যাপ খোলা অবস্থায় Service Worker থেকে মেসেজ এলে সাউন্ড বাজায়
+// অ্যাপ খোলা (বা ব্যাকগ্রাউন্ড ট্যাবে) থাকলে Service Worker থেকে মেসেজ এলে "ডিং" বাজায়
 function NotificationSound() {
   useEffect(() => {
-    let ctx
-
-    // ব্রাউজার প্রথম টাচ/ক্লিকের আগে অডিও চালাতে দেয় না, তাই আনলক করে নিচ্ছি
-    const unlock = () => {
-      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)()
-      if (ctx.state === 'suspended') ctx.resume()
-      window.removeEventListener('pointerdown', unlock)
-    }
-    window.addEventListener('pointerdown', unlock)
-
-    const onMsg = (e) => {
-      if (e.data?.type === 'PLAY_SOUND' && ctx) playDing(ctx)
-    }
+    const evs = ['pointerdown', 'touchend', 'keydown', 'click']
+    // ব্রাউজার প্রথম ট্যাপের আগে অডিও চালাতে দেয় না, তাই ট্যাপ/কী চাপলেই আনলক করে নিচ্ছি
+    const unlock = () => { unlockAudio(); if (audioReady()) evs.forEach((e) => window.removeEventListener(e, unlock)) }
+    evs.forEach((e) => window.addEventListener(e, unlock, { passive: true }))
+    const onMsg = (e) => { if (e.data?.type === 'PLAY_SOUND') playDing() }
     navigator.serviceWorker?.addEventListener('message', onMsg)
-
     return () => {
-      window.removeEventListener('pointerdown', unlock)
+      evs.forEach((e) => window.removeEventListener(e, unlock))
       navigator.serviceWorker?.removeEventListener('message', onMsg)
     }
   }, [])
-
   return null
 }
 
