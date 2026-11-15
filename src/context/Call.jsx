@@ -3,8 +3,9 @@ import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
-import { startRingtone, stopRingtone, unlockAudio, audioReady } from '../lib/sound'
 import Avatar from '../components/Avatar'
+
+import { ringtone } from '../lib/sound'
 
 const Ctx = createContext(null)
 export const useCall = () => useContext(Ctx)
@@ -25,6 +26,7 @@ export function CallProvider({ children }) {
   const [secs, setSecs] = useState(0)
   const [muted, setMuted] = useState(false)
   const [camOff, setCamOff] = useState(false)
+  const [note, setNote] = useState('')
   const callRef = useRef(null), pc = useRef(null), local = useRef(null), remote = useRef(null)
   const chans = useRef({}), pending = useRef([]), ringTimer = useRef(), clock = useRef(), ring = useRef()
   const remoteEl = useRef(), localEl = useRef(), handleRef = useRef()
@@ -45,14 +47,9 @@ export function CallProvider({ children }) {
   }
 
   // ---------- রিংটোন ----------
-  const [soundBlocked, setSoundBlocked] = useState(false)
-  const [note, setNote] = useState('')
-  const startRing = (mode = 'in') => {
-    startRingtone(mode)
-    // ব্রাউজার সাউন্ড আটকে রাখলে ইউজারকে একবার ট্যাপ করতে বলা হয়
-    if (mode === 'in') setTimeout(() => setSoundBlocked(!audioReady()), 500)
-  }
-  const stopRing = () => { stopRingtone(); setSoundBlocked(false) }
+  // শেয়ার্ড (আনলক করা) AudioContext দিয়ে বাজে, তাই ইনকামিং কলে সাউন্ডসহ রিং হয়
+  const startRing = (mode = 'in') => { stopRing(); ring.current = ringtone(mode) }
+  const stopRing = () => { ring.current?.(); ring.current = null }
 
   // ---------- কল শেষ/পরিষ্কার ----------
   const finish = async (status, notify = true) => {
@@ -66,11 +63,10 @@ export function CallProvider({ children }) {
       await supabase.from('messages').update({ meta: { kind: c.kind, status, duration } }).eq('id', c.msgId)
     }
     pc.current?.close(); pc.current = null
-    setNote('')
     local.current?.getTracks().forEach((t) => t.stop()); local.current = null
     remote.current = null; pending.current = []
     setTimeout(() => { Object.values(chans.current).forEach((x) => supabase.removeChannel(x.ch)); chans.current = {} }, 800)
-    setCallState(null); setMuted(false); setCamOff(false); setSecs(0)
+    setCallState(null); setMuted(false); setCamOff(false); setSecs(0); setNote('')
   }
 
   const becomeActive = () => {
@@ -81,46 +77,35 @@ export function CallProvider({ children }) {
     clock.current = setInterval(() => setSecs((s) => s + 1), 1000)
   }
 
-  const mediaProblem = (e) => {
-    const n = e?.name
-    if (n === 'NotAllowedError' || n === 'SecurityError') return 'মাইক্রোফোন/ক্যামেরার অনুমতি বন্ধ আছে।\n\nঠিকানার বারের 🔒 আইকনে ক্লিক করে "Microphone" Allow করুন, তারপর পেজ রিলোড করে আবার চেষ্টা করুন।\n(Windows-এ: Settings → Privacy & security → Microphone → ব্রাউজারের অনুমতি চালু আছে কিনা দেখুন)'
-    if (n === 'NotReadableError' || n === 'AbortError') return 'মাইক্রোফোন/ক্যামেরা অন্য কোনো অ্যাপ ব্যবহার করছে। সেটি বন্ধ করে আবার চেষ্টা করুন।'
-    if (n === 'NotFoundError' || n === 'OverconstrainedError') return 'এই ডিভাইসে কোনো মাইক্রোফোন পাওয়া যায়নি।'
-    return 'মিডিয়া চালু করা যায়নি: ' + (e?.message || n || 'অজানা ত্রুটি')
-  }
-  const noDevice = (e) => ['NotFoundError', 'OverconstrainedError'].includes(e?.name)
-  // ক্যামেরা না থাকলে শুধু অডিও, মাইক না থাকলে null (শুধু শুনতে পারবে) — অনুমতি না দিলে ত্রুটি ফেরত
+  // মাইক/ক্যামেরা: না পেলে কল বাতিল না করে যতটা সম্ভব চালিয়ে যায়
   const getMedia = async (kind) => {
-    const tries = kind === 'video'
-      ? [{ audio: true, video: { facingMode: 'user' } }, { audio: true, video: false }, { audio: false, video: { facingMode: 'user' } }]
-      : [{ audio: true, video: false }]
-    let err = null
-    for (const c of tries) {
-      try { return { stream: await navigator.mediaDevices.getUserMedia(c), err: null } } catch (e) {
-        err = e
-        if (!noDevice(e)) break
+    const get = (c) => navigator.mediaDevices.getUserMedia(c)
+    try {
+      return { stream: await get({ audio: true, video: kind === 'video' ? { facingMode: 'user' } : false }) }
+    } catch (e) {
+      let err = e
+      if (kind === 'video' && ['NotFoundError', 'OverconstrainedError', 'NotReadableError'].includes(e.name)) {
+        try { return { stream: await get({ audio: true }), note: 'ক্যামেরা পাওয়া যায়নি — অডিওতে চলছে' } } catch (e2) { err = e2 }
       }
+      if (err.name === 'NotFoundError') return { stream: null, note: 'মাইক্রোফোন পাওয়া যায়নি — আপনি শুধু শুনতে পারবেন' }
+      throw err
     }
-    return { stream: null, err }
   }
-  const describe = (stream, kind) => {
-    const a = !!stream?.getAudioTracks().length, v = !!stream?.getVideoTracks().length
-    if (!a && kind === 'video' && !v) setNote('মাইক্রোফোন ও ক্যামেরা নেই — শুধু দেখতে ও শুনতে পারবেন')
-    else if (!a) setNote('মাইক্রোফোন নেই — আপনি শুধু শুনতে পারবেন, আপনার কথা যাবে না')
-    else if (kind === 'video' && !v) setNote('ক্যামেরা পাওয়া যায়নি — শুধু অডিও চলছে')
-    else setNote('')
+  const mediaMsg = (e, kind) => {
+    const what = kind === 'video' ? 'মাইক্রোফোন ও ক্যামেরা' : 'মাইক্রোফোন'
+    if (e?.name === 'NotAllowedError' || e?.name === 'SecurityError')
+      return `${what}-এর অনুমতি বন্ধ করা আছে।\n\nঠিক করতে: ব্রাউজারের অ্যাড্রেস বারের বাঁ পাশের 🔒 (বা ⚙) আইকনে ক্লিক করে ${what} "Allow / অনুমতি দিন" করুন, তারপর পেজ রিফ্রেশ করে আবার কল দিন।`
+    if (e?.name === 'NotReadableError') return `${what} এখন অন্য কোনো অ্যাপ বা ট্যাব ব্যবহার করছে। সেটি বন্ধ করে আবার চেষ্টা করুন।`
+    return `${what} চালু করা যায়নি (${e?.name || 'অজানা ত্রুটি'})।`
   }
 
-  const makePC = (peerId, outgoing) => {
+  const makePC = (peerId, kind) => {
     const p = new RTCPeerConnection(ICE)
     pc.current = p
-    const st = local.current
-    ;(st?.getTracks() || []).forEach((t) => p.addTrack(t, st))
-    if (outgoing) {
-      // নিজের মাইক/ক্যামেরা না থাকলেও যেন ওপাশের অডিও-ভিডিও আসে
-      if (!st?.getAudioTracks().length) p.addTransceiver('audio', { direction: 'recvonly' })
-      if (callRef.current?.kind === 'video' && !st?.getVideoTracks().length) p.addTransceiver('video', { direction: 'recvonly' })
-    }
+    if (local.current) local.current.getTracks().forEach((t) => p.addTrack(t, local.current))
+    // নিজের মাইক/ক্যামেরা না থাকলেও অপর পক্ষের অডিও-ভিডিও যেন আসে
+    if (!local.current?.getAudioTracks().length) p.addTransceiver('audio', { direction: 'recvonly' })
+    if (kind === 'video' && !local.current?.getVideoTracks().length) p.addTransceiver('video', { direction: 'recvonly' })
     p.onicecandidate = (e) => e.candidate && sendTo(peerId, 'ice', { candidate: e.candidate })
     p.ontrack = (e) => { remote.current = e.streams[0]; setTick((t) => t + 1) }
     p.onconnectionstatechange = () => {
@@ -137,21 +122,17 @@ export function CallProvider({ children }) {
   const startCall = async (peer, kind) => {
     if (callRef.current) return
     if (!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) return alert('এই ব্রাউজারে কল সমর্থিত নয়।')
-    const { stream, err } = await getMedia(kind)
-    if (!stream) {
-      if (!noDevice(err)) return alert(mediaProblem(err))
-      if (!window.confirm('আপনার ডিভাইসে মাইক্রোফোন পাওয়া যায়নি।\nশুধু শুনে কল চালিয়ে যাবেন? (ওপাশের কথা শুনতে পাবেন, আপনার কথা যাবে না)')) return
-    }
-    local.current = stream
-    describe(stream, kind)
+    let m
+    try { m = await getMedia(kind) } catch (e) { return alert(mediaMsg(e, kind)) }
+    local.current = m.stream; setNote(m.note || '')
     const { data, error } = await supabase.from('messages').insert({
       sender_id: user.id, receiver_id: peer.id, type: 'call',
       content: kind === 'video' ? '📹 ভিডিও কল করছেন' : '📞 অডিও কল করছেন', meta: { kind, status: 'calling' },
     }).select().single()
-    if (error) { local.current?.getTracks().forEach((t) => t.stop()); local.current = null; return alert('কল করা যায়নি — শুধু বন্ধুদের কল করা যায়।') }
+    if (error) { local.current?.getTracks().forEach((t) => t.stop()); local.current = null; setNote(''); return alert('কল করা যায়নি — শুধু বন্ধুদের কল করা যায়।') }
     setCall({ peer, kind, dir: 'out', state: 'ringing', msgId: data.id })
-    makePC(peer.id, true)
-    startRing('out')
+    makePC(peer.id, kind)
+    startRing('out') // কলার রিংব্যাক টোন শোনে
     sendTo(peer.id, 'invite', { name: profile.full_name, avatar: profile.avatar_url, kind })
     ringTimer.current = setTimeout(() => finish('missed'), 45000)
   }
@@ -161,12 +142,11 @@ export function CallProvider({ children }) {
     const c = callRef.current
     if (!c) return
     stopRing()
-    const { stream, err } = await getMedia(c.kind)
-    if (!stream && !noDevice(err)) { alert(mediaProblem(err)); return finish('declined') }
-    local.current = stream
-    describe(stream, c.kind)
+    let m
+    try { m = await getMedia(c.kind) } catch (e) { alert(mediaMsg(e, c.kind)); return finish('declined') }
+    local.current = m.stream; setNote(m.note || '')
     setCall({ ...c, state: 'connecting' })
-    makePC(c.peer.id, false)
+    makePC(c.peer.id, c.kind)
     sendTo(c.peer.id, 'accept')
   }
   const decline = () => finish('declined')
@@ -186,7 +166,6 @@ export function CallProvider({ children }) {
     }
     if (!c || p.from !== c.peer.id) return
     if (event === 'accept') {
-      stopRing()
       setCall({ ...c, state: 'connecting' })
       const offer = await pc.current.createOffer()
       await pc.current.setLocalDescription(offer)
@@ -247,8 +226,6 @@ export function CallProvider({ children }) {
   const toggleMic = () => { local.current?.getAudioTracks().forEach((t) => (t.enabled = muted)); setMuted(!muted) }
   const toggleCam = () => { local.current?.getVideoTracks().forEach((t) => (t.enabled = camOff)); setCamOff(!camOff) }
 
-  const hasAudio = !!local.current?.getAudioTracks().length
-  const hasVideo = !!local.current?.getVideoTracks().length
   const isVideo = call?.kind === 'video'
   const showCenter = call && !(isVideo && call.state === 'active')
   const status = !call ? '' : call.state === 'active' ? mmss(secs)
@@ -262,9 +239,9 @@ export function CallProvider({ children }) {
     <Ctx.Provider value={{ startCall, inCall: !!call }}>
       {children}
       {call && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-ink text-white" onPointerDown={() => { unlockAudio(); setSoundBlocked(false) }}>
+        <div className="fixed inset-0 z-[100] flex flex-col bg-ink text-white">
           <video ref={remoteEl} autoPlay playsInline className={isVideo && call.state === 'active' ? 'absolute inset-0 h-full w-full object-cover' : 'absolute h-px w-px opacity-0'} />
-          {isVideo && hasVideo && (
+          {isVideo && local.current?.getVideoTracks().length > 0 && (
             <video ref={localEl} autoPlay playsInline muted className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-10 h-40 w-28 rounded-2xl object-cover ring-2 ring-white/30 [transform:scaleX(-1)]" />
           )}
           {!showCenter && (
@@ -276,20 +253,18 @@ export function CallProvider({ children }) {
             <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3">
               <Avatar p={call.peer} size={128} />
               <h2 className="text-2xl font-extrabold">{call.peer.full_name}</h2>
-              <p className="text-white/70">{status}</p>
-              {soundBlocked && call.state === 'ringing' && <p className="rounded-full bg-white/15 px-4 py-1.5 text-sm">🔔 রিংটোন শুনতে স্ক্রিনে একবার ট্যাপ করুন</p>}
-              {note && <p className="max-w-xs rounded-2xl bg-white/10 px-4 py-2 text-center text-sm text-amber-300">{note}</p>}
+              <p className="text-white/70">{status}</p>{note && <p className="text-xs text-amber-300">{note}</p>}
             </div>
           )}
           {!showCenter && <div className="flex-1" />}
           <div className="relative z-10 flex items-center justify-center gap-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-6">
             {call.dir === 'in' && call.state === 'ringing' ? (<>
-              <Btn onClick={decline} className="bg-red-500"><PhoneOff size={28} /></Btn>
-              <Btn onClick={accept} className="bg-emerald-500"><Phone size={28} /></Btn>
+              <Btn onClick={decline} className="bg-danger/150"><PhoneOff size={28} /></Btn>
+              <Btn onClick={accept} className="bg-success/150"><Phone size={28} /></Btn>
             </>) : (<>
-              {hasAudio && <Btn onClick={toggleMic} className={muted ? 'bg-white text-ink' : 'bg-white/20'}>{muted ? <MicOff size={26} /> : <Mic size={26} />}</Btn>}
-              {isVideo && hasVideo && <Btn onClick={toggleCam} className={camOff ? 'bg-white text-ink' : 'bg-white/20'}>{camOff ? <VideoOff size={26} /> : <Video size={26} />}</Btn>}
-              <Btn onClick={hangup} className="bg-red-500"><PhoneOff size={28} /></Btn>
+              <Btn onClick={toggleMic} className={muted ? 'bg-white text-ink' : 'bg-white/20'}>{muted ? <MicOff size={26} /> : <Mic size={26} />}</Btn>
+              {isVideo && <Btn onClick={toggleCam} className={camOff ? 'bg-white text-ink' : 'bg-white/20'}>{camOff ? <VideoOff size={26} /> : <Video size={26} />}</Btn>}
+              <Btn onClick={hangup} className="bg-danger/150"><PhoneOff size={28} /></Btn>
             </>)}
           </div>
         </div>
