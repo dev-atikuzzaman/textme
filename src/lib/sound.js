@@ -1,51 +1,51 @@
-// সাউন্ড ইফেক্ট (কোনো ফাইল লাগে না) — একটিই AudioContext সবখানে ব্যবহার হয়
+// অ্যাপের সব সাউন্ড এক জায়গায় (কোনো অডিও ফাইল লাগে না)।
+// ব্রাউজার ইউজারের প্রথম ট্যাপ/ক্লিকের আগে সাউন্ড চালাতে দেয় না — তাই একটাই AudioContext
+// বানিয়ে প্রথম ট্যাপেই আনলক করে রাখি; এরপর কল-রিং/ডিং যেকোনো সময় বাজতে পারে।
 let ctx
 const ac = () => {
   try {
     ctx ||= new (window.AudioContext || window.webkitAudioContext)()
-    if (ctx.state === 'suspended') ctx.resume()
+    if (ctx.state !== 'running') ctx.resume().catch(() => {})
     return ctx
   } catch { return null }
 }
-// ব্রাউজার প্রথম টাচ/ক্লিকের আগে অডিও চালাতে দেয় না — প্রথম ট্যাপে এটি ডাকলে সাউন্ড আনলক হয়ে যায়
-export const unlockAudio = () => ac()
-export const audioReady = () => !!ctx && ctx.state === 'running'
 
-const tone = (c, freq, at, dur, vol = 0.12) => {
+const EVENTS = ['pointerdown', 'keydown', 'touchstart', 'click']
+const unlock = () => { const c = ac(); if (c && c.state === 'running') EVENTS.forEach((e) => window.removeEventListener(e, unlock)) }
+if (typeof window !== 'undefined') EVENTS.forEach((e) => window.addEventListener(e, unlock, { passive: true }))
+
+const tone = (c, freq, at, dur, vol = 0.12, type = 'sine') => {
   const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + at
-  o.type = 'sine'; o.frequency.value = freq
-  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
-  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02)
-}
-// রিংয়ের জন্য টানা সুর (ধীরে শুরু, ধীরে শেষ)
-const hold = (c, freq, at, dur, vol) => {
-  const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + at
-  o.type = 'sine'; o.frequency.value = freq
-  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.03)
-  g.gain.setValueAtTime(vol, t + dur - 0.05); g.gain.linearRampToValueAtTime(0.0001, t + dur)
-  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02)
+  o.type = type; o.frequency.value = freq
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.03)
 }
 
 export const playSend = () => { const c = ac(); if (!c) return; tone(c, 880, 0, 0.09); tone(c, 1320, 0.07, 0.12) }
 export const playPop = () => { const c = ac(); if (!c) return; tone(c, 520, 0, 0.1); tone(c, 780, 0.09, 0.12); tone(c, 1040, 0.18, 0.18) }
-// নতুন মেসেজ/নোটিফিকেশনের "ডিং"
-export const playDing = () => { const c = ac(); if (!c) return; tone(c, 880, 0, 0.16, 0.3); tone(c, 1320, 0.11, 0.32, 0.3) }
 
-// কলের রিংটোন: 'in' = ইনকামিং (জোরালো ডাবল-রিং + ভাইব্রেট), 'out' = কলার যা শোনে (নরম বিপ)
-let ringIv = null
-export const stopRingtone = () => {
-  if (ringIv) { clearInterval(ringIv); ringIv = null }
-  navigator.vibrate?.(0)
+// নতুন মেসেজ/নোটিফিকেশনের "ডিং"
+export const playDing = () => {
+  const c = ac(); if (!c) return
+  const o = c.createOscillator(), g = c.createGain(), t = c.currentTime
+  o.type = 'sine'; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(1320, t + 0.12)
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.4, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45)
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.5)
 }
-export const startRingtone = (mode = 'in') => {
-  stopRingtone()
-  const once = () => {
+
+// কলের রিংটোন। 'in' = ইনকামিং (ফোনের মতো ডবল রিং + ভাইব্রেশন), 'out' = কলারের রিংব্যাক টোন
+// ফেরত দেয় বন্ধ করার ফাংশন
+export function ringtone(mode = 'in') {
+  const play = () => {
     const c = ac(); if (!c) return
     if (mode === 'in') {
-      ;[0, 0.55].forEach((at) => { hold(c, 440, at, 0.42, 0.3); hold(c, 480, at, 0.42, 0.3) })
+      for (const at of [0, 0.5]) { tone(c, 740, at, 0.2, 0.3, 'triangle'); tone(c, 988, at + 0.22, 0.2, 0.3, 'triangle') }
       navigator.vibrate?.([400, 200, 400])
-    } else hold(c, 425, 0, 1.0, 0.1)
+    } else {
+      tone(c, 425, 0, 1.1, 0.14)
+    }
   }
-  once()
-  ringIv = setInterval(once, mode === 'in' ? 2800 : 4000)
+  play()
+  const iv = setInterval(play, mode === 'in' ? 2400 : 3500)
+  return () => { clearInterval(iv); navigator.vibrate?.(0) }
 }
