@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
@@ -27,6 +27,8 @@ export function CallProvider({ children }) {
   const [muted, setMuted] = useState(false)
   const [camOff, setCamOff] = useState(false)
   const [note, setNote] = useState('')
+  const [mini, setMini] = useState(false)
+  const [facing, setFacing] = useState('user')
   const callRef = useRef(null), pc = useRef(null), local = useRef(null), remote = useRef(null)
   const chans = useRef({}), pending = useRef([]), ringTimer = useRef(), clock = useRef(), ring = useRef()
   const remoteEl = useRef(), localEl = useRef(), handleRef = useRef()
@@ -66,7 +68,7 @@ export function CallProvider({ children }) {
     local.current?.getTracks().forEach((t) => t.stop()); local.current = null
     remote.current = null; pending.current = []
     setTimeout(() => { Object.values(chans.current).forEach((x) => supabase.removeChannel(x.ch)); chans.current = {} }, 800)
-    setCallState(null); setMuted(false); setCamOff(false); setSecs(0); setNote('')
+    setCallState(null); setMuted(false); setCamOff(false); setSecs(0); setNote(''); setMini(false); setFacing('user')
   }
 
   const becomeActive = () => {
@@ -231,42 +233,89 @@ export function CallProvider({ children }) {
   const status = !call ? '' : call.state === 'active' ? mmss(secs)
     : call.state === 'connecting' ? 'কানেক্ট হচ্ছে…'
     : call.dir === 'out' ? 'রিং হচ্ছে…' : `${isVideo ? 'ভিডিও' : 'অডিও'} কল আসছে…`
-  const Btn = ({ onClick, className, children }) => (
-    <button onClick={onClick} className={`grid h-16 w-16 place-items-center rounded-full ${className}`}>{children}</button>
+  const flip = async () => {
+    const sender = pc.current?.getSenders().find((x) => x.track?.kind === 'video')
+    if (!sender || !local.current) return
+    try {
+      const next = facing === 'user' ? 'environment' : 'user'
+      const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: next } })
+      const nt = st.getVideoTracks()[0]
+      await sender.replaceTrack(nt)
+      local.current.getVideoTracks().forEach((t) => { t.stop(); local.current.removeTrack(t) })
+      local.current.addTrack(nt)
+      if (localEl.current) localEl.current.srcObject = local.current
+      setFacing(next); setCamOff(false)
+    } catch { /* একটাই ক্যামেরা থাকলে কিছু হবে না */ }
+  }
+
+  // WhatsApp-স্টাইল গোল বাটন + নিচে লেখা
+  const Ctl = ({ onClick, icon: I, label, active, danger, big, disabled }) => (
+    <button onClick={onClick} disabled={disabled} className="flex flex-col items-center gap-2 disabled:opacity-40">
+      <span className={`grid place-items-center rounded-full transition active:scale-90 ${big ? 'h-16 w-16' : 'h-14 w-14'} ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/10 text-white'}`}><I size={big ? 28 : 24} /></span>
+      {label && <span className="text-sm text-white/90">{label}</span>}
+    </button>
   )
+  const ringingIn = call?.dir === 'in' && call?.state === 'ringing'
+  const E2E = <p className="flex items-center justify-center gap-1.5 text-sm text-white/70"><Lock size={13} />এন্ড-টু-এন্ড এনক্রিপ্টেড</p>
 
   return (
     <Ctx.Provider value={{ startCall, inCall: !!call }}>
       {children}
+      {call && mini && (
+        <button onClick={() => setMini(false)} className="fixed left-1/2 top-[max(0.5rem,env(safe-area-inset-top))] z-[100] flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#0b3d2e] py-1.5 pl-1.5 pr-4 text-white shadow-soft ring-1 ring-white/15">
+          <Avatar p={call.peer} size={34} />
+          <span className="text-left text-sm leading-tight"><b className="block max-w-[9rem] truncate">{call.peer.full_name}</b><span className="text-xs text-white/70">{status}</span></span>
+          <span onClick={(e) => { e.stopPropagation(); hangup() }} className="grid h-8 w-8 place-items-center rounded-full bg-[#e11d48]"><PhoneOff size={16} /></span>
+        </button>
+      )}
       {call && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-ink text-white">
+        <div className={mini ? 'pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0' : 'fixed inset-0 z-[100] flex flex-col bg-gradient-to-b from-[#0b1f1a] to-[#07120f] text-white'}>
           <video ref={remoteEl} autoPlay playsInline className={isVideo && call.state === 'active' ? 'absolute inset-0 h-full w-full object-cover' : 'absolute h-px w-px opacity-0'} />
           {isVideo && local.current?.getVideoTracks().length > 0 && (
-            <video ref={localEl} autoPlay playsInline muted className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-10 h-40 w-28 rounded-2xl object-cover ring-2 ring-white/30 [transform:scaleX(-1)]" />
+            <video ref={localEl} autoPlay playsInline muted className={`absolute bottom-40 right-4 z-10 h-40 w-28 rounded-2xl object-cover ring-2 ring-white/30 ${facing === 'user' ? '[transform:scaleX(-1)]' : ''}`} />
           )}
-          {!showCenter && (
-            <div className="relative z-10 mt-[max(1rem,env(safe-area-inset-top))] px-5">
-              <p className="font-bold drop-shadow">{call.peer.full_name}</p><p className="text-sm text-white/80 drop-shadow">{status}{note ? ` • ${note}` : ''}</p>
+
+          {/* উপরের বার: মিনিমাইজ + নাম + E2E লেখা */}
+          <div className="relative z-10 flex items-start gap-3 px-4 pt-[max(1rem,env(safe-area-inset-top))]">
+            {!ringingIn ? <button onClick={() => setMini(true)} aria-label="ছোট করুন" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-black/35 backdrop-blur"><Minimize2 size={19} /></button> : <span className="w-11" />}
+            <div className="min-w-0 flex-1 text-center drop-shadow">
+              <p className="truncate text-xl font-bold">{call.peer.full_name}</p>
+              {E2E}
+              {(showCenter ? false : true) && <p className="mt-0.5 text-sm text-white/80">{status}{note ? ` • ${note}` : ''}</p>}
             </div>
-          )}
+            <span className="w-11" />
+          </div>
+
           {showCenter && (
-            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3">
-              <Avatar p={call.peer} size={128} />
-              <h2 className="text-2xl font-extrabold">{call.peer.full_name}</h2>
-              <p className="text-white/70">{status}</p>{note && <p className="text-xs text-amber-300">{note}</p>}
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4">
+              <div className={ringingIn || call.state !== 'active' ? 'animate-pulse' : ''}><Avatar p={call.peer} size={168} /></div>
+              <p className="text-lg text-white/80">{status}</p>
+              {note && <p className="rounded-full bg-amber-400/15 px-3 py-1 text-xs text-amber-300">{note}</p>}
             </div>
           )}
           {!showCenter && <div className="flex-1" />}
-          <div className="relative z-10 flex items-center justify-center gap-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-6">
-            {call.dir === 'in' && call.state === 'ringing' ? (<>
-              <Btn onClick={decline} className="bg-danger/150"><PhoneOff size={28} /></Btn>
-              <Btn onClick={accept} className="bg-success/150"><Phone size={28} /></Btn>
-            </>) : (<>
-              <Btn onClick={toggleMic} className={muted ? 'bg-white text-ink' : 'bg-white/20'}>{muted ? <MicOff size={26} /> : <Mic size={26} />}</Btn>
-              {isVideo && <Btn onClick={toggleCam} className={camOff ? 'bg-white text-ink' : 'bg-white/20'}>{camOff ? <VideoOff size={26} /> : <Video size={26} />}</Btn>}
-              <Btn onClick={hangup} className="bg-danger/150"><PhoneOff size={28} /></Btn>
-            </>)}
-          </div>
+
+          {ringingIn ? (
+            <div className="relative z-10 flex items-center justify-center gap-16 pb-[max(3rem,env(safe-area-inset-bottom))] pt-6">
+              <Ctl onClick={decline} icon={PhoneOff} label="কেটে দিন" danger big />
+              <Ctl onClick={accept} icon={isVideo ? Video : Phone} label="ধরুন" big />
+            </div>
+          ) : isVideo && call.state === 'active' ? (
+            <div className="relative z-10 mx-3 mb-[max(1rem,env(safe-area-inset-bottom))] flex items-center justify-around rounded-full bg-black/45 px-3 py-3 backdrop-blur">
+              <Ctl onClick={flip} icon={SwitchCamera} />
+              <Ctl onClick={toggleCam} icon={camOff ? VideoOff : Video} active={camOff} />
+              <Ctl onClick={toggleMic} icon={muted ? MicOff : Mic} active={muted} />
+              <Ctl onClick={hangup} icon={PhoneOff} danger />
+            </div>
+          ) : (
+            <div className="relative z-10 mx-3 mb-[max(1rem,env(safe-area-inset-bottom))] rounded-[32px] bg-black/35 px-4 py-6 backdrop-blur ring-1 ring-white/10">
+              <div className="grid grid-cols-3 gap-y-6">
+                <Ctl onClick={toggleMic} icon={muted ? MicOff : Mic} label={muted ? 'আনমিউট' : 'মিউট'} active={muted} />
+                {isVideo ? <Ctl onClick={toggleCam} icon={camOff ? VideoOff : Video} label="ক্যামেরা" active={camOff} /> : <Ctl icon={Video} label="ভিডিও" disabled />}
+                <Ctl onClick={hangup} icon={PhoneOff} label="কল শেষ" danger />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Ctx.Provider>
