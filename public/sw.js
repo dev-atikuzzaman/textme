@@ -1,4 +1,4 @@
-const V = 'apon-v5'
+const V = 'apon-v6'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -51,6 +51,10 @@ self.addEventListener('push', (e) => {
       return
     }
 
+    // অ্যাপ ব্যাকগ্রাউন্ড ট্যাব/উইন্ডোতে খোলা থাকলে (বিশেষত পিসিতে) পেজকে দিয়েও "ডিং" বাজানো হয় —
+    // কারণ সিস্টেম নোটিফিকেশনের সাউন্ড ডিভাইসের সেটিংয়ে বন্ধ থাকতে পারে
+    if (!isCall) list.forEach((c) => c.postMessage({ type: 'PLAY_SOUND', payload: d }))
+
     // অ্যাপ বন্ধ বা ব্যাকগ্রাউন্ডে: সাউন্ড/ভাইব্রেশনসহ সিস্টেম পপ-আপ
     await self.registration.showNotification(d.title || 'আপন', {
       body: d.body || '',
@@ -60,6 +64,7 @@ self.addEventListener('push', (e) => {
       tag: d.tag || d.url || 'apon',
       renotify: true,
       silent: false,
+      timestamp: Date.now(),
       requireInteraction: isCall, // কল নোটিফিকেশন নিজে থেকে মিলিয়ে যাবে না
       vibrate: isCall ? [600, 250, 600, 250, 600, 250, 600] : [200, 100, 200],
       actions: isCall ? [{ action: 'answer', title: '📞 ধরুন' }, { action: 'decline', title: 'কেটে দিন' }] : [],
