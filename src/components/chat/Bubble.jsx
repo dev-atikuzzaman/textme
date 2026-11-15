@@ -15,8 +15,8 @@ function callText(m, mine) {
 }
 
 export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenImage }) {
-  const sub = mine ? 'text-inverse/60' : 'text-fg/45'
-  const chip = mine ? 'bg-black/10' : 'bg-surface2'
+  const sub = mine ? 'text-white/60' : 'text-fg/45'
+  const chip = mine ? 'bg-white/10' : 'bg-surface2'
   const loading = <div className="h-40 w-52 animate-pulse rounded-2xl bg-black/10" />
   let body
 
@@ -87,9 +87,9 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
 
   return (
     <div className={`flex ${mine ? 'justify-end' : ''}`}>
-      <div className={`max-w-[82%] rounded-3xl px-3.5 py-2.5 ${mine ? 'rounded-br-lg bg-gradient-to-br from-brand to-coral text-inverse' : 'rounded-bl-lg bg-surface'}`}>
+      <div className={`max-w-[82%] rounded-2xl px-3.5 py-2 ${mine ? 'rounded-tr-sm bg-bubble text-white' : 'rounded-tl-sm bg-surface2'}`}>
         {body}
-        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${sub}`}>{time(m.created_at)}{mine && (m.read_at ? <CheckCheck size={14} className="text-sky-800" /> : <Check size={14} />)}</p>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${sub}`}>{time(m.created_at)}{mine && (m.read_at ? <CheckCheck size={14} className="text-sky-300" /> : <Check size={14} />)}</p>
       </div>
     </div>
   )
