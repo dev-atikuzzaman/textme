@@ -23,7 +23,7 @@ export default function PostMenu({ own, canPin, pinned, saved, onSave, onHide, o
             <p className="text-sm text-fg/60">এটি আর ফেরত আনা যাবে না। ছবি/ভিডিও থাকলে সেটিও মুছে যাবে।</p>
             <div className="flex gap-3 pt-1">
               <button onClick={() => setConfirm(false)} className="btn-soft flex-1 !bg-surface2">না</button>
-              <button onClick={onDelete} className="btn flex-1 bg-danger/150 text-white">মুছে ফেলুন</button>
+              <button onClick={onDelete} className="btn flex-1 bg-red-500 text-white">মুছে ফেলুন</button>
             </div>
           </div>
         ) : (
