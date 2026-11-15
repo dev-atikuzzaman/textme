@@ -19,6 +19,7 @@ import SearchPage from './pages/Search'
 import Groups from './pages/Groups'
 import Group from './pages/Group'
 import PageView from './pages/PageView'
+import LockGate from './components/chat/LockGate'
 
 // অ্যাপ খোলা বা পেছনে থাকা অবস্থায় Service Worker থেকে মেসেজ এলে সাউন্ড বাজায়
 function NotificationSound() {
@@ -49,13 +50,13 @@ export default function App() {
           <Route path="videos" element={<Videos />} />
           <Route path="friends" element={<Friends />} />
           <Route path="messages" element={<Messages />} />
-          <Route path="chat/:id" element={<Chat />} />
+          <Route path="chat/:id" element={<LockGate prefix="u"><Chat /></LockGate>} />
           <Route path="profile/:id?" element={<Profile />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="post/:id" element={<Post />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="groups" element={<Groups />} />
-          <Route path="groups/:id" element={<Group />} />
+          <Route path="groups/:id" element={<LockGate prefix="g"><Group /></LockGate>} />
           <Route path="pages/:id" element={<PageView />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

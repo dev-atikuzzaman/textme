@@ -5,11 +5,12 @@
 /* Premium Forest থিম — রঙের মান (R G B) */
 :root {
   --ink: 4 16 10;
-  --fg: 234 255 242;
-  --surface: 15 42 30;
-  --surface2: 21 56 42;
-  --brand: 43 217 172;
-  --coral: 245 185 66;
+  --fg: 232 245 238;
+  --surface: 17 38 31;
+  --surface2: 25 52 43;
+  --brand: 52 200 165;
+  --coral: 150 205 150;
+  --bubble: 12 92 76;
   --danger: 248 113 113;
   --success: 74 222 128;
   --inverse: 6 21 14;
