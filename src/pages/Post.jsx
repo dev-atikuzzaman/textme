@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { SELECT_POST } from '../lib/constants'
+import { withContext } from '../lib/context'
 import PostCard from '../components/PostCard'
 
 export default function Post() {
@@ -11,7 +12,7 @@ export default function Post() {
   const [post, setPost] = useState(undefined)
   const load = useCallback(async () => {
     const { data } = await supabase.from('posts').select(SELECT_POST).eq('id', id).maybeSingle()
-    setPost(data)
+    setPost(data ? (await withContext([data]))[0] : data)
   }, [id])
   useEffect(() => { load() }, [load])
   return (

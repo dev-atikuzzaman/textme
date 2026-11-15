@@ -7,6 +7,7 @@ import { useCall } from '../context/Call'
 import { useInbox } from '../context/Inbox'
 import { usePresence } from '../context/Presence'
 import { safeName, mmss } from '../lib/media'
+import { playSend } from '../lib/sound'
 import Avatar from '../components/Avatar'
 import Bubble from '../components/chat/Bubble'
 import AttachMenu from '../components/chat/AttachMenu'
@@ -101,7 +102,7 @@ export default function Chat() {
   const sendMsg = async (fields) => {
     const { data, error } = await supabase.from('messages').insert({ sender_id: user.id, receiver_id: id, ...fields }).select().single()
     if (error) { setErr('মেসেজ পাঠানো যায়নি — শুধু বন্ধুদের মেসেজ পাঠানো যায়।'); return null }
-    addMsg(data); sign([data]); loadVotes([data])
+    addMsg(data); sign([data]); loadVotes([data]); playSend()
     return data
   }
   const sendText = async (e) => {

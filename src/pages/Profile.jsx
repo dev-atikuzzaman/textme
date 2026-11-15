@@ -8,6 +8,7 @@ import { resizeSquare, mediaPathFromUrl } from '../lib/media'
 import Avatar from '../components/Avatar'
 import PostCard from '../components/PostCard'
 import PasswordSheet from '../components/PasswordSheet'
+import { withContext } from '../lib/context'
 
 export default function Profile() {
   const { id } = useParams()
@@ -26,7 +27,7 @@ export default function Profile() {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single()
     setP(prof); setForm({ full_name: prof?.full_name || '', bio: prof?.bio || '' })
     const { data } = await supabase.from('posts').select(SELECT_POST).eq('user_id', uid).order('pinned_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
-    setPosts(data || [])
+    setPosts(await withContext(data))
   }, [uid])
   useEffect(() => { load() }, [load])
 

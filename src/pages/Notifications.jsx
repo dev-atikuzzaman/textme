@@ -6,7 +6,7 @@ import { fmt } from '../lib/constants'
 import { pushState, enablePush, disablePush } from '../lib/push'
 import Avatar from '../components/Avatar'
 
-const target = (n) => (n.post_id ? `/post/${n.post_id}` : n.type === 'friend_request' ? '/friends' : `/profile/${n.actor_id}`)
+const target = (n) => (n.link ? n.link : n.post_id ? `/post/${n.post_id}` : n.type === 'friend_request' ? '/friends' : `/profile/${n.actor_id}`)
 const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
 const installed = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
 

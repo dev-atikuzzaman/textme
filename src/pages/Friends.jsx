@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, UserPlus, Check, X, MessageCircle } from 'lucide-react'
+import { Search, UserPlus, Check, X, MessageCircle, UsersRound, Flag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useFriends } from '../lib/useFriends'
@@ -46,6 +46,10 @@ export default function Friends() {
         <Search className="absolute left-4 top-3.5 text-fg/40" size={20} />
         <input className="input !pl-12" placeholder="নাম বা ইউজারনেম দিয়ে খুঁজুন" value={q} onChange={(e) => setQ(e.target.value)} />
       </form>
+      <div className="grid grid-cols-2 gap-3">
+        <Link to="/groups" className="flex items-center gap-3 rounded-3xl bg-surface p-4 shadow-soft transition active:scale-95"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-brand to-coral text-inverse"><UsersRound size={22} /></span><span className="font-bold">গ্রুপ</span></Link>
+        <Link to="/groups?tab=pages" className="flex items-center gap-3 rounded-3xl bg-surface p-4 shadow-soft transition active:scale-95"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-brand to-coral text-inverse"><Flag size={22} /></span><span className="font-bold">পেজ</span></Link>
+      </div>
       {results && (
         <section className="space-y-2">
           <h3 className="font-bold">সার্চ ফলাফল</h3>

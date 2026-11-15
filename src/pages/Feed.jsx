@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Image as ImageIcon, Video, Paperclip, LayoutGrid, Users, Bookmark, RefreshCw, ArrowUp } from 'lucide-react'
+import { Image as ImageIcon, Video, Paperclip, FileText, LayoutGrid, Users, Bookmark, RefreshCw, ArrowUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useSaved } from '../context/Saved'
@@ -11,6 +11,8 @@ import UploadSheet from '../components/UploadSheet'
 import StoriesBar from '../components/home/StoriesBar'
 import ActiveFriends from '../components/home/ActiveFriends'
 import Avatar from '../components/Avatar'
+import NoteSheet from '../components/NoteSheet'
+import { withContext } from '../lib/context'
 
 const PAGE = 10
 const FILTERS = [
@@ -37,6 +39,7 @@ export default function Feed() {
   const [posts, setPosts] = useState(null)
   const [hasMore, setHasMore] = useState(false)
   const [open, setOpen] = useState(null) // null | { accept }
+  const [noteOpen, setNoteOpen] = useState(false)
   const [loadErr, setLoadErr] = useState('')
   const [newCount, setNewCount] = useState(0)
   const [hidden, setHidden] = useState(readHidden)
@@ -61,7 +64,7 @@ export default function Feed() {
     const size = keep ? Math.max(PAGE, countRef.current) : PAGE
     const { data, error } = await build(0, size - 1)
     setLoadErr(error ? error.message : '')
-    const rows = data || []
+    const rows = await withContext(data)
     countRef.current = rows.length
     setPosts(rows); setHasMore(rows.length === size); setNewCount(0)
   }, [build])
@@ -74,7 +77,7 @@ export default function Feed() {
     if (busyMore.current || !hasMore || !posts) return
     busyMore.current = true
     const { data } = await build(posts.length, posts.length + PAGE - 1)
-    const rows = data || []
+    const rows = await withContext(data)
     setPosts((p) => { const ids = new Set(p.map((x) => x.id)); const n = [...p, ...rows.filter((x) => !ids.has(x.id))]; countRef.current = n.length; return n })
     setHasMore(rows.length === PAGE)
     busyMore.current = false
@@ -134,6 +137,9 @@ export default function Feed() {
               <Icon size={19} className={color} />{label}
             </button>
           ))}
+          <button onClick={() => setNoteOpen(true)} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2 text-sm font-bold text-fg/70 transition active:scale-95">
+            <FileText size={19} className="text-violet-400" />নোট
+          </button>
         </div>
       </div>
 
@@ -160,6 +166,7 @@ export default function Feed() {
       {hasMore && <div ref={sentinel}><PostSkeleton /></div>}
       {posts && !hasMore && shown.length > 5 && <p className="py-4 text-center text-sm text-fg/40">আপনি সব পোস্ট দেখে ফেলেছেন ✓</p>}
 
+      {noteOpen && <NoteSheet onClose={() => setNoteOpen(false)} onDone={() => load()} />}
       {open && <UploadSheet kind="post" accept={open.accept} autoPick={open.autoPick} onClose={() => setOpen(null)} onDone={() => load()} />}
     </div>
   )

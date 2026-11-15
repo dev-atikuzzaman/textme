@@ -6,6 +6,7 @@ import { SELECT_POST } from '../lib/constants'
 import PostCard from '../components/PostCard'
 import PostSkeleton from '../components/PostSkeleton'
 import Avatar from '../components/Avatar'
+import { withContext } from '../lib/context'
 
 export default function SearchPage() {
   const [sp, setSp] = useSearchParams()
@@ -26,8 +27,9 @@ export default function SearchPage() {
         isTag ? { data: [] } : supabase.from('profiles').select('id,full_name,username,avatar_url').or(`username.ilike.%${t}%,full_name.ilike.%${t}%`).limit(8),
         supabase.from('posts').select(SELECT_POST).eq('kind', 'post').ilike('content', `%${t}%`).order('created_at', { ascending: false }).limit(20),
       ])
+      const rows = await withContext(po.data)
       if (off) return
-      setPeople(pe.data || []); setPosts(po.data || []); setBusy(false)
+      setPeople(pe.data || []); setPosts(rows); setBusy(false)
     }, 300)
     return () => { off = true; clearTimeout(id) }
   }, [q])
