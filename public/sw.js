@@ -1,4 +1,4 @@
-const V = 'apon-v4'
+const V = 'apon-v5'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -38,33 +38,38 @@ self.addEventListener('fetch', (e) => {
 self.addEventListener('push', (e) => {
   let d = {}
   try { d = e.data.json() } catch { d = { body: e.data ? e.data.text() : '' } }
+  const isCall = d.type === 'call'
 
   e.waitUntil((async () => {
     const list = await clients.matchAll({ type: 'window', includeUncontrolled: true })
     const visible = list.filter((c) => c.visibilityState === 'visible')
 
     // অ্যাপ খোলা ও দেখা যাচ্ছে: সিস্টেম নোটিফিকেশনের বদলে অ্যাপের ভেতরে সাউন্ড বাজবে
+    // (কলের রিং অ্যাপ নিজেই বাজায়, তাই কলে আলাদা ডিং নয়)
     if (visible.length > 0) {
-      visible.forEach((c) => c.postMessage({ type: 'PLAY_SOUND', payload: d }))
+      if (!isCall) visible.forEach((c) => c.postMessage({ type: 'PLAY_SOUND', payload: d }))
       return
     }
 
-    // অ্যাপ বন্ধ বা ব্যাকগ্রাউন্ডে: সাউন্ডসহ সিস্টেম নোটিফিকেশন
+    // অ্যাপ বন্ধ বা ব্যাকগ্রাউন্ডে: সাউন্ড/ভাইব্রেশনসহ সিস্টেম পপ-আপ
     await self.registration.showNotification(d.title || 'আপন', {
       body: d.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
-      data: { url: d.url || '/notifications' },
-      tag: d.url || 'apon',
+      data: { url: d.url || '/notifications', type: d.type || '' },
+      tag: d.tag || d.url || 'apon',
       renotify: true,
       silent: false,
-      vibrate: [200, 100, 200],
+      requireInteraction: isCall, // কল নোটিফিকেশন নিজে থেকে মিলিয়ে যাবে না
+      vibrate: isCall ? [600, 250, 600, 250, 600, 250, 600] : [200, 100, 200],
+      actions: isCall ? [{ action: 'answer', title: '📞 ধরুন' }, { action: 'decline', title: 'কেটে দিন' }] : [],
     })
   })())
 })
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close()
+  if (e.action === 'decline') return // কলার ৪৫ সেকেন্ড পর "ধরেনি" দেখবে
   const url = (e.notification.data && e.notification.data.url) || '/'
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
