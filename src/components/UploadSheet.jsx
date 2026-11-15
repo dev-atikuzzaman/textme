@@ -5,17 +5,18 @@ import { useAuth } from '../context/Auth'
 import { CATEGORIES } from '../lib/constants'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../lib/upload'
 import { extOf, fmtSize } from '../lib/media'
+import { playPop } from '../lib/sound'
 import PrivacyPicker from './PrivacyPicker'
 
 const TITLES = { post: 'নতুন পোস্ট', reel: 'নতুন রিল', video: 'ভিডিও আপলোড' }
 const mb = (b) => (b / 1048576).toFixed(1)
 
-export default function UploadSheet({ kind = 'post', accept, autoPick, onClose, onDone }) {
+export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, pageId, onClose, onDone }) {
   const { user } = useAuth()
   const [content, setContent] = useState('')
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState(CATEGORIES[0])
-  const [privacy, setPrivacy] = useState(kind === 'post' ? 'friends' : 'public')
+  const [privacy, setPrivacy] = useState(groupId ? 'friends' : pageId ? 'public' : kind === 'post' ? 'friends' : 'public')
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [pct, setPct] = useState(0)
@@ -54,12 +55,13 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, onClose, 
       const { error } = await supabase.from('posts').insert({
         user_id: user.id, kind, content: content.trim() || null, title: title.trim() || null,
         category: kind === 'post' ? null : category, privacy, media_url, media_type, media_name, media_size,
+        ...(groupId ? { group_id: groupId } : {}), ...(pageId ? { page_id: pageId } : {}),
       })
       if (error) {
         if (path) supabase.storage.from('media').remove([path]) // অপ্রয়োজনীয় ফাইল জমে না থাকার জন্য
         throw error
       }
-      onDone?.(); onClose()
+      playPop(); onDone?.(); onClose()
     } catch (e) { setErr(friendlyUploadError(e)) } finally { setBusy(false) }
   }
 
@@ -85,7 +87,7 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, onClose, 
           <span className="min-w-0 truncate">{file ? `${file.name} (${mb(file.size)}MB)` : needsVideo ? 'ভিডিও বেছে নিন' : 'ছবি, ভিডিও বা যেকোনো ফাইল যোগ করুন'}</span>
         </button>
         {preview && <img src={preview} alt="" className="max-h-48 w-full rounded-2xl object-cover" />}
-        <PrivacyPicker value={privacy} onChange={setPrivacy} />
+        {!groupId && !pageId && <PrivacyPicker value={privacy} onChange={setPrivacy} />}
         {busy && file && (
           <div>
             <div className="h-2 overflow-hidden rounded-full bg-surface2"><div className="h-full rounded-full bg-gradient-to-r from-brand to-coral text-inverse transition-all" style={{ width: `${pct}%` }} /></div>

@@ -1,11 +1,12 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
-import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Bell, Search } from 'lucide-react'
+import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Bell, Search, UsersRound } from 'lucide-react'
 import { NotifProvider, useNotifs } from '../context/Notifications'
 import { CallProvider } from '../context/Call'
 import { SavedProvider } from '../context/Saved'
 import { PresenceProvider } from '../context/Presence'
 import { InboxProvider, useInbox } from '../context/Inbox'
 import InstallBanner from './InstallBanner'
+import PushBanner from './PushBanner'
 
 const tabs = [
   { to: '/', Icon: Home, end: true, label: 'হোম' },
@@ -15,6 +16,7 @@ const tabs = [
   { to: '/profile', Icon: User, label: 'প্রোফাইল' },
 ]
 const extra = [
+  { to: '/groups', Icon: UsersRound, label: 'গ্রুপ ও পেজ' },
   { to: '/videos', Icon: PlaySquare, label: 'ভিডিও' },
   { to: '/search', Icon: Search, label: 'সার্চ' },
 ]
@@ -64,7 +66,7 @@ function Shell() {
           </header>
         )}
         <main className={inChat ? '' : 'px-4 pb-28 lg:pb-10'}>
-          {pathname === '/' && <InstallBanner />}
+          {pathname === '/' && <><PushBanner /><InstallBanner /></>}
           <Outlet />
         </main>
       </div>

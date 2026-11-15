@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MoreHorizontal, MessageCircle, Share2, Pin, Bookmark } from 'lucide-react'
+import { MoreHorizontal, MessageCircle, Share2, Pin, Bookmark, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useSaved } from '../context/Saved'
@@ -17,6 +17,8 @@ import FileCard from './FileCard'
 import ShareSheet from './post/ShareSheet'
 import Lightbox from './post/Lightbox'
 import AutoVideo from './post/AutoVideo'
+import NoteCard from './post/NoteCard'
+import NoteReader from './post/NoteReader'
 
 export default function PostCard({ post, onChange, onHide }) {
   const { user } = useAuth()
@@ -31,6 +33,8 @@ export default function PostCard({ post, onChange, onHide }) {
   useEffect(() => { setLikes(post.likes || []) }, [post.likes])
 
   const own = post.user_id === user.id
+  const isNote = post.category === 'note'
+  const pg = post.page
   const P = PRIVACY.find((p) => p.id === post.privacy)
   const mine = likes.find((l) => l.user_id === user.id)?.type
   const commentCount = post.comments?.[0]?.count || 0
@@ -104,23 +108,28 @@ export default function PostCard({ post, onChange, onHide }) {
       )}
 
       <div className="flex items-center gap-3">
-        <Link to={`/profile/${post.user_id}`}><Avatar p={post.profiles} /></Link>
+        <Link to={pg ? `/pages/${pg.id}` : `/profile/${post.user_id}`}><Avatar p={pg || post.profiles} /></Link>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-bold">{post.profiles?.full_name}</p>
-          <p className="flex items-center gap-1 text-xs text-fg/50">{P && <P.Icon size={12} />}{fmt(post.created_at)}{post.edited_at && ' • সম্পাদিত'}</p>
+          <p className="flex items-center gap-1.5 font-bold"><span className="truncate">{pg ? pg.name : post.profiles?.full_name}</span>{pg && <span className="shrink-0 rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold text-brand">পেজ</span>}</p>
+          <p className="flex flex-wrap items-center gap-x-1 text-xs text-fg/50">
+            {post.group && <Link to={`/groups/${post.group.id}`} className="inline-flex items-center gap-1 font-semibold text-brand"><Users size={12} />{post.group.name}</Link>}
+            {post.group && <span>•</span>}
+            {!post.group && !pg && P && <P.Icon size={12} />}{fmt(post.created_at)}{post.edited_at && ' • সম্পাদিত'}
+          </p>
         </div>
         <button onClick={() => setSheet('menu')} aria-label="অপশন" className="grid h-9 w-9 place-items-center rounded-full text-fg/50 transition active:bg-surface2"><MoreHorizontal size={22} /></button>
       </div>
 
-      {post.title && <h3 className="mt-3 font-bold">{post.title}</h3>}
-      {text && (
+      {isNote && <NoteCard post={post} onOpen={() => setSheet('note')} />}
+      {!isNote && post.title && <h3 className="mt-3 font-bold">{post.title}</h3>}
+      {!isNote && text && (
         <div className="mt-3">
           <p className={`whitespace-pre-wrap break-words leading-relaxed ${long && !expanded ? 'line-clamp-6' : ''}`}>{linkify(text)}</p>
           {long && !expanded && <button onClick={() => setExpanded(true)} className="mt-1 text-sm font-bold text-brand">আরও দেখুন</button>}
         </div>
       )}
 
-      {post.media_url && (
+      {!isNote && post.media_url && (
         <div className="relative mt-3" onDoubleClick={post.media_type === 'file' ? undefined : dbl} onClick={post.media_type === 'image' ? zoom : undefined}>
           {post.media_type === 'file'
             ? <FileCard url={post.media_url} name={post.media_name} size={post.media_size} />
@@ -153,6 +162,7 @@ export default function PostCard({ post, onChange, onHide }) {
 
       {sheet === 'comments' && <CommentsSheet post={post} onClose={() => setSheet(null)} onChange={onChange} />}
       {sheet === 'share' && <ShareSheet url={url} text={text} onClose={() => setSheet(null)} onCopy={copy} onNative={nativeShare} />}
+      {sheet === 'note' && <NoteReader post={post} onClose={() => setSheet(null)} />}
       {sheet === 'zoom' && <Lightbox src={post.media_url} onClose={() => setSheet(null)} />}
       {sheet === 'who' && <ReactionsSheet table="likes" col="post_id" id={post.id} onClose={() => setSheet(null)} />}
       {sheet === 'edit' && <EditPostSheet post={post} onClose={() => setSheet(null)} onSaved={onChange} />}
