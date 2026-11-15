@@ -194,7 +194,7 @@ export default function Chat() {
       {rec ? (
         <div className="flex items-center gap-3 bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button onClick={() => stopRec(false)} className="grid h-11 w-11 place-items-center rounded-full bg-surface2 text-danger"><Trash2 size={20} /></button>
-          <span className="h-3 w-3 animate-pulse rounded-full bg-danger/150" />
+          <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
           <span className="flex-1 font-semibold tabular-nums">রেকর্ড হচ্ছে… {mmss(rec.secs)}</span>
           <button onClick={() => stopRec(true)} className="btn-primary !px-4"><Send size={20} /></button>
         </div>
