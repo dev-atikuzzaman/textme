@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { configured } from './lib/supabase'
+import { playDing } from './lib/sound'
 import { AuthProvider, useAuth } from './context/Auth'
 import Layout from './components/Layout'
 import Setup from './pages/Setup'
@@ -18,21 +19,13 @@ import SearchPage from './pages/Search'
 import Groups from './pages/Groups'
 import Group from './pages/Group'
 import PageView from './pages/PageView'
-import { unlockAudio, audioReady, playDing } from './lib/sound'
 
-// অ্যাপ খোলা (বা ব্যাকগ্রাউন্ড ট্যাবে) থাকলে Service Worker থেকে মেসেজ এলে "ডিং" বাজায়
+// অ্যাপ খোলা বা পেছনে থাকা অবস্থায় Service Worker থেকে মেসেজ এলে সাউন্ড বাজায়
 function NotificationSound() {
   useEffect(() => {
-    const evs = ['pointerdown', 'touchend', 'keydown', 'click']
-    // ব্রাউজার প্রথম ট্যাপের আগে অডিও চালাতে দেয় না, তাই ট্যাপ/কী চাপলেই আনলক করে নিচ্ছি
-    const unlock = () => { unlockAudio(); if (audioReady()) evs.forEach((e) => window.removeEventListener(e, unlock)) }
-    evs.forEach((e) => window.addEventListener(e, unlock, { passive: true }))
     const onMsg = (e) => { if (e.data?.type === 'PLAY_SOUND') playDing() }
     navigator.serviceWorker?.addEventListener('message', onMsg)
-    return () => {
-      evs.forEach((e) => window.removeEventListener(e, unlock))
-      navigator.serviceWorker?.removeEventListener('message', onMsg)
-    }
+    return () => navigator.serviceWorker?.removeEventListener('message', onMsg)
   }, [])
   return null
 }
