@@ -15,6 +15,9 @@ import Profile from './pages/Profile'
 import Notifications from './pages/Notifications'
 import Post from './pages/Post'
 import SearchPage from './pages/Search'
+import Groups from './pages/Groups'
+import Group from './pages/Group'
+import PageView from './pages/PageView'
 
 // ছোট "ডিং" সাউন্ড, কোনো ফাইল লাগে না
 function playDing(ctx) {
@@ -82,6 +85,9 @@ export default function App() {
           <Route path="notifications" element={<Notifications />} />
           <Route path="post/:id" element={<Post />} />
           <Route path="search" element={<SearchPage />} />
+          <Route path="groups" element={<Groups />} />
+          <Route path="groups/:id" element={<Group />} />
+          <Route path="pages/:id" element={<PageView />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
