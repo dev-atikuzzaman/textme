@@ -138,7 +138,7 @@ export function CallProvider({ children }) {
   handleRef.current = async (event, p) => {
     const c = callRef.current
     if (event === 'invite') {
-      if (c) return sendTo(p.from, 'busy')
+      if (c) { if (c.dir === 'in' && c.peer.id === p.from) return; return sendTo(p.from, 'busy') }
       const { data: ok } = await supabase.rpc('are_friends', { a: user.id, b: p.from })
       if (!ok) return
       setCall({ peer: { id: p.from, full_name: p.name, avatar_url: p.avatar }, kind: p.kind, dir: 'in', state: 'ringing' })
@@ -168,6 +168,29 @@ export function CallProvider({ children }) {
     else if (event === 'busy') finish('busy', false)
     else if (event === 'end') finish(c.state === 'active' ? 'ended' : 'missed', false)
   }
+
+  // অ্যাপ বন্ধ থাকলে লাইভ "invite" মিস হয়। নোটিফিকেশন ট্যাপ করে অ্যাপ খুললে
+  // ডাটাবেসে থাকা সাম্প্রতিক "calling" কলটি ধরে রিং দেখানো হয় (৪০ সেকেন্ডের মধ্যে)।
+  const pickRef = useRef()
+  pickRef.current = async () => {
+    if (callRef.current || document.hidden) return
+    const since = new Date(Date.now() - 40000).toISOString()
+    const { data } = await supabase.from('messages').select('id,sender_id,meta,created_at')
+      .eq('receiver_id', user.id).eq('type', 'call').gte('created_at', since).order('created_at', { ascending: false }).limit(1)
+    const m = data?.[0]
+    if (!m || m.meta?.status !== 'calling' || callRef.current) return
+    const { data: peer } = await supabase.from('profiles').select('id,full_name,avatar_url').eq('id', m.sender_id).single()
+    if (!peer || callRef.current) return
+    setCall({ peer, kind: m.meta.kind, dir: 'in', state: 'ringing' })
+    startRing()
+    ringTimer.current = setTimeout(() => finish('missed', false), Math.max(3000, 45000 - (Date.now() - new Date(m.created_at).getTime())))
+  }
+  useEffect(() => {
+    const onVis = () => { if (!document.hidden) pickRef.current() }
+    document.addEventListener('visibilitychange', onVis)
+    const t = setTimeout(() => pickRef.current(), 1200)
+    return () => { document.removeEventListener('visibilitychange', onVis); clearTimeout(t) }
+  }, [user.id])
 
   useEffect(() => {
     const ch = supabase.channel(`call-${user.id}`)

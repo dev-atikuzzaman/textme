@@ -13,6 +13,10 @@ export const NOTIF_TEXT = {
   reply: 'আপনার কমেন্টের উত্তর দিয়েছেন',
   friend_request: 'আপনাকে ফ্রেন্ড রিকুয়েস্ট পাঠিয়েছেন',
   friend_accept: 'আপনার ফ্রেন্ড রিকুয়েস্ট গ্রহণ করেছেন',
+  post: 'নতুন পোস্ট করেছেন',
+  group_post: 'আপনার গ্রুপে নতুন পোস্ট করেছেন',
+  page_post: 'আপনার ফলো করা পেজে নতুন পোস্ট করেছেন',
+  group_add: 'আপনাকে একটি গ্রুপে যোগ করেছেন',
 }
 
 export function NotifProvider({ children }) {
@@ -47,7 +51,7 @@ export function NotifProvider({ children }) {
     const nameOf = async (id) => (await supabase.from('profiles').select('full_name').eq('id', id).single()).data?.full_name || 'কেউ'
     const ch = supabase.channel(`notif-${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        async (p) => { load(); announce(await nameOf(p.new.actor_id), NOTIF_TEXT[p.new.type], '/notifications') })
+        async (p) => { load(); announce(await nameOf(p.new.actor_id), NOTIF_TEXT[p.new.type], p.new.link || '/notifications') })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` },
         async (p) => {
           if (path.current === `/chat/${p.new.sender_id}`) return
