@@ -1,24 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Send, ImagePlus } from 'lucide-react'
+import { Send, ImagePlus, Camera } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
 import { extOf } from '../../lib/media'
 import { playSend } from '../../lib/sound'
 import { linkify } from '../../lib/linkify'
 import Lightbox from '../post/Lightbox'
+import CameraSheet from '../CameraSheet'
 
 const NAME_COLORS = ['text-emerald-600', 'text-sky-600', 'text-amber-600', 'text-pink-600', 'text-violet-600', 'text-orange-600', 'text-teal-600', 'text-lime-600']
 const nameColor = (id = '') => NAME_COLORS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % NAME_COLORS.length]
 const time = (d) => new Date(d).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
 
 // WhatsApp-স্টাইল গ্রুপ চ্যাট (রিয়েলটাইম)
-export default function GroupChat({ groupId, who }) {
+export default function GroupChat({ groupId, who, onUser }) {
   const { user } = useAuth()
   const [msgs, setMsgs] = useState(null)
   const [text, setText] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const [zoom, setZoom] = useState(null)
+  const [cam, setCam] = useState(false)
   const end = useRef(), file = useRef()
 
   const markRead = useCallback(() => { supabase.rpc('mark_group_read', { p_group: groupId }) }, [groupId])
@@ -48,9 +50,8 @@ export default function GroupChat({ groupId, who }) {
     const t = text.trim(); if (!t) return
     setText(''); await send({ content: t })
   }
-  const pickImage = async (e) => {
-    const f = e.target.files[0]; e.target.value = ''
-    if (!f) return
+  const pickImage = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) sendImage(f) }
+  const sendImage = async (f) => {
     if (!f.type.startsWith('image/') || f.size > 10 * 1048576) return setErr('১০MB-এর মধ্যে ছবি দিন')
     setBusy(true)
     try {
@@ -63,7 +64,7 @@ export default function GroupChat({ groupId, who }) {
 
   let lastDay = ''
   return (
-    <div className="flex h-[calc(100dvh-20rem)] min-h-[360px] flex-col overflow-hidden rounded-[28px] bg-surface2/60 shadow-soft ring-1 ring-fg/5">
+    <div className="flex h-[calc(100dvh-13.5rem)] min-h-[380px] flex-col overflow-hidden rounded-[28px] bg-surface2/60 shadow-soft ring-1 ring-fg/5 lg:h-[calc(100dvh-12rem)]">
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {msgs === null && <p className="py-8 text-center text-fg/50">লোড হচ্ছে…</p>}
         {msgs?.length === 0 && <p className="py-8 text-center text-fg/50">এখনও কোনো মেসেজ নেই। প্রথম মেসেজটি আপনিই পাঠান 👋</p>}
@@ -77,7 +78,7 @@ export default function GroupChat({ groupId, who }) {
               {sep && <p className="my-2 text-center text-xs text-fg/40">{day}</p>}
               <div className={`flex ${mine ? 'justify-end' : ''}`}>
                 <div className={`max-w-[80%] rounded-2xl px-3 py-1.5 ${mine ? 'rounded-tr-sm bg-bubble text-white' : 'rounded-tl-sm bg-surface2'}`}>
-                  {showName && <p className={`mb-0.5 text-xs font-bold ${nameColor(m.sender_id)}`}>{who[m.sender_id]?.full_name || 'সদস্য'}</p>}
+                  {showName && <button type="button" onClick={() => onUser?.(m.sender_id)} className={`mb-0.5 block text-xs font-bold hover:underline ${nameColor(m.sender_id)}`}>{who[m.sender_id]?.full_name || 'সদস্য'}</button>}
                   {m.media_url && <img src={m.media_url} alt="" loading="lazy" onClick={() => setZoom(m.media_url)} className="mb-1 max-h-64 cursor-zoom-in rounded-2xl object-cover" />}
                   {m.content && <p className="whitespace-pre-wrap break-words">{linkify(m.content)}</p>}
                   <p className={`mt-0.5 text-right text-[10px] ${mine ? 'text-white/60' : 'text-fg/45'}`}>{time(m.created_at)}</p>
@@ -92,9 +93,11 @@ export default function GroupChat({ groupId, who }) {
       <form onSubmit={submit} className="flex items-center gap-2 bg-surface p-3">
         <input ref={file} type="file" accept="image/*" hidden onChange={pickImage} />
         <button type="button" disabled={busy} onClick={() => file.current.click()} aria-label="ছবি" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-50"><ImagePlus size={21} /></button>
+        <button type="button" disabled={busy} onClick={() => setCam(true)} aria-label="ক্যামেরা" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-50"><Camera size={21} /></button>
         <input className="input" placeholder="মেসেজ লিখুন…" value={text} onChange={(e) => setText(e.target.value)} />
         <button aria-label="পাঠান" className="btn-primary !px-4"><Send size={20} /></button>
       </form>
+      {cam && <CameraSheet mode="photo" onClose={() => setCam(false)} onCapture={sendImage} />}
       {zoom && <Lightbox src={zoom} onClose={() => setZoom(null)} />}
     </div>
   )
