@@ -20,6 +20,8 @@ import Groups from './pages/Groups'
 import Group from './pages/Group'
 import PageView from './pages/PageView'
 import LockGate from './components/chat/LockGate'
+import ResetPassword from './pages/ResetPassword'
+import Deactivated from './pages/Deactivated'
 
 // অ্যাপ খোলা বা পেছনে থাকা অবস্থায় Service Worker থেকে মেসেজ এলে সাউন্ড বাজায়
 function NotificationSound() {
@@ -32,9 +34,11 @@ function NotificationSound() {
 }
 
 function Guard({ children }) {
-  const { user, loading } = useAuth()
+  const { user, loading, profile } = useAuth()
   if (loading) return <div className="grid h-screen place-items-center text-brand font-bold text-2xl">আপন…</div>
-  return user ? children : <Navigate to="/auth" replace />
+  if (!user) return <Navigate to="/auth" replace />
+  if (profile?.deactivated_at) return <Deactivated />
+  return children
 }
 
 export default function App() {
@@ -44,6 +48,7 @@ export default function App() {
       <NotificationSound />
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        <Route path="/reset" element={<ResetPassword />} />
         <Route element={<Guard><Layout /></Guard>}>
           <Route index element={<Feed />} />
           <Route path="reels" element={<Reels />} />
