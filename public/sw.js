@@ -1,4 +1,4 @@
-const V = 'apon-v6'
+const V = 'apon-v7'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -56,7 +56,7 @@ self.addEventListener('push', (e) => {
 
     // অ্যাপ বন্ধ বা ব্যাকগ্রাউন্ডে: সাউন্ড/ভাইব্রেশনসহ সিস্টেম পপ-আপ
     const tag = d.tag || d.url || 'apon'
-    const show = () => self.registration.showNotification(d.title || 'আপন', {
+    const show = () => self.registration.showNotification(d.title || 'সুহৃদ', {
       body: d.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
