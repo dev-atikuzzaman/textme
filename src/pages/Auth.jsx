@@ -3,6 +3,8 @@ import { Navigate } from 'react-router-dom'
 import { ArrowLeft, MailCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
+import { APP_NAME, APP_TAGLINE } from '../lib/brand'
+import BrandMark from '../components/BrandMark'
 import PasswordInput from '../components/PasswordInput'
 
 export default function Auth() {
@@ -49,8 +51,8 @@ export default function Auth() {
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-8">
       <div className="mb-7">
-        <div className="mb-5 grid h-20 w-20 place-items-center rounded-[28px] bg-gradient-to-br from-brand to-coral text-4xl font-extrabold text-inverse shadow-soft">আ</div>
-        <h1 className="text-3xl font-extrabold leading-tight">{mode === 'forgot' ? 'পাসওয়ার্ড ভুলে গেছেন?' : <>আপনজনদের সাথে,<br />আপন ঠিকানায়</>}</h1>
+        <BrandMark size={84} className="mb-4 drop-shadow-lg" />
+        <h1 className="text-3xl font-extrabold leading-tight">{mode === 'forgot' ? 'পাসওয়ার্ড ভুলে গেছেন?' : <>{APP_NAME}<span className="block text-lg font-semibold text-fg/60">{APP_TAGLINE}</span></>}</h1>
         <p className="mt-2 text-fg/60">{mode === 'forgot' ? 'একাউন্টের ইমেইল দিন, আমরা পাসওয়ার্ড বদলানোর লিংক পাঠাব।' : 'পরিবার ও আত্মীয়দের জন্য ছোট্ট একটি সোশ্যাল স্পেস।'}</p>
       </div>
 

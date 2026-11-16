@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, BellOff } from 'lucide-react'
 import { useNotifs, NOTIF_TEXT } from '../context/Notifications'
+import { APP_NAME } from '../lib/brand'
 import { fmt } from '../lib/constants'
 import { pushState, enablePush, disablePush } from '../lib/push'
 import Avatar from '../components/Avatar'
@@ -34,7 +35,7 @@ export default function Notifications() {
         </p>
       )}
       {ps === 'nokey' && <p className="rounded-3xl bg-surface p-4 text-sm text-danger">VITE_VAPID_PUBLIC_KEY সেট করা হয়নি — ডিপ্লয়ের ধাপগুলো দেখুন।</p>}
-      {ps === 'denied' && <p className="rounded-3xl bg-surface p-4 text-sm text-fg/70">নোটিফিকেশন ব্লক করা আছে। ব্রাউজার বা ফোনের সেটিংস থেকে আপন অ্যাপের অনুমতি চালু করুন।</p>}
+      {ps === 'denied' && <p className="rounded-3xl bg-surface p-4 text-sm text-fg/70">নোটিফিকেশন ব্লক করা আছে। ব্রাউজার বা ফোনের সেটিংস থেকে অ্যাপের অনুমতি চালু করুন।</p>}
       {(ps === 'off' || ps === 'on') && (
         <button disabled={busy} onClick={toggle} className={`flex w-full items-center gap-3 rounded-3xl p-4 text-left ${ps === 'on' ? 'bg-surface text-fg' : 'bg-ink text-white'}`}>
           {ps === 'on' ? <BellOff size={22} /> : <Bell size={22} />}
@@ -44,7 +45,7 @@ export default function Notifications() {
       )}
       {ps === 'on' && (
         <button onClick={async () => {
-          try { const r = await navigator.serviceWorker.ready; await r.showNotification('আপন — টেস্ট', { body: 'সাউন্ড আসছে? না এলে ফোন/পিসির নোটিফিকেশন সেটিংসে সাউন্ড চালু করুন।', icon: '/icons/icon-192.png', tag: 'apon-test', renotify: true, silent: false, vibrate: [200, 100, 200] }) } catch (e) { setErr(e.message) }
+          try { const r = await navigator.serviceWorker.ready; await r.showNotification(`${APP_NAME} — টেস্ট`, { body: 'সাউন্ড আসছে? না এলে ফোন/পিসির নোটিফিকেশন সেটিংসে সাউন্ড চালু করুন।', icon: '/icons/icon-192.png', tag: 'apon-test', renotify: true, silent: false, vibrate: [200, 100, 200] }) } catch (e) { setErr(e.message) }
         }} className="w-full rounded-3xl bg-surface p-3 text-sm font-bold text-fg">🔔 টেস্ট নোটিফিকেশন পাঠান</button>
       )}
       {err && <p className="text-sm text-danger">{err}</p>}

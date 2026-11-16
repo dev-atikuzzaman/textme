@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, MessageCircle, Lock, Globe, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X } from 'lucide-react'
+import { ArrowLeft, Lock, Globe, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X, Phone, Video, MoreVertical, Info, Users, Pin, PinOff, Archive, ArchiveRestore, LockOpen, ImagePlus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { SELECT_POST } from '../lib/constants'
@@ -13,15 +13,20 @@ import UploadSheet from '../components/UploadSheet'
 import NoteSheet from '../components/NoteSheet'
 import GroupChat from '../components/groups/GroupChat'
 import AddMembersSheet from '../components/groups/AddMembersSheet'
+import AvatarViewer from '../components/AvatarViewer'
+import UserCard from '../components/UserCard'
+import PinPad from '../components/chat/PinPad'
+import { useGroupCall, useGroupLive, MAX_GROUP_CALL } from '../context/GroupCall'
+import { useChatPrefs } from '../context/ChatPrefs'
 
-const TABS = [['posts', 'পোস্ট'], ['chat', 'চ্যাট'], ['members', 'সদস্য']]
+const TABS = [['chat', 'চ্যাট'], ['posts', 'পোস্ট'], ['members', 'সদস্য']]
 
 export default function Group() {
   const { id } = useParams()
   const { user } = useAuth()
   const nav = useNavigate()
   const [sp, setSp] = useSearchParams()
-  const tab = TABS.some(([t]) => t === sp.get('tab')) ? sp.get('tab') : 'posts'
+  const tab = TABS.some(([t]) => t === sp.get('tab')) ? sp.get('tab') : 'chat'
   const [g, setG] = useState(undefined)
   const [members, setMembers] = useState([])
   const [who, setWho] = useState({})
@@ -30,7 +35,13 @@ export default function Group() {
   const [menu, setMenu] = useState(null)   // সদস্যের অ্যাকশন মেনু
   const [busy, setBusy] = useState(false)
   const [form, setForm] = useState({ name: '', about: '' })
-  const fileRef = useRef()
+  const fileRef = useRef(), coverRef = useRef()
+  const [view, setView] = useState(false)   // গ্রুপ ছবি ফুল-স্ক্রিন
+  const [card, setCard] = useState(null)    // ইউজার কার্ড (userId)
+  const [pad, setPad] = useState(null)
+  const gcall = useGroupCall()
+  const cp = useChatPrefs()
+  const live = useGroupLive(id)
 
   const me = members.find((m) => m.user_id === user.id)
   const isAdmin = me?.role === 'admin'
@@ -87,51 +98,86 @@ export default function Group() {
     } catch (er) { alert(er.message) } finally { setBusy(false) }
   }
 
+  const removeAvatar = async () => {
+    if (!confirm('গ্রুপের ছবি মুছবেন?')) return
+    const { error } = await supabase.from('groups').update({ avatar_url: null }).eq('id', id)
+    if (error) return alert(error.message)
+    setView(false); loadMeta()
+  }
+  const changeCover = async (e) => {
+    const f = e.target.files[0]; e.target.value = ''
+    if (!f) return
+    if (!f.type.startsWith('image/') || f.size > 8 * 1048576) return alert('৮MB-এর মধ্যে একটি ছবি দিন')
+    setBusy(true)
+    try {
+      const url = await uploadImage(user.id, f, false)
+      const { error } = await supabase.from('groups').update({ cover_url: url }).eq('id', id)
+      if (error) throw error
+      loadMeta()
+    } catch (er) { alert(/cover_url/.test(er.message) ? 'update-17.sql চালানো হয়নি (cover_url কলাম নেই)' : er.message) } finally { setBusy(false) }
+  }
+  const removeCover = async () => { await supabase.from('groups').update({ cover_url: null }).eq('id', id); loadMeta() }
+
   if (g === undefined) return <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>
   if (g === null) return (
     <div className="space-y-4 pt-2"><button onClick={() => nav('/groups')} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
       <p className="py-10 text-center text-fg/60">গ্রুপটি পাওয়া যায়নি, মুছে ফেলা হয়েছে, অথবা এটি প্রাইভেট।</p></div>
   )
   const gp = { id: g.id, full_name: g.name, avatar_url: g.avatar_url }
+  const key = 'g:' + id
+  const inCall = gcall?.inGroupCall === id
+  const callGroup = { id: g.id, name: g.name, avatar_url: g.avatar_url }
+  const startCall = (kind) => {
+    if (live.length) gcall.joinGroupCall(callGroup, kind)   // চলমান কল থাকলে যোগ দেয়, নইলে নতুন কল শুরু
+    else gcall.startGroupCall(callGroup, kind)
+  }
+  const doLock = () => {
+    const go = () => { cp.lock(key); cp.unlockSession(key) }
+    if (!cp.hasPin) setPad({ mode: 'set', then: go }); else go()
+  }
+  const MenuItem = ({ icon: I, label, onClick, danger }) => (
+    <button onClick={() => { setSheet(null); onClick() }} className={`flex w-full items-center gap-4 rounded-2xl bg-surface2 p-4 font-semibold ${danger ? 'text-danger' : ''}`}><I size={20} />{label}</button>
+  )
+  const sub = live.length ? `🟢 ${live.length.toLocaleString('bn-BD')} জন কলে আছেন` : `${members.length.toLocaleString('bn-BD')} জন সদস্য`
 
   return (
-    <div className="space-y-4 pt-2">
-      <div className="flex items-center gap-3">
-        <button onClick={() => nav(-1)} aria-label="পেছনে" className="grid h-10 w-10 place-items-center rounded-full bg-surface"><ArrowLeft size={20} /></button>
-        <p className="flex-1 truncate font-bold text-fg/70">গ্রুপ ইনফো</p>
-      </div>
+    <div className="space-y-3 pt-1">
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
+      <input ref={coverRef} type="file" accept="image/*" hidden onChange={changeCover} />
 
-      <div className="rounded-[32px] bg-surface p-5 text-center shadow-soft">
-        <button disabled={!isAdmin || busy} onClick={() => fileRef.current.click()} className="relative mx-auto block">
-          <Avatar p={gp} size={96} />
-          {isAdmin && <span className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-brand text-inverse"><Camera size={16} /></span>}
+      {/* হোয়াটসঅ্যাপের মতো উপরের বার: ← ছবি নাম | কল | ⋮ */}
+      <div className="flex items-center gap-2 rounded-[28px] bg-surface p-2 shadow-soft">
+        <button onClick={() => nav('/messages')} aria-label="পেছনে" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-surface2"><ArrowLeft size={21} /></button>
+        <button onClick={() => (g.avatar_url ? setView(true) : isAdmin && fileRef.current.click())} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={42} /></button>
+        <button onClick={() => setSheet('info')} className="min-w-0 flex-1 text-left leading-tight">
+          <b className="flex items-center gap-1.5 truncate text-base">{cp.isLocked(key) && <Lock size={13} className="text-brand" />}<span className="truncate">{g.name}</span></b>
+          <span className={`block truncate text-xs ${live.length ? 'font-semibold text-brand' : 'text-fg/55'}`}>{me ? sub : g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'}</span>
         </button>
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
-        <h2 className="mt-3 text-2xl font-bold">{g.name}</h2>
-        <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm text-fg/60">{g.privacy === 'public' ? <Globe size={14} /> : <Lock size={14} />}{g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'} • {members.length.toLocaleString('bn-BD')} জন সদস্য</p>
-        {g.about && <p className="mx-auto mt-2 max-w-sm text-sm text-fg/80">{g.about}</p>}
-
-        {!me && g.privacy === 'public' && <button disabled={busy} onClick={join} className="btn-primary mt-4 w-full">গ্রুপে যোগ দিন</button>}
-        {me && (
-          <div className="mt-4 flex items-start justify-center gap-5">
-            {[
-              ['chat', MessageCircle, 'চ্যাট', () => setSp({ tab: 'chat' }, { replace: true }), true],
-              ['add', UserPlus, 'যোগ করুন', () => setSheet('add'), isAdmin],
-              ['edit', Pencil, 'এডিট', () => setSheet('edit'), isAdmin],
-              ['leave', LogOut, 'ছাড়ুন', leave, true, true],
-            ].filter((x) => x[4]).map(([k, I, label, fn, , danger]) => (
-              <button key={k} onClick={fn} className="flex w-16 flex-col items-center gap-1.5">
-                <span className={`grid h-12 w-12 place-items-center rounded-full bg-surface2 transition active:scale-90 ${danger ? 'text-danger' : 'text-brand'}`}><I size={21} /></span>
-                <span className={`text-xs font-semibold ${danger ? 'text-danger' : 'text-fg/80'}`}>{label}</span>
-              </button>
-            ))}
-          </div>
-        )}
+        {me && (<>
+          <button onClick={() => startCall('video')} disabled={inCall} aria-label="গ্রুপ ভিডিও কল" className="grid h-10 w-10 place-items-center rounded-full text-brand hover:bg-surface2 disabled:opacity-40"><Video size={21} /></button>
+          <button onClick={() => startCall('audio')} disabled={inCall} aria-label="গ্রুপ অডিও কল" className="grid h-10 w-10 place-items-center rounded-full text-brand hover:bg-surface2 disabled:opacity-40"><Phone size={20} /></button>
+        </>)}
+        <button onClick={() => setSheet('menu')} aria-label="আরও অপশন" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-surface2"><MoreVertical size={21} /></button>
       </div>
 
-      {!me ? (
-        <p className="rounded-3xl bg-surface p-6 text-center text-fg/65">পোস্ট, চ্যাট ও সদস্যদের দেখতে গ্রুপে যোগ দিন।</p>
-      ) : (<>
+      {me && live.length > 0 && !inCall && (
+        <div className="flex w-full items-center gap-3 rounded-2xl bg-brand/10 p-3 text-brand">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-inverse"><Phone size={18} /></span>
+          <span className="min-w-0 flex-1"><b className="block">চলমান গ্রুপ কল</b><span className="block truncate text-xs">{live.map((l) => l.name).slice(0, 3).join(', ')}{live.length > 3 ? ` +${live.length - 3}` : ''} কলে আছেন</span></span>
+          <button onClick={() => startCall('audio')} className="rounded-full bg-brand px-3.5 py-1.5 text-sm font-bold text-inverse">অডিও</button>
+          <button onClick={() => startCall('video')} className="rounded-full bg-brand px-3.5 py-1.5 text-sm font-bold text-inverse">ভিডিও</button>
+        </div>
+      )}
+
+      {!me && (
+        <div className="rounded-[28px] bg-surface p-6 text-center shadow-soft">
+          {g.about && <p className="mb-3 text-sm text-fg/75">{g.about}</p>}
+          {g.privacy === 'public' ? <button disabled={busy} onClick={join} className="btn-primary w-full">গ্রুপে যোগ দিন</button> : <p className="text-fg/65">এটি একটি প্রাইভেট গ্রুপ।</p>}
+          <p className="mt-3 text-sm text-fg/55">পোস্ট, চ্যাট ও সদস্যদের দেখতে গ্রুপে যোগ দিন।</p>
+        </div>
+      )}
+
+      {me && (<>
         <div className="flex border-b border-fg/10">
           {TABS.map(([t, label]) => (
             <button key={t} onClick={() => setSp({ tab: t }, { replace: true })}
@@ -139,7 +185,10 @@ export default function Group() {
           ))}
         </div>
 
+        {tab === 'chat' && <GroupChat groupId={id} who={who} onUser={setCard} />}
+
         {tab === 'posts' && (<>
+          {g.cover_url && <img src={g.cover_url} alt="" className="h-36 w-full rounded-[28px] object-cover shadow-soft sm:h-48" />}
           <div className="rounded-[28px] bg-surface p-4 shadow-soft">
             <button onClick={() => setSheet('upload')} className="flex w-full items-center gap-3 text-left"><Avatar p={who[user.id]} /><span className="flex-1 text-fg/50">গ্রুপে কিছু লিখুন…</span></button>
             <div className="mt-3 flex border-t border-fg/5 pt-2">
@@ -152,25 +201,89 @@ export default function Group() {
           {posts?.map((p) => <PostCard key={p.id} post={p} onChange={loadPosts} />)}
         </>)}
 
-        {tab === 'chat' && <GroupChat groupId={id} who={who} />}
-
         {tab === 'members' && (
           <div className="space-y-2">
+            {isAdmin && <button onClick={() => setSheet('add')} className="flex w-full items-center gap-3 rounded-3xl bg-surface p-3 text-left font-bold text-brand shadow-soft"><span className="grid h-11 w-11 place-items-center rounded-full bg-brand text-inverse"><UserPlus size={20} /></span>সদস্য যোগ করুন</button>}
             {members.map((m) => {
               const p = who[m.user_id]
               return (
                 <div key={m.user_id} className="flex items-center gap-3 rounded-3xl bg-surface p-3 shadow-soft">
-                  <Link to={`/profile/${m.user_id}`}><Avatar p={p} /></Link>
-                  <div className="min-w-0 flex-1"><p className="truncate font-bold">{p?.full_name}{m.user_id === user.id && ' (আপনি)'}</p>
-                    {m.role === 'admin' && <p className="flex items-center gap-1 text-xs font-semibold text-brand"><Crown size={12} />অ্যাডমিন</p>}</div>
+                  <button onClick={() => setCard(m.user_id)} className="flex min-w-0 flex-1 items-center gap-3 text-left"><Avatar p={p} />
+                    <span className="min-w-0 flex-1"><b className="block truncate">{p?.full_name}{m.user_id === user.id && ' (আপনি)'}</b>
+                      {m.role === 'admin' && <span className="flex items-center gap-1 text-xs font-semibold text-brand"><Crown size={12} />অ্যাডমিন</span>}</span></button>
                   {isAdmin && m.user_id !== user.id && <button onClick={() => setMenu(m)} className="rounded-full bg-surface2 px-3 py-1.5 text-xs font-bold">ম্যানেজ</button>}
                 </div>
               )
             })}
-            {isAdmin && <button onClick={del} className="btn-soft mt-3 w-full !text-danger"><Trash2 size={17} />গ্রুপটি মুছে ফেলুন</button>}
           </div>
         )}
       </>)}
+
+      {card && <UserCard userId={card} onClose={() => setCard(null)} />}
+      {view && g.avatar_url && <AvatarViewer p={{ ...gp, username: 'group' }} own={isAdmin} busy={busy} onClose={() => setView(false)} onChange={() => fileRef.current.click()} onRemove={removeAvatar} />}
+      {pad && <PinPad mode={pad.mode} onClose={() => setPad(null)} onSubmit={async (p) => { if (pad.mode === 'set') { await cp.setPin(p); const f = pad.then; setPad(null); f(); return true } if (!(await cp.verify(p))) return false; const f = pad.then; setPad(null); f(); return true }} />}
+
+      {/* ⋮ মেনু */}
+      {sheet === 'menu' && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-start sm:justify-end sm:p-6" onClick={() => setSheet(null)}>
+          <div className="max-h-[88dvh] w-full max-w-md space-y-1.5 overflow-y-auto rounded-t-[32px] bg-surface p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:w-80 sm:rounded-[28px] sm:shadow-soft" onClick={(e) => e.stopPropagation()}>
+            <MenuItem icon={Info} label="গ্রুপ ইনফো" onClick={() => setSheet('info')} />
+            {me && <MenuItem icon={Users} label="সদস্য দেখুন" onClick={() => setSp({ tab: 'members' }, { replace: true })} />}
+            {isAdmin && <MenuItem icon={UserPlus} label="সদস্য যোগ করুন" onClick={() => setSheet('add')} />}
+            {isAdmin && <MenuItem icon={Pencil} label="নাম ও বিবরণ এডিট" onClick={() => setSheet('edit')} />}
+            {isAdmin && <MenuItem icon={Camera} label="গ্রুপের ছবি বদলান" onClick={() => fileRef.current.click()} />}
+            {isAdmin && <MenuItem icon={ImagePlus} label="কভার ফটো বদলান" onClick={() => coverRef.current.click()} />}
+            {me && !cp.isLocked(key) && <MenuItem icon={cp.isPinned(key) ? PinOff : Pin} label={cp.isPinned(key) ? 'পিন সরান' : 'চ্যাট পিন করুন'} onClick={() => { if (!cp.isPinned(key) && cp.pinnedCount >= 3) return alert('সর্বোচ্চ ৩টি চ্যাট পিন করা যায়'); cp.setPref(key, { pinned: !cp.isPinned(key) }) }} />}
+            {me && !cp.isLocked(key) && <MenuItem icon={cp.isArchived(key) ? ArchiveRestore : Archive} label={cp.isArchived(key) ? 'আর্কাইভ থেকে বের করুন' : 'চ্যাট আর্কাইভ করুন'} onClick={() => cp.setPref(key, { archived: !cp.isArchived(key) })} />}
+            {me && <MenuItem icon={cp.isLocked(key) ? LockOpen : Lock} label={cp.isLocked(key) ? 'চ্যাট লক খুলুন' : 'চ্যাট লক করুন'} onClick={() => (cp.isLocked(key) ? cp.unlock(key) : doLock())} />}
+            {me && <MenuItem icon={LogOut} label="গ্রুপ ছাড়ুন" onClick={leave} danger />}
+            {isAdmin && <MenuItem icon={Trash2} label="গ্রুপ মুছে ফেলুন" onClick={del} danger />}
+          </div>
+        </div>
+      )}
+
+      {/* গ্রুপ ইনফো: কভার + ছবি + তথ্য */}
+      {sheet === 'info' && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center" onClick={() => setSheet(null)}>
+          <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-[32px] bg-surface pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-[32px]" onClick={(e) => e.stopPropagation()}>
+            <div className="relative h-36 bg-gradient-to-br from-brand to-coral">
+              {g.cover_url && <img src={g.cover_url} alt="" className="h-full w-full object-cover" />}
+              <button onClick={() => setSheet(null)} aria-label="বন্ধ" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/35 text-white"><X size={18} /></button>
+              {isAdmin && (
+                <div className="absolute bottom-2 right-3 flex gap-2">
+                  {g.cover_url && <button onClick={removeCover} className="rounded-full bg-black/45 px-3 py-1.5 text-xs font-bold text-white">কভার মুছুন</button>}
+                  <button onClick={() => coverRef.current.click()} disabled={busy} className="flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5 text-xs font-bold text-white"><Camera size={14} />কভার ফটো</button>
+                </div>
+              )}
+            </div>
+            <div className="-mt-12 px-5 text-center">
+              <button onClick={() => (g.avatar_url ? (setSheet(null), setView(true)) : isAdmin && fileRef.current.click())} className="relative mx-auto block rounded-full ring-4 ring-surface">
+                <Avatar p={gp} size={96} />
+                {isAdmin && <span onClick={(e) => { e.stopPropagation(); fileRef.current.click() }} className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-brand text-inverse"><Camera size={15} /></span>}
+              </button>
+              <h2 className="mt-2 text-2xl font-bold">{g.name}</h2>
+              <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm text-fg/60">{g.privacy === 'public' ? <Globe size={14} /> : <Lock size={14} />}{g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'} • {members.length.toLocaleString('bn-BD')} জন সদস্য</p>
+              {g.about && <p className="mx-auto mt-3 max-w-sm text-sm text-fg/80">{g.about}</p>}
+              {me && (
+                <div className="mt-4 flex items-start justify-center gap-4">
+                  {[[Phone, 'অডিও কল', () => startCall('audio')], [Video, 'ভিডিও কল', () => startCall('video')], ...(isAdmin ? [[UserPlus, 'যোগ করুন', () => setSheet('add')], [Pencil, 'এডিট', () => setSheet('edit')]] : [])].map(([I, l, fn]) => (
+                    <button key={l} onClick={() => { setSheet(null); fn() }} className="flex w-16 flex-col items-center gap-1.5"><span className="grid h-12 w-12 place-items-center rounded-full bg-brand/10 text-brand"><I size={21} /></span><span className="text-xs font-semibold">{l}</span></button>
+                  ))}
+                </div>
+              )}
+              <p className="mt-3 text-xs text-fg/45">গ্রুপ কলে সর্বোচ্চ {MAX_GROUP_CALL} জন একসাথে থাকতে পারেন</p>
+            </div>
+            <div className="mt-4 space-y-1 px-4">
+              <p className="px-1 text-sm font-bold text-fg/60">সদস্য ({members.length.toLocaleString('bn-BD')})</p>
+              {members.slice(0, 8).map((m) => { const p = who[m.user_id]; return (
+                <button key={m.user_id} onClick={() => { setSheet(null); setCard(m.user_id) }} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left hover:bg-surface2"><Avatar p={p} size={40} /><span className="flex-1 truncate font-semibold">{p?.full_name}{m.user_id === user.id && ' (আপনি)'}</span>{m.role === 'admin' && <span className="text-xs font-bold text-brand">অ্যাডমিন</span>}</button>
+              ) })}
+              {members.length > 8 && <button onClick={() => { setSheet(null); setSp({ tab: 'members' }, { replace: true }) }} className="w-full py-2 text-sm font-bold text-brand">সবাইকে দেখুন</button>}
+              {me && <button onClick={() => { setSheet(null); leave() }} className="btn-soft mt-2 w-full !text-danger"><LogOut size={17} />গ্রুপ ছাড়ুন</button>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {sheet === 'upload' && <UploadSheet kind="post" groupId={id} onClose={() => setSheet(null)} onDone={loadPosts} />}
       {sheet === 'note' && <NoteSheet groupId={id} onClose={() => setSheet(null)} onDone={loadPosts} />}

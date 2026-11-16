@@ -1,3 +1,4 @@
+import { APP_NAME } from '../lib/brand'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Heart, MessageCircle, Plus, Volume2, VolumeX, Share2, Bookmark } from 'lucide-react'
@@ -35,7 +36,7 @@ function Reel({ post, muted, setMuted, onChange }) {
   const tap = () => { clearTimeout(clickT.current); clickT.current = setTimeout(() => setMuted(!muted), 250) }
   const dbl = () => { clearTimeout(clickT.current); if (!liked) like(); setBurst(true); setTimeout(() => setBurst(false), 700) }
   const copy = async () => { try { await navigator.clipboard.writeText(url) } catch { /* ignore */ } setShare(false) }
-  const native = async () => { setShare(false); try { await navigator.share({ title: 'আপন', text: (post.content || '').slice(0, 80), url }) } catch { /* বাতিল */ } }
+  const native = async () => { setShare(false); try { await navigator.share({ title: APP_NAME, text: (post.content || '').slice(0, 80), url }) } catch { /* বাতিল */ } }
   return (
     <section className="relative h-full snap-start">
       <video ref={ref} src={post.media_url} loop muted={muted} playsInline onClick={tap} onDoubleClick={dbl} className="h-full w-full object-cover" />

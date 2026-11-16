@@ -11,6 +11,8 @@ import { playSend } from '../lib/sound'
 import Avatar from '../components/Avatar'
 import Bubble from '../components/chat/Bubble'
 import AttachMenu from '../components/chat/AttachMenu'
+import CameraSheet from '../components/CameraSheet'
+import UserCard from '../components/UserCard'
 import PollSheet from '../components/chat/PollSheet'
 import ContactSheet from '../components/chat/ContactSheet'
 
@@ -34,6 +36,7 @@ export default function Chat() {
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   const [sheet, setSheet] = useState(null) // menu | poll | contact
+  const [card, setCard] = useState(false)
   const [viewer, setViewer] = useState(null)
   const [rec, setRec] = useState(null)
   const end = useRef(), msgsRef = useRef([])
@@ -130,7 +133,7 @@ export default function Chat() {
     for (const f of fs) await sendFile(f, type)
   }
   const pick = (k) => {
-    if (k === 'contact' || k === 'poll') return setSheet(k)
+    if (k === 'contact' || k === 'poll' || k === 'camera') return setSheet(k)
     setSheet(null); refs[k].current.click()
   }
 
@@ -174,8 +177,10 @@ export default function Chat() {
     <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-forest sm:max-w-xl lg:left-64 lg:max-w-3xl">
       <header className="flex items-center gap-3 bg-surface p-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm">
         <button onClick={() => nav(-1)} className="grid h-10 w-10 place-items-center rounded-full bg-surface2"><ArrowLeft size={20} /></button>
-        <Avatar p={other} size={40} online={isOnline(id)} />
-        <div className="min-w-0 flex-1 leading-tight"><b className="block truncate">{other?.full_name}</b><span className="text-xs text-brand">{typing ? 'লিখছে…' : isOnline(id) ? 'অনলাইন' : ''}</span></div>
+        <button onClick={() => setCard(true)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+          <Avatar p={other} size={40} online={isOnline(id)} />
+          <div className="min-w-0 flex-1 leading-tight"><b className="block truncate">{other?.full_name}</b><span className="text-xs text-brand">{typing ? 'লিখছে…' : isOnline(id) ? 'অনলাইন' : ''}</span></div>
+        </button>
         <button disabled={inCall || !other} onClick={() => startCall(other, 'audio')} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Phone size={19} /></button>
         <button disabled={inCall || !other} onClick={() => startCall(other, 'video')} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Video size={19} /></button>
       </header>
@@ -194,7 +199,7 @@ export default function Chat() {
       {rec ? (
         <div className="flex items-center gap-3 bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button onClick={() => stopRec(false)} className="grid h-11 w-11 place-items-center rounded-full bg-surface2 text-danger"><Trash2 size={20} /></button>
-          <span className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
+          <span className="h-3 w-3 animate-pulse rounded-full bg-danger/150" />
           <span className="flex-1 font-semibold tabular-nums">রেকর্ড হচ্ছে… {mmss(rec.secs)}</span>
           <button onClick={() => stopRec(true)} className="btn-primary !px-4"><Send size={20} /></button>
         </div>
@@ -214,6 +219,8 @@ export default function Chat() {
       <input ref={refs.file} type="file" hidden onChange={onFiles('file')}
         accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.zip,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" />
 
+      {card && <UserCard userId={id} onClose={() => setCard(false)} />}
+      {sheet === 'camera' && <CameraSheet onClose={() => setSheet(null)} onCapture={(f) => sendFile(f, f.type.startsWith('video/') ? 'video' : 'image')} />}
       {sheet === 'menu' && <AttachMenu onPick={pick} onClose={() => setSheet(null)} />}
       {sheet === 'poll' && <PollSheet onClose={() => setSheet(null)} onCreate={async (meta) => { setSheet(null); await sendMsg({ type: 'poll', content: `📊 ${meta.question}`, meta }) }} />}
       {sheet === 'contact' && <ContactSheet onClose={() => setSheet(null)} onSend={async (meta) => { setSheet(null); await sendMsg({ type: 'contact', content: `👤 ${meta.name}`, meta }) }} />}
