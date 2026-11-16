@@ -7,7 +7,7 @@ import { playSend } from '../../lib/sound'
 import { linkify } from '../../lib/linkify'
 import Lightbox from '../post/Lightbox'
 
-const NAME_COLORS = ['text-emerald-300', 'text-sky-300', 'text-amber-300', 'text-pink-300', 'text-violet-300', 'text-orange-300', 'text-teal-300', 'text-lime-300']
+const NAME_COLORS = ['text-emerald-600', 'text-sky-600', 'text-amber-600', 'text-pink-600', 'text-violet-600', 'text-orange-600', 'text-teal-600', 'text-lime-600']
 const nameColor = (id = '') => NAME_COLORS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % NAME_COLORS.length]
 const time = (d) => new Date(d).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
 
@@ -63,7 +63,7 @@ export default function GroupChat({ groupId, who }) {
 
   let lastDay = ''
   return (
-    <div className="flex h-[calc(100dvh-20rem)] min-h-[360px] flex-col overflow-hidden rounded-[28px] bg-ink/40 shadow-soft ring-1 ring-fg/5">
+    <div className="flex h-[calc(100dvh-20rem)] min-h-[360px] flex-col overflow-hidden rounded-[28px] bg-surface2/60 shadow-soft ring-1 ring-fg/5">
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {msgs === null && <p className="py-8 text-center text-fg/50">লোড হচ্ছে…</p>}
         {msgs?.length === 0 && <p className="py-8 text-center text-fg/50">এখনও কোনো মেসেজ নেই। প্রথম মেসেজটি আপনিই পাঠান 👋</p>}
