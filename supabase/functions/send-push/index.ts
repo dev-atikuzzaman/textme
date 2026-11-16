@@ -11,6 +11,8 @@ const TEXT: Record<string, string> = {
   group_post: 'আপনার গ্রুপে নতুন পোস্ট করেছেন',
   page_post: 'আপনার ফলো করা পেজে নতুন পোস্ট করেছেন',
   group_add: 'আপনাকে একটি গ্রুপে যোগ করেছেন',
+  poke: 'আপনাকে পোক করেছেন 👉',
+  group_call: 'গ্রুপ কল শুরু করেছেন 📞 — যোগ দিন',
 }
 
 webpush.setVapidDetails(
@@ -70,7 +72,7 @@ Deno.serve(async (req) => {
   ])
   if (table === 'group_messages') body = `${actor?.full_name ?? ''}: ${record.content ? String(record.content).slice(0, 100) : '📷 ছবি'}`
 
-  const payload = JSON.stringify({ title: title ?? actor?.full_name ?? 'আপন', body, url, type, tag })
+  const payload = JSON.stringify({ title: title ?? actor?.full_name ?? 'সুহৃদ', body, url, type, tag })
   const isCall = type === 'call'
   await Promise.all((subs ?? []).map(async (s) => {
     try {
