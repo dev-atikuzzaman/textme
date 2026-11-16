@@ -1,7 +1,10 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
 import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Bell, Search, UsersRound } from 'lucide-react'
 import { NotifProvider, useNotifs } from '../context/Notifications'
+import { APP_NAME } from '../lib/brand'
+import BrandMark from './BrandMark'
 import { CallProvider } from '../context/Call'
+import { GroupCallProvider } from '../context/GroupCall'
 import { SavedProvider } from '../context/Saved'
 import { PresenceProvider } from '../context/Presence'
 import { InboxProvider, useInbox } from '../context/Inbox'
@@ -39,7 +42,7 @@ function Shell() {
     <div className="min-h-[100dvh] w-full lg:pl-64">
       {/* বড় স্ক্রিনে (ল্যাপটপ/ডেস্কটপ) বাঁ দিকের সাইডবার */}
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col gap-1 border-r border-fg/10 bg-surface/90 p-4 backdrop-blur-xl lg:flex">
-        <h1 className="mb-4 bg-gradient-to-r from-brand to-coral bg-clip-text px-3 text-3xl font-extrabold text-transparent">আপন</h1>
+        <h1 className="mb-4 flex items-center gap-2.5 px-3 text-2xl font-extrabold text-brand"><BrandMark size={36} />{APP_NAME}</h1>
         {[...tabs, ...extra].map((t) => (
           <NavLink key={t.to} to={t.to} end={t.end} onClick={homeTap(t.to)}
             className={({ isActive }) => `relative flex items-center gap-4 rounded-2xl px-4 py-3 text-lg font-bold transition ${isActive ? 'bg-gradient-to-r from-brand to-coral text-inverse' : 'text-fg/75 hover:bg-surface'}`}>
@@ -55,7 +58,7 @@ function Shell() {
       <div className="mx-auto w-full max-w-md sm:max-w-xl lg:max-w-2xl">
         {showHeader && (
           <header className="sticky top-0 z-30 flex items-center justify-between bg-surface/80 px-5 py-4 pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-xl">
-            <h1 className="bg-gradient-to-r from-brand to-coral bg-clip-text text-3xl font-extrabold text-transparent lg:invisible">আপন</h1>
+            <h1 className="flex items-center gap-2 text-2xl font-extrabold text-brand lg:invisible"><BrandMark size={32} />{APP_NAME}</h1>
             <div className="flex gap-2">
               <Link to="/search" aria-label="সার্চ" className="grid h-11 w-11 place-items-center rounded-2xl bg-surface shadow-soft"><Search size={22} /></Link>
               <Link to="/notifications" aria-label="নোটিফিকেশন" className="relative grid h-11 w-11 place-items-center rounded-2xl bg-surface shadow-soft">
@@ -89,6 +92,6 @@ function Shell() {
 
 export default function Layout() {
   return (
-    <NotifProvider><CallProvider><PresenceProvider><InboxProvider><SavedProvider><ChatPrefsProvider><Shell /></ChatPrefsProvider></SavedProvider></InboxProvider></PresenceProvider></CallProvider></NotifProvider>
+    <NotifProvider><CallProvider><GroupCallProvider><PresenceProvider><InboxProvider><SavedProvider><ChatPrefsProvider><Shell /></ChatPrefsProvider></SavedProvider></InboxProvider></PresenceProvider></GroupCallProvider></CallProvider></NotifProvider>
   )
 }

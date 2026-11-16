@@ -1,3 +1,4 @@
+import { APP_NAME } from '../lib/brand'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MoreHorizontal, MessageCircle, Share2, Pin, Bookmark, Users } from 'lucide-react'
@@ -80,7 +81,7 @@ export default function PostCard({ post, onChange, onHide }) {
   const nativeShare = async () => {
     setSheet(null)
     try {
-      if (navigator.share) await navigator.share({ title: 'আপন', text: text.slice(0, 80), url })
+      if (navigator.share) await navigator.share({ title: APP_NAME, text: text.slice(0, 80), url })
       else { await navigator.clipboard.writeText(url); flash('লিংক কপি হয়েছে') }
     } catch { /* বাতিল */ }
   }

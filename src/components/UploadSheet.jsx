@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, ImagePlus } from 'lucide-react'
+import { X, ImagePlus, Video as VideoIcon, Camera } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { CATEGORIES } from '../lib/constants'
@@ -7,6 +7,7 @@ import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../lib/upload'
 import { extOf, fmtSize } from '../lib/media'
 import { playPop } from '../lib/sound'
 import PrivacyPicker from './PrivacyPicker'
+import CameraSheet from './CameraSheet'
 
 const TITLES = { post: 'নতুন পোস্ট', reel: 'নতুন রিল', video: 'ভিডিও আপলোড' }
 const mb = (b) => (b / 1048576).toFixed(1)
@@ -22,18 +23,20 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
   const [pct, setPct] = useState(0)
   const [preview, setPreview] = useState(null)
   const [err, setErr] = useState('')
+  const [cam, setCam] = useState(false)
+  const [vurl, setVurl] = useState(null)
   const ref = useRef()
   const needsVideo = kind !== 'post'
   useEffect(() => { if (autoPick) ref.current?.click() }, []) // eslint-disable-line
 
-  const pick = (e) => {
-    const f = e.target.files[0]; e.target.value = ''
-    if (!f) return
+  const pick = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) take(f) }
+  const take = (f) => {
     setErr('')
     if (needsVideo && !f.type.startsWith('video/')) return setErr('শুধু ভিডিও ফাইল বাছুন')
     if (f.size > MAX_UPLOAD) return setErr(`ফাইলটি ${mb(f.size)}MB — সর্বোচ্চ ৫০MB। ছোট ভিডিও বাছুন বা ভিডিও কমপ্রেস করুন।`)
     setFile(f)
-    setPreview(f.type.startsWith('image/') ? URL.createObjectURL(f) : null)
+    const u = URL.createObjectURL(f)
+    setPreview(f.type.startsWith('image/') ? u : null); setVurl(f.type.startsWith('video/') ? u : null)
   }
 
   const submit = async () => {
@@ -86,6 +89,10 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
           <ImagePlus size={20} />
           <span className="min-w-0 truncate">{file ? `${file.name} (${mb(file.size)}MB)` : needsVideo ? 'ভিডিও বেছে নিন' : 'ছবি, ভিডিও বা যেকোনো ফাইল যোগ করুন'}</span>
         </button>
+        <button disabled={busy} onClick={() => setCam(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand/10 py-3.5 font-bold text-brand">
+          {needsVideo ? <VideoIcon size={20} /> : <Camera size={20} />}{needsVideo ? 'এখনই ভিডিও রেকর্ড করুন' : 'ক্যামেরা দিয়ে ছবি/ভিডিও তুলুন'}
+        </button>
+        {vurl && <video src={vurl} controls playsInline className="max-h-56 w-full rounded-2xl bg-black" />}
         {preview && <img src={preview} alt="" className="max-h-48 w-full rounded-2xl object-cover" />}
         {!groupId && !pageId && <PrivacyPicker value={privacy} onChange={setPrivacy} />}
         {busy && file && (
@@ -97,6 +104,7 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
         {err && <p className="rounded-xl bg-danger/15 p-3 text-sm text-danger">{err}</p>}
         <button disabled={busy} onClick={submit} className="btn-primary w-full">{busy ? 'অপেক্ষা করুন…' : 'প্রকাশ করুন'}</button>
       </div>
+      {cam && <CameraSheet mode={needsVideo ? 'video' : 'both'} onClose={() => setCam(false)} onCapture={take} />}
     </div>
   )
 }
