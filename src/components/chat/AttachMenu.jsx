@@ -1,6 +1,7 @@
-import { Image, Film, Music, FileText, UserRound, BarChart3, X } from 'lucide-react'
+import { Camera, Image, Film, Music, FileText, UserRound, BarChart3, X } from 'lucide-react'
 
 const ITEMS = [
+  { k: 'camera', label: 'ক্যামেরা', Icon: Camera, c: 'from-rose-500 to-pink-600' },
   { k: 'image', label: 'ছবি', Icon: Image, c: 'from-emerald-500 to-teal-600' },
   { k: 'video', label: 'ভিডিও', Icon: Film, c: 'from-amber-500 to-orange-500' },
   { k: 'audio', label: 'অডিও', Icon: Music, c: 'from-lime-500 to-green-600' },
