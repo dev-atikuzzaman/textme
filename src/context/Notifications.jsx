@@ -17,6 +17,8 @@ export const NOTIF_TEXT = {
   group_post: 'আপনার গ্রুপে নতুন পোস্ট করেছেন',
   page_post: 'আপনার ফলো করা পেজে নতুন পোস্ট করেছেন',
   group_add: 'আপনাকে একটি গ্রুপে যোগ করেছেন',
+  poke: 'আপনাকে পোক করেছেন 👉',
+  group_call: 'গ্রুপ কল শুরু করেছেন 📞',
 }
 
 export function NotifProvider({ children }) {
