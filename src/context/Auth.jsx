@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
     if (!uid) return setProfile(null)
     const { data } = await supabase.from('profiles').select('*').eq('id', uid).single()
     setProfile(data)
+    supabase.rpc('sync_my_email').then(() => {}, () => {}) // যাচাই করা ইমেইল সার্চের জন্য সিঙ্ক
   }
   useEffect(() => { loadProfile() }, [uid])
 
