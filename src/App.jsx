@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { APP_NAME } from './lib/brand'
 import { configured } from './lib/supabase'
 import { playDing } from './lib/sound'
 import { AuthProvider, useAuth } from './context/Auth'
@@ -35,7 +36,7 @@ function NotificationSound() {
 
 function Guard({ children }) {
   const { user, loading, profile } = useAuth()
-  if (loading) return <div className="grid h-screen place-items-center text-brand font-bold text-2xl">আপন…</div>
+  if (loading) return <div className="grid h-screen place-items-center text-brand font-bold text-2xl">{APP_NAME}…</div>
   if (!user) return <Navigate to="/auth" replace />
   if (profile?.deactivated_at) return <Deactivated />
   return children
