@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, UserPlus, Check, X, MessageCircle, UsersRound, Flag } from 'lucide-react'
+import { Search, Check, X, MessageCircle, UsersRound, Flag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useFriends } from '../lib/useFriends'
 import Avatar from '../components/Avatar'
+import PersonActions from '../components/PersonActions'
 
 const Row = ({ p, children }) => (
   <div className="flex items-center gap-3 rounded-3xl bg-surface p-3 shadow-soft">
@@ -22,29 +23,19 @@ export default function Friends() {
 
   const search = async (e) => {
     e.preventDefault()
-    const t = q.replace(/[,()%*]/g, '').trim()
+    const t = q.replace(/[,()%*\\]/g, '').trim()
     if (!t) return setResults(null)
-    const { data } = await supabase.from('profiles').select('*')
-      .or(`username.ilike.%${t}%,full_name.ilike.%${t}%`).neq('id', user.id).limit(20)
+    const { data } = await supabase.rpc('search_people', { q: t })
     setResults(data || [])
   }
-  const send = async (id) => { await supabase.from('friendships').insert({ requester_id: user.id, addressee_id: id }); reload() }
   const accept = async (id) => { await supabase.from('friendships').update({ status: 'accepted' }).eq('id', id); reload() }
   const remove = async (id) => { await supabase.from('friendships').delete().eq('id', id); reload() }
-
-  const action = (p) => {
-    const r = rels.find((x) => other(x) === p.id)
-    if (!r) return <button onClick={() => send(p.id)} className="btn-primary !px-4 !py-2"><UserPlus size={16} />যোগ করুন</button>
-    if (r.status === 'accepted') return <span className="text-sm font-semibold text-brand">বন্ধু</span>
-    if (r.addressee_id === user.id) return <button onClick={() => accept(r.id)} className="btn-primary !px-4 !py-2">গ্রহণ</button>
-    return <span className="text-sm text-fg/50">পাঠানো হয়েছে</span>
-  }
 
   return (
     <div className="space-y-5 pt-2">
       <form onSubmit={search} className="relative">
         <Search className="absolute left-4 top-3.5 text-fg/40" size={20} />
-        <input className="input !pl-12" placeholder="নাম বা ইউজারনেম দিয়ে খুঁজুন" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="input !pl-12" placeholder="নাম, ইউজারনেম, ইমেইল বা ফোন নম্বর দিয়ে খুঁজুন" value={q} onChange={(e) => setQ(e.target.value)} />
       </form>
       <div className="grid grid-cols-2 gap-3">
         <Link to="/groups" className="flex items-center gap-3 rounded-3xl bg-surface p-4 shadow-soft transition active:scale-95"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-brand to-coral text-inverse"><UsersRound size={22} /></span><span className="font-bold">গ্রুপ</span></Link>
@@ -54,7 +45,13 @@ export default function Friends() {
         <section className="space-y-2">
           <h3 className="font-bold">সার্চ ফলাফল</h3>
           {results.length === 0 && <p className="text-fg/60">কাউকে পাওয়া যায়নি।</p>}
-          {results.map((p) => <Row key={p.id} p={p}>{action(p)}</Row>)}
+          {results.map((p) => (
+            <div key={p.id} className="rounded-3xl bg-surface p-3 shadow-soft">
+              <Link to={`/profile/${p.id}`} className="flex items-center gap-3"><Avatar p={p} /><div className="min-w-0 flex-1"><p className="truncate font-bold">{p.full_name}</p><p className="truncate text-xs text-fg/50">@{p.username}</p></div>
+                {p.matched !== 'name' && <span className="shrink-0 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-bold text-brand">{p.matched === 'email' ? 'ইমেইল মিলেছে' : 'ফোন মিলেছে'}</span>}</Link>
+              <div className="mt-3"><PersonActions p={p} onChange={reload} /></div>
+            </div>
+          ))}
         </section>
       )}
       {incoming.length > 0 && (
