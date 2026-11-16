@@ -1,6 +1,6 @@
 const c = (v) => `rgb(var(--${v}) / <alpha-value>)`
 
-// Premium Forest থিম (PetroHub-এর মতো): গাঢ় সবুজ গ্রেডিয়েন্ট, টিল + সোনালি অ্যাকসেন্ট
+// হালকা (সাদা) মার্জিত থিম: সাদা সারফেস, গভীর এমারেল্ড অ্যাকসেন্ট
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
@@ -10,7 +10,7 @@ export default {
         brand: c('brand'), coral: c('coral'), danger: c('danger'), success: c('success'), inverse: c('inverse'), bubble: c('bubble'),
       },
       fontFamily: { sans: ['"Hind Siliguri"', '"Plus Jakarta Sans"', 'sans-serif'] },
-      boxShadow: { soft: '0 0 0 1px rgba(110,210,165,.14), 0 14px 34px -14px rgba(0,0,0,.6)' },
+      boxShadow: { soft: '0 1px 2px rgba(20,40,32,.05), 0 8px 24px -12px rgba(20,40,32,.18)' },
     },
   },
   plugins: [],
