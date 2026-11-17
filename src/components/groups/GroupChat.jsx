@@ -64,7 +64,7 @@ export default function GroupChat({ groupId, who, onUser }) {
 
   let lastDay = ''
   return (
-    <div className="flex h-[calc(100dvh-13.5rem)] min-h-[380px] flex-col overflow-hidden rounded-[28px] bg-surface2/60 shadow-soft ring-1 ring-fg/5 lg:h-[calc(100dvh-12rem)]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] bg-surface2/60 shadow-soft ring-1 ring-fg/5">
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {msgs === null && <p className="py-8 text-center text-fg/50">লোড হচ্ছে…</p>}
         {msgs?.length === 0 && <p className="py-8 text-center text-fg/50">এখনও কোনো মেসেজ নেই। প্রথম মেসেজটি আপনিই পাঠান 👋</p>}
