@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
   ])
   if (table === 'group_messages') body = `${actor?.full_name ?? ''}: ${record.content ? String(record.content).slice(0, 100) : '📷 ছবি'}`
 
-  const payload = JSON.stringify({ title: title ?? actor?.full_name ?? 'সুহৃদ', body, url, type, tag })
+  const payload = JSON.stringify({ title: title ?? actor?.full_name ?? 'বন্ধু', body, url, type, tag })
   const isCall = type === 'call'
   await Promise.all((subs ?? []).map(async (s) => {
     try {
