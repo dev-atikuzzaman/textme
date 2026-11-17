@@ -33,8 +33,11 @@ function Shell() {
   const { pathname } = useLocation()
   const { unread } = useNotifs()
   const { unread: unreadMsgs } = useInbox()
-  const inChat = pathname.startsWith('/chat')
-  const showHeader = !pathname.startsWith('/reels') && !inChat
+  const inGroup = /^\/groups\/[^/]+/.test(pathname)          // গ্রুপ খুললে ওপর-নিচের বার থাকে না
+  const inPage = /^\/pages\/[^/]+/.test(pathname)
+  const inChat = pathname.startsWith('/chat') || inGroup
+  const showHeader = !pathname.startsWith('/reels') && !inChat && !inPage
+  const showNav = !inChat && !inPage
   const homeTap = (to) => () => { if (to === '/' && pathname === '/') { window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new Event('apon-home')) } }
   const count = (t) => (t.badge ? unreadMsgs : 0)
 
@@ -69,14 +72,14 @@ function Shell() {
             </div>
           </header>
         )}
-        <main className={inChat ? '' : 'px-4 pb-28 lg:pb-10'}>
+        <main className={inChat ? '' : inPage ? 'px-4 pb-10 pt-3' : 'px-4 pb-24 lg:pb-10'}>
           {pathname === '/' && <><PushBanner /><InstallBanner /></>}
           <Outlet />
         </main>
       </div>
 
-      {!inChat && (
-        <nav className="fixed inset-x-0 bottom-4 z-50 mx-auto flex max-w-[22rem] justify-between rounded-[28px] bg-surface/95 p-2 shadow-soft ring-1 ring-fg/10 backdrop-blur-xl mb-[env(safe-area-inset-bottom)] sm:max-w-sm lg:hidden">
+      {showNav && (
+        <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-md items-center justify-around rounded-t-[26px] border-t border-fg/10 bg-surface/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:max-w-xl lg:hidden">
           {tabs.map((t) => (
             <NavLink key={t.to} to={t.to} end={t.end} aria-label={t.label} onClick={homeTap(t.to)}
               className={({ isActive }) => `relative grid h-12 w-14 place-items-center rounded-2xl transition ${isActive ? 'bg-gradient-to-br from-brand to-coral text-inverse' : 'text-fg/50'}`}>
