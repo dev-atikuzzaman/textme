@@ -142,14 +142,14 @@ export default function Group() {
   const sub = live.length ? `🟢 ${live.length.toLocaleString('bn-BD')} জন কলে আছেন` : `${members.length.toLocaleString('bn-BD')} জন সদস্য`
 
   return (
-    <div className="space-y-3 pt-1">
+    <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-forest sm:max-w-xl lg:left-64 lg:max-w-3xl">
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
       <input ref={coverRef} type="file" accept="image/*" hidden onChange={changeCover} />
 
       {/* হোয়াটসঅ্যাপের মতো উপরের বার: ← ছবি নাম | কল | ⋮ */}
-      <div className="flex items-center gap-2 rounded-[28px] bg-surface p-2 shadow-soft">
+      <div className="flex shrink-0 items-center gap-2 bg-surface p-2 pt-[max(0.5rem,env(safe-area-inset-top))] shadow-sm">
         <button onClick={() => nav('/messages')} aria-label="পেছনে" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-surface2"><ArrowLeft size={21} /></button>
-        <button onClick={() => (g.avatar_url ? setView(true) : isAdmin && fileRef.current.click())} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={42} /></button>
+        <button onClick={() => (g.avatar_url ? setView(true) : isAdmin ? setSheet('photo') : setSheet('info'))} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={42} /></button>
         <button onClick={() => setSheet('info')} className="min-w-0 flex-1 text-left leading-tight">
           <b className="flex items-center gap-1.5 truncate text-base">{cp.isLocked(key) && <Lock size={13} className="text-brand" />}<span className="truncate">{g.name}</span></b>
           <span className={`block truncate text-xs ${live.length ? 'font-semibold text-brand' : 'text-fg/55'}`}>{me ? sub : g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'}</span>
@@ -161,6 +161,7 @@ export default function Group() {
         <button onClick={() => setSheet('menu')} aria-label="আরও অপশন" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-surface2"><MoreVertical size={21} /></button>
       </div>
 
+      <div className={`flex min-h-0 flex-1 flex-col gap-3 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${panel || !me ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       {me && live.length > 0 && !inCall && (
         <div className="flex w-full items-center gap-3 rounded-2xl bg-brand/10 p-3 text-brand">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-inverse"><Phone size={18} /></span>
@@ -220,9 +221,23 @@ export default function Group() {
         )}
       </>)}
 
+      </div>
+
       {card && <UserCard userId={card} onClose={() => setCard(null)} />}
       {view && g.avatar_url && <AvatarViewer p={{ ...gp, username: 'group' }} own={isAdmin} busy={busy} onClose={() => setView(false)} onChange={() => fileRef.current.click()} onRemove={removeAvatar} />}
       {pad && <PinPad mode={pad.mode} onClose={() => setPad(null)} onSubmit={async (p) => { if (pad.mode === 'set') { await cp.setPin(p); const f = pad.then; setPad(null); f(); return true } if (!(await cp.verify(p))) return false; const f = pad.then; setPad(null); f(); return true }} />}
+
+      {/* ছবি না থাকলে আইকনে চাপলে (অ্যাডমিন): হোয়াটসঅ্যাপের মতো ছবি যোগের শিট */}
+      {sheet === 'photo' && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={() => setSheet(null)}>
+          <div className="w-full max-w-md space-y-3 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto w-fit"><Avatar p={gp} size={96} /></div>
+            <h3 className="text-center text-lg font-bold">গ্রুপের আইকন</h3>
+            <button onClick={() => { setSheet(null); fileRef.current.click() }} className="btn-primary w-full">গ্যালারি থেকে ছবি বাছুন</button>
+            <button onClick={() => setSheet('info')} className="btn-soft w-full">গ্রুপ ইনফো</button>
+          </div>
+        </div>
+      )}
 
       {/* ⋮ মেনু */}
       {sheet === 'menu' && (
