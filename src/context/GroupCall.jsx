@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Sparkles, Smile, Users } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Image as ImageIcon, Smile, Users, Volume2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
@@ -7,6 +7,7 @@ import { ICE } from '../lib/rtc'
 import { ringtone } from '../lib/sound'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import Avatar from '../components/Avatar'
+import { useLoudspeaker } from '../lib/loudspeaker'
 import { EffectsTray, ReactBar, Floaters, useFloaters } from '../components/call/CallParts'
 
 // গ্রুপ কল: মেশ WebRTC (প্রত্যেকে প্রত্যেকের সাথে সরাসরি) — সর্বোচ্চ ৬ জন।
@@ -32,7 +33,7 @@ function Tile({ stream, name, avatar, local, mirror, big }) {
   const showVideo = !!stream?.getVideoTracks().some((t) => t.readyState === 'live' && t.enabled && !t.muted)
   return (
     <div className={`relative overflow-hidden rounded-3xl bg-[#10241e] ${big ? 'col-span-2' : ''}`}>
-      <video ref={ref} autoPlay playsInline muted={!!local} className={`h-full w-full object-cover ${mirror ? '[transform:scaleX(-1)]' : ''} ${showVideo ? '' : 'invisible'}`} />
+      <video ref={ref} data-remote-audio={local ? undefined : ''} autoPlay playsInline muted={!!local} className={`h-full w-full object-cover ${mirror ? '[transform:scaleX(-1)]' : ''} ${showVideo ? '' : 'invisible'}`} />
       {!showVideo && <div className="absolute inset-0 grid place-items-center"><Avatar p={{ full_name: name, avatar_url: avatar }} size={72} /></div>}
       <span className="absolute bottom-2 left-2 max-w-[85%] truncate rounded-full bg-black/50 px-2.5 py-0.5 text-xs text-white">{local ? 'আপনি' : name}</span>
     </div>
@@ -49,6 +50,7 @@ export function GroupCallProvider({ children }) {
   const [mini, setMini] = useState(false)
   const [showFx, setShowFx] = useState(false)
   const [showReact, setShowReact] = useState(false)
+  const [loud, setLoud] = useState(false)
   const [floats, addFloat] = useFloaters()
   const rooms = useRef({})                        // gid -> {ch, ready, refs}
   const pcs = useRef({})                          // peerId -> {pc, pending: []}
@@ -175,7 +177,7 @@ export function GroupCallProvider({ children }) {
     Object.keys(pcs.current).forEach(dropPeer)
     lm.release()
     if (r) r.refs--
-    setGc(null); setTiles({}); setMini(false); setShowFx(false); setShowReact(false)
+    setGc(null); setTiles({}); setMini(false); setShowFx(false); setShowReact(false); setLoud(false)
     closeRoomIfIdle(g.group.id)
   }
   const startGroupCall = (group, kind) => join(group, kind, { starting: true })
@@ -203,6 +205,7 @@ export function GroupCallProvider({ children }) {
   const react = (e) => { addFloat(e); rooms.current[gcRef.current.group.id]?.ch.send({ type: 'broadcast', event: 'react', payload: { e } }) }
 
   const peers = Object.entries(tiles)
+  useLoudspeaker(loud && !!gc, peers.map(([, t]) => t.stream))
   const total = peers.length + 1
   const isVideo = gc?.kind === 'video'
   const cols = total <= 2 ? 'grid-cols-1' : 'grid-cols-2'
@@ -253,13 +256,14 @@ export function GroupCallProvider({ children }) {
             {peers.length === 0 && <div className="grid place-items-center rounded-3xl bg-white/5 text-center text-white/70"><div><Users className="mx-auto mb-2" />অন্যদের যোগ দেওয়ার অপেক্ষা…</div></div>}
           </div>
           <Floaters items={floats} />
-          {showFx && isVideo && <EffectsTray value={lm.effect} onPick={(id) => lm.setEffect(id)} onClose={() => setShowFx(false)} />}
+          {showFx && isVideo && <EffectsTray state={lm.fxState} value={lm.effect} onPick={(id) => lm.setEffect(id)} onClose={() => setShowFx(false)} />}
           {showReact && <ReactBar onReact={react} />}
           <div className="relative z-10 mx-3 mb-[max(1rem,env(safe-area-inset-bottom))] flex items-center justify-around rounded-full bg-black/45 px-2 py-2.5 backdrop-blur">
             {isVideo && <Ctl onClick={lm.flip} icon={SwitchCamera} disabled={!lm.hasVideo} />}
             {isVideo && <Ctl onClick={lm.toggleCam} icon={lm.camOff ? VideoOff : Video} active={lm.camOff} disabled={!lm.hasVideo} />}
-            {isVideo && lm.canFx && <Ctl onClick={() => { setShowFx((v) => !v); setShowReact(false) }} icon={Sparkles} active={showFx} disabled={!lm.hasVideo} />}
+            {isVideo && lm.canFx && <Ctl onClick={() => { setShowFx((v) => !v); setShowReact(false) }} icon={ImageIcon} active={showFx} disabled={!lm.hasVideo} />}
             <Ctl onClick={() => { setShowReact((v) => !v); setShowFx(false) }} icon={Smile} active={showReact} />
+            <Ctl onClick={() => setLoud((v) => !v)} icon={Volume2} active={loud} />
             <Ctl onClick={lm.toggleMic} icon={lm.muted ? MicOff : Mic} active={lm.muted} />
             <Ctl onClick={leave} icon={PhoneOff} danger />
           </div>

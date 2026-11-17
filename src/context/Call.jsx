@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Sparkles, Smile } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Image as ImageIcon, Smile, Volume2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
@@ -8,6 +8,7 @@ import Avatar from '../components/Avatar'
 import { ringtone } from '../lib/sound'
 import { ICE } from '../lib/rtc'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
+import { useLoudspeaker } from '../lib/loudspeaker'
 import { EffectsTray, ReactBar, Floaters, useFloaters, useDrag } from '../components/call/CallParts'
 
 const Ctx = createContext(null)
@@ -28,6 +29,9 @@ export function CallProvider({ children }) {
   const [floats, addFloat] = useFloaters()
   const [dragStyle, drag] = useDrag()
   const callRef = useRef(null), pc = useRef(null), remote = useRef(null)
+  const [loud, setLoud] = useState(false)
+  useLoudspeaker(loud && call?.state === 'active', remote.current ? [remote.current] : [])
+  useEffect(() => { if (!call) setLoud(false) }, [call])
   const lm = useLocalMedia(() => (pc.current ? [pc.current] : []))
   const local = lm.stream
   const { muted, camOff, facing } = lm
@@ -251,7 +255,7 @@ export function CallProvider({ children }) {
   // WhatsApp-স্টাইল গোল বাটন + নিচে লেখা
   const Ctl = ({ onClick, icon: I, label, active, danger, big, disabled, small, busy }) => (
     <button onClick={onClick} disabled={disabled} className="flex flex-col items-center gap-2 disabled:opacity-40">
-      <span className={`grid place-items-center rounded-full transition active:scale-90 ${big ? 'h-16 w-16' : small ? 'h-12 w-12' : 'h-14 w-14'} ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'} ${busy ? 'animate-pulse' : ''}`}><I size={big ? 28 : small ? 21 : 24} /></span>
+      <span className={`grid place-items-center rounded-full transition active:scale-90 ${big ? 'h-16 w-16' : small ? 'h-11 w-11' : 'h-14 w-14'} ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'} ${busy ? 'animate-pulse' : ''}`}><I size={big ? 28 : small ? 21 : 24} /></span>
       {label && <span className="text-sm text-white/90">{label}</span>}
     </button>
   )
@@ -281,7 +285,7 @@ export function CallProvider({ children }) {
       {call && (
         <div className={mini ? 'pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0' : 'fixed inset-0 z-[100] flex flex-col bg-gradient-to-b from-[#0b1f1a] to-[#07120f] text-white'}>
           {/* অপরজনের ভিডিও/অডিও */}
-          <video ref={remoteEl} autoPlay playsInline className={remoteBig ? bigCls : remoteSmall ? smallCls : 'absolute h-px w-px opacity-0'} style={remoteSmall ? dragStyle : undefined} {...(remoteSmall ? smallBind : {})} />
+          <video ref={remoteEl} data-remote-audio autoPlay playsInline className={remoteBig ? bigCls : remoteSmall ? smallCls : 'absolute h-px w-px opacity-0'} style={remoteSmall ? dragStyle : undefined} {...(remoteSmall ? smallBind : {})} />
           {/* নিজের ভিডিও */}
           {hasLocalVideo && <video ref={localEl} autoPlay playsInline muted className={`${localBig ? bigCls : smallCls} ${mirror}`} style={localBig ? undefined : dragStyle} {...(localBig ? {} : smallBind)} />}
           {isVideo && <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-black/50 to-transparent" />}
@@ -323,7 +327,7 @@ export function CallProvider({ children }) {
           )}
           {upWait && <p className="absolute inset-x-0 top-28 z-30 mx-auto w-fit rounded-full bg-black/55 px-4 py-1.5 text-sm backdrop-blur">অপরজনের উত্তরের অপেক্ষা…</p>}
 
-          {showFx && isVideo && <EffectsTray value={lm.effect} onPick={(id) => lm.setEffect(id)} onClose={() => setShowFx(false)} />}
+          {showFx && isVideo && <EffectsTray state={lm.fxState} value={lm.effect} onPick={(id) => lm.setEffect(id)} onClose={() => setShowFx(false)} />}
           {showReact && active && <ReactBar onReact={react} />}
 
           {ringingIn ? (
@@ -335,16 +339,18 @@ export function CallProvider({ children }) {
             <div className="relative z-10 mx-3 mb-[max(1rem,env(safe-area-inset-bottom))] flex items-center justify-around rounded-full bg-black/45 px-2 py-2.5 backdrop-blur">
               <Ctl small onClick={lm.flip} icon={SwitchCamera} disabled={!lm.hasVideo} />
               <Ctl small onClick={toggleCam} icon={camOff ? VideoOff : Video} active={camOff} disabled={!lm.hasVideo} />
-              {lm.canFx && <Ctl small onClick={() => { setShowFx((v) => !v); setShowReact(false) }} icon={Sparkles} active={showFx} disabled={!lm.hasVideo} />}
+              {lm.canFx && <Ctl small onClick={() => { setShowFx((v) => !v); setShowReact(false) }} icon={ImageIcon} active={showFx} disabled={!lm.hasVideo} />}
               <Ctl small onClick={() => { setShowReact((v) => !v); setShowFx(false) }} icon={Smile} active={showReact} disabled={!active} />
+              <Ctl small onClick={() => setLoud((v) => !v)} icon={Volume2} active={loud} disabled={!active} />
               <Ctl small onClick={toggleMic} icon={muted ? MicOff : Mic} active={muted} />
               <Ctl small onClick={hangup} icon={PhoneOff} danger />
             </div>
           ) : (
             <div className="relative z-10 mx-3 mb-[max(1rem,env(safe-area-inset-bottom))] rounded-[32px] bg-black/35 px-4 py-6 backdrop-blur ring-1 ring-white/10">
-              <div className="grid grid-cols-3 gap-y-6">
+              <div className="grid grid-cols-4 gap-y-6">
                 <Ctl onClick={toggleMic} icon={muted ? MicOff : Mic} label={muted ? 'আনমিউট' : 'মিউট'} active={muted} />
                 <Ctl onClick={requestVideo} icon={Video} label={upWait ? 'অপেক্ষা…' : 'ভিডিও'} busy={upWait} disabled={!active} />
+                <Ctl onClick={() => setLoud((v) => !v)} icon={Volume2} label={loud ? 'স্পিকার চালু' : 'স্পিকার'} active={loud} disabled={!active} />
                 <Ctl onClick={hangup} icon={PhoneOff} label="কল শেষ" danger />
               </div>
             </div>
