@@ -56,7 +56,7 @@ self.addEventListener('push', (e) => {
 
     // অ্যাপ বন্ধ বা ব্যাকগ্রাউন্ডে: সাউন্ড/ভাইব্রেশনসহ সিস্টেম পপ-আপ
     const tag = d.tag || d.url || 'apon'
-    const show = () => self.registration.showNotification(d.title || 'সুহৃদ', {
+    const show = () => self.registration.showNotification(d.title || 'বন্ধু', {
       body: d.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
