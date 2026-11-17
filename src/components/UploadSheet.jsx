@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, ImagePlus, Video as VideoIcon, Camera } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
@@ -68,8 +69,9 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
     } catch (e) { setErr(friendlyUploadError(e)) } finally { setBusy(false) }
   }
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={busy ? undefined : onClose}>
+  // portal: রিলস পেজের ভেতরে থাকলেও নিচের নেভিগেশন বারের ওপরে দেখায়, তাই "প্রকাশ করুন" ঢাকা পড়ে না
+  return createPortal(
+    <div className="fixed inset-0 z-[110] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={busy ? undefined : onClose}>
       <div className="max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{TITLES[kind]}</h2>
@@ -105,6 +107,7 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
         <button disabled={busy} onClick={submit} className="btn-primary w-full">{busy ? 'অপেক্ষা করুন…' : 'প্রকাশ করুন'}</button>
       </div>
       {cam && <CameraSheet mode={needsVideo ? 'video' : 'both'} onClose={() => setCam(false)} onCapture={take} />}
-    </div>
+    </div>,
+    document.body
   )
 }
