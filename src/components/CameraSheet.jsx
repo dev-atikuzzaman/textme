@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, SwitchCamera, Circle, Square, Check, RotateCcw } from 'lucide-react'
 
 const MAX_REC = 60 // সেকেন্ড
@@ -63,8 +64,9 @@ export default function CameraSheet({ mode = 'both', onCapture, onClose }) {
   const retake = () => { URL.revokeObjectURL(shot.url); setShot(null) }
   const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
-  return (
-    <div className="fixed inset-0 z-[120] flex flex-col bg-black text-white">
+  // portal: নিচের নেভিগেশন বারের ওপরে আসে; stopPropagation: ক্লিক যেন পেছনের শিটের "বাইরে ক্লিক = বন্ধ"-এ না পৌঁছায়
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex flex-col bg-black text-white" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
         <button onClick={() => { stopRec(); stop(); onClose() }} aria-label="বন্ধ" className="grid h-11 w-11 place-items-center rounded-full bg-white/15"><X size={22} /></button>
         {rec && <span className="flex items-center gap-2 rounded-full bg-red-600 px-3 py-1 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />{mmss(secs)}</span>}
@@ -102,6 +104,7 @@ export default function CameraSheet({ mode = 'both', onCapture, onClose }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
