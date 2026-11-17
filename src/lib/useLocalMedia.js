@@ -23,6 +23,7 @@ export function useLocalMedia(getPCs = () => []) {
   const [camOff, setCamOff] = useState(false)
   const [facing, setFacing] = useState('user')
   const [effect, setEffectState] = useState('none')
+  const [fxState, setFxState] = useState('')   // '' | loading | ready | failed (ব্যাকগ্রাউন্ড মডেল)
   const bump = () => setVer((v) => v + 1)
 
   // আউটপুট ভিডিও ট্র্যাক বদলে সব পিয়ারে replaceTrack
@@ -41,7 +42,7 @@ export function useLocalMedia(getPCs = () => []) {
     fx.current?.stop(); fx.current = null
     raw.current = nt
     let out = nt
-    if (effectRef.current !== 'none' && fxSupported()) { fx.current = makeFx(nt, effectRef.current); out = fx.current.track }
+    if (effectRef.current !== 'none' && fxSupported()) { fx.current = makeFx(nt, effectRef.current, setFxState); out = fx.current.track }
     await setOut(out)
   }
 
@@ -67,7 +68,7 @@ export function useLocalMedia(getPCs = () => []) {
       const nt = s.getVideoTracks()[0]
       raw.current = nt
       let out = nt
-      if (effectRef.current !== 'none' && fxSupported()) { fx.current = makeFx(nt, effectRef.current); out = fx.current.track }
+      if (effectRef.current !== 'none' && fxSupported()) { fx.current = makeFx(nt, effectRef.current, setFxState); out = fx.current.track }
       stream.current ||= new MediaStream()
       stream.current.addTrack(out); out.enabled = !camOffRef.current; bump()
       return out
@@ -95,6 +96,8 @@ export function useLocalMedia(getPCs = () => []) {
 
   const setEffect = async (id) => {
     effectRef.current = id; setEffectState(id)
+    if (id !== 'none' && fx.current) { fx.current.setId(id); return } // চালু থাকলে শুধু ব্যাকগ্রাউন্ড বদলায়
+    if (id === 'none') setFxState('')
     if (raw.current && raw.current.readyState === 'live') await useRaw(raw.current)
   }
   const toggleMic = () => { stream.current?.getAudioTracks().forEach((t) => (t.enabled = muted)); setMuted(!muted) }
@@ -108,5 +111,5 @@ export function useLocalMedia(getPCs = () => []) {
     setMuted(false); setCamOff(false); setFacing('user'); setEffectState('none')
   }
   const hasVideo = !!stream.current?.getVideoTracks().length
-  return { stream, raw, acquire, addVideo, flip, setEffect, toggleMic, toggleCam, release, muted, camOff, facing, effect, hasVideo, canFx: fxSupported() }
+  return { stream, raw, acquire, addVideo, flip, setEffect, toggleMic, toggleCam, release, muted, camOff, facing, effect, hasVideo, fxState, canFx: fxSupported() }
 }
