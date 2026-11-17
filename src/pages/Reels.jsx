@@ -79,7 +79,7 @@ export default function Reels() {
   const [loadErr, setLoadErr] = useState('')
   const [muted, setMuted] = useState(true)
   const load = useCallback(async () => {
-    let q = supabase.from('posts').select(SELECT_POST).eq('kind', 'reel').order('created_at', { ascending: false }).limit(30)
+    let q = supabase.from('posts').select(SELECT_POST).in('kind', ['reel', 'video']).eq('media_type', 'video').order('created_at', { ascending: false }).limit(30)
     if (cat !== 'সব') q = q.eq('category', cat)
     const { data, error } = await q
     setLoadErr(error ? error.message : '')

@@ -19,14 +19,15 @@ import PinPad from '../components/chat/PinPad'
 import { useGroupCall, useGroupLive, MAX_GROUP_CALL } from '../context/GroupCall'
 import { useChatPrefs } from '../context/ChatPrefs'
 
-const TABS = [['chat', 'চ্যাট'], ['posts', 'পোস্ট'], ['members', 'সদস্য']]
+const PANELS = { posts: 'গ্রুপ পোস্ট', members: 'সদস্য' }
 
 export default function Group() {
   const { id } = useParams()
   const { user } = useAuth()
   const nav = useNavigate()
   const [sp, setSp] = useSearchParams()
-  const tab = TABS.some(([t]) => t === sp.get('tab')) ? sp.get('tab') : 'chat'
+  const panel = PANELS[sp.get('tab')] ? sp.get('tab') : null // ডিফল্ট: সরাসরি চ্যাট; পোস্ট/সদস্য ⋮ মেনু থেকে
+  const openPanel = (t) => setSp(t ? { tab: t } : {}, { replace: true })
   const [g, setG] = useState(undefined)
   const [members, setMembers] = useState([])
   const [who, setWho] = useState({})
@@ -178,16 +179,16 @@ export default function Group() {
       )}
 
       {me && (<>
-        <div className="flex border-b border-fg/10">
-          {TABS.map(([t, label]) => (
-            <button key={t} onClick={() => setSp({ tab: t }, { replace: true })}
-              className={`relative flex-1 py-3 text-sm font-bold transition ${tab === t ? 'text-brand' : 'text-fg/55'}`}>{label}{tab === t && <span className="absolute inset-x-6 bottom-0 h-[3px] rounded-full bg-brand" />}</button>
-          ))}
-        </div>
+        {panel && (
+          <div className="flex items-center gap-2">
+            <button onClick={() => openPanel(null)} aria-label="চ্যাটে ফিরুন" className="grid h-10 w-10 place-items-center rounded-full bg-surface shadow-soft"><ArrowLeft size={20} /></button>
+            <h2 className="text-lg font-bold">{PANELS[panel]}</h2>
+          </div>
+        )}
 
-        {tab === 'chat' && <GroupChat groupId={id} who={who} onUser={setCard} />}
+        {!panel && <GroupChat groupId={id} who={who} onUser={setCard} />}
 
-        {tab === 'posts' && (<>
+        {panel === 'posts' && (<>
           {g.cover_url && <img src={g.cover_url} alt="" className="h-36 w-full rounded-[28px] object-cover shadow-soft sm:h-48" />}
           <div className="rounded-[28px] bg-surface p-4 shadow-soft">
             <button onClick={() => setSheet('upload')} className="flex w-full items-center gap-3 text-left"><Avatar p={who[user.id]} /><span className="flex-1 text-fg/50">গ্রুপে কিছু লিখুন…</span></button>
@@ -201,7 +202,7 @@ export default function Group() {
           {posts?.map((p) => <PostCard key={p.id} post={p} onChange={loadPosts} />)}
         </>)}
 
-        {tab === 'members' && (
+        {panel === 'members' && (
           <div className="space-y-2">
             {isAdmin && <button onClick={() => setSheet('add')} className="flex w-full items-center gap-3 rounded-3xl bg-surface p-3 text-left font-bold text-brand shadow-soft"><span className="grid h-11 w-11 place-items-center rounded-full bg-brand text-inverse"><UserPlus size={20} /></span>সদস্য যোগ করুন</button>}
             {members.map((m) => {
@@ -228,7 +229,8 @@ export default function Group() {
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-start sm:justify-end sm:p-6" onClick={() => setSheet(null)}>
           <div className="max-h-[88dvh] w-full max-w-md space-y-1.5 overflow-y-auto rounded-t-[32px] bg-surface p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:w-80 sm:rounded-[28px] sm:shadow-soft" onClick={(e) => e.stopPropagation()}>
             <MenuItem icon={Info} label="গ্রুপ ইনফো" onClick={() => setSheet('info')} />
-            {me && <MenuItem icon={Users} label="সদস্য দেখুন" onClick={() => setSp({ tab: 'members' }, { replace: true })} />}
+            {me && <MenuItem icon={ImageIcon} label="গ্রুপ পোস্ট" onClick={() => openPanel('posts')} />}
+            {me && <MenuItem icon={Users} label="সদস্য দেখুন" onClick={() => openPanel('members')} />}
             {isAdmin && <MenuItem icon={UserPlus} label="সদস্য যোগ করুন" onClick={() => setSheet('add')} />}
             {isAdmin && <MenuItem icon={Pencil} label="নাম ও বিবরণ এডিট" onClick={() => setSheet('edit')} />}
             {isAdmin && <MenuItem icon={Camera} label="গ্রুপের ছবি বদলান" onClick={() => fileRef.current.click()} />}
@@ -278,7 +280,7 @@ export default function Group() {
               {members.slice(0, 8).map((m) => { const p = who[m.user_id]; return (
                 <button key={m.user_id} onClick={() => { setSheet(null); setCard(m.user_id) }} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left hover:bg-surface2"><Avatar p={p} size={40} /><span className="flex-1 truncate font-semibold">{p?.full_name}{m.user_id === user.id && ' (আপনি)'}</span>{m.role === 'admin' && <span className="text-xs font-bold text-brand">অ্যাডমিন</span>}</button>
               ) })}
-              {members.length > 8 && <button onClick={() => { setSheet(null); setSp({ tab: 'members' }, { replace: true }) }} className="w-full py-2 text-sm font-bold text-brand">সবাইকে দেখুন</button>}
+              {members.length > 8 && <button onClick={() => { setSheet(null); openPanel('members') }} className="w-full py-2 text-sm font-bold text-brand">সবাইকে দেখুন</button>}
               {me && <button onClick={() => { setSheet(null); leave() }} className="btn-soft mt-2 w-full !text-danger"><LogOut size={17} />গ্রুপ ছাড়ুন</button>}
             </div>
           </div>

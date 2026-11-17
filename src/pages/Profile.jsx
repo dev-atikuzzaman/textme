@@ -12,6 +12,8 @@ import AvatarViewer from '../components/AvatarViewer'
 import ProfileEditSheet from '../components/ProfileEditSheet'
 import PersonActions from '../components/PersonActions'
 import { withContext } from '../lib/context'
+import { useRelation } from '../lib/useRelation'
+import { Lock } from 'lucide-react'
 
 export default function Profile() {
   const { id } = useParams()
@@ -25,13 +27,16 @@ export default function Profile() {
   const [confirmTxt, setConfirmTxt] = useState('')
   const [busy, setBusy] = useState(false)
   const fileRef = useRef()
+  const rel = useRelation(own ? null : uid)
+  const canSee = own || rel.state === 'friends' // বন্ধু না হলে অন্যের তথ্য/পোস্ট/ভিডিও দেখা যায় না
 
   const load = useCallback(async () => {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single()
     setP(prof)
+    if (!own && !canSee) { setPosts([]); return }
     const { data } = await supabase.from('posts').select(SELECT_POST).eq('user_id', uid).order('pinned_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
     setPosts(await withContext(data))
-  }, [uid])
+  }, [uid, own, canSee]) // eslint-disable-line
   useEffect(() => { load() }, [load])
 
   const loadBlocked = async () => {
@@ -103,7 +108,7 @@ export default function Profile() {
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
         <h2 className="mt-3 text-2xl font-extrabold">{p.full_name}</h2>
         <p className="text-inverse/80">@{p.username}</p>
-        {p.bio && <p className="mt-2 text-inverse/90">{p.bio}</p>}
+        {canSee && p.bio && <p className="mt-2 text-inverse/90">{p.bio}</p>}
       </div>
 
       {own ? (
@@ -117,11 +122,19 @@ export default function Profile() {
             <button onClick={() => supabase.auth.signOut()} className="btn-soft flex-1 bg-surface shadow-soft !text-danger"><LogOut size={18} />লগ-আউট</button>
           </div>
         </div>
-      ) : <div className="rounded-3xl bg-surface p-4 shadow-soft"><PersonActions p={p} size="lg" /></div>}
+      ) : <div className="rounded-3xl bg-surface p-4 shadow-soft"><PersonActions p={p} size="lg" onChange={rel.reload} /></div>}
 
+      {!canSee ? (
+        <div className="rounded-3xl bg-surface p-8 text-center shadow-soft">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand/10 text-brand"><Lock size={24} /></span>
+          <p className="mt-3 font-bold">এই প্রোফাইল প্রাইভেট</p>
+          <p className="mt-1 text-sm text-fg/60">{p.full_name}-এর তথ্য, পোস্ট ও ভিডিও দেখতে আগে বন্ধু হতে হবে।</p>
+        </div>
+      ) : (<>
       <h3 className="px-1 font-bold">পোস্ট ও ভিডিও</h3>
       {posts.length === 0 && <p className="py-6 text-center text-fg/60">দেখানোর মতো কিছু নেই।</p>}
       {posts.map((x) => <PostCard key={x.id} post={x} onChange={load} />)}
+      </>)}
 
       {sheet === 'view' && p.avatar_url && <AvatarViewer p={p} own={own} busy={busy} onClose={() => setSheet(null)} onChange={() => fileRef.current.click()} onRemove={removeAvatar} />}
       {sheet === 'edit' && <ProfileEditSheet profile={p} onClose={() => setSheet(null)} onSaved={() => { refreshProfile(); load() }} />}

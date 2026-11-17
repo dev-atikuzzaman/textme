@@ -51,7 +51,7 @@ export default function Feed() {
   const savedKey = [...saved.ids].sort().join(',')
 
   const build = useCallback((from, to) => {
-    let q = supabase.from('posts').select(SELECT_POST).eq('kind', 'post')
+    let q = supabase.from('posts').select(SELECT_POST)  .in('kind', ['post', 'reel', 'video'])
     if (filter === 'image' || filter === 'video') q = q.eq('media_type', filter)
     if (filter === 'friends') q = q.in('user_id', [user.id, ...friendKey.split(',').filter(Boolean)])
     if (filter === 'saved') q = q.in('id', savedKey ? savedKey.split(',') : ['00000000-0000-0000-0000-000000000000'])
@@ -97,7 +97,7 @@ export default function Feed() {
       if (document.hidden || !posts?.length) return
       const newest = posts.reduce((m, p) => (p.created_at > m ? p.created_at : m), '')
       const { count } = await supabase.from('posts').select('id', { count: 'exact', head: true })
-        .eq('kind', 'post').neq('user_id', user.id).gt('created_at', newest)
+        .in('kind', ['post', 'reel', 'video']).neq('user_id', user.id).gt('created_at', newest)
       setNewCount(count || 0)
     }, 45000)
     return () => clearInterval(t)

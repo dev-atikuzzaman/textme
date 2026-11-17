@@ -5,12 +5,14 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useFriends } from '../lib/useFriends'
 import Avatar from '../components/Avatar'
-import PersonActions from '../components/PersonActions'
+import PersonActions, { UnfriendDialog } from '../components/PersonActions'
 
 const Row = ({ p, children }) => (
   <div className="flex items-center gap-3 rounded-3xl bg-surface p-3 shadow-soft">
-    <Link to={`/profile/${p.id}`}><Avatar p={p} /></Link>
-    <div className="min-w-0 flex-1"><p className="truncate font-bold">{p.full_name}</p><p className="truncate text-xs text-fg/50">@{p.username}</p></div>
+    <Link to={`/profile/${p.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl transition active:scale-[0.99]">
+      <Avatar p={p} />
+      <div className="min-w-0 flex-1"><p className="truncate font-bold">{p.full_name}</p><p className="truncate text-xs text-fg/50">@{p.username}</p></div>
+    </Link>
     {children}
   </div>
 )
@@ -20,6 +22,7 @@ export default function Friends() {
   const { rels, people, reload, other, friends, incoming } = useFriends()
   const [q, setQ] = useState('')
   const [results, setResults] = useState(null)
+  const [unf, setUnf] = useState(null)
 
   const search = async (e) => {
     e.preventDefault()
@@ -71,10 +74,11 @@ export default function Friends() {
         {friends.map((r) => people[other(r)] && (
           <Row key={r.id} p={people[other(r)]}>
             <Link to={`/chat/${other(r)}`} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand"><MessageCircle size={18} /></Link>
-            <button onClick={() => confirm('বন্ধুত্ব শেষ করবেন?') && remove(r.id)} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-fg/50"><X size={18} /></button>
+            <button aria-label="আনফ্রেন্ড" onClick={() => setUnf({ id: r.id, name: people[other(r)].full_name })} className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-fg/50"><X size={18} /></button>
           </Row>
         ))}
       </section>
+      {unf && <UnfriendDialog name={unf.name} onClose={() => setUnf(null)} onConfirm={() => { remove(unf.id); setUnf(null) }} />}
     </div>
   )
 }
