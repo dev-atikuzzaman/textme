@@ -1,19 +1,34 @@
 import { useRef, useState } from 'react'
-import { EFFECTS } from '../../lib/videoFx'
+import { ImagePlus } from 'lucide-react'
+import { EFFECTS, setCustomBg } from '../../lib/videoFx'
 
-// ইফেক্ট বাছাইয়ের স্ট্রিপ (হোয়াটসঅ্যাপের মতো নিচে আসে)
-export function EffectsTray({ value, onPick, onClose }) {
+// ব্যাকগ্রাউন্ড বাছাইয়ের স্ট্রিপ (হোয়াটসঅ্যাপের মতো নিচে আসে)
+export function EffectsTray({ value, onPick, onClose, state }) {
+  const file = useRef()
+  const custom = async (e) => {
+    const f = e.target.files[0]; e.target.value = ''
+    if (!f) return
+    if (!f.type.startsWith('image/')) return alert('একটি ছবি বাছুন')
+    try { await setCustomBg(f); onPick('bg:custom') } catch (er) { alert(er.message) }
+  }
   return (
     <div className="relative z-20 mx-3 mb-2 rounded-3xl bg-black/55 p-3 backdrop-blur">
-      <div className="mb-2 flex items-center justify-between px-1 text-white"><b className="text-sm">ইফেক্ট</b><button onClick={onClose} className="text-xs text-white/70">বন্ধ</button></div>
+      <div className="mb-2 flex items-center justify-between px-1 text-white"><b className="text-sm">ব্যাকগ্রাউন্ড</b><button onClick={onClose} className="text-xs text-white/70">বন্ধ</button></div>
+      <input ref={file} type="file" accept="image/*" hidden onChange={custom} />
       <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1">
         {EFFECTS.map((e) => (
           <button key={e.id} onClick={() => onPick(e.id)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
-            <span className={`grid h-14 w-14 place-items-center rounded-2xl text-2xl ${value === e.id ? 'bg-white ring-2 ring-emerald-400' : 'bg-white/15'}`}>{e.emoji}</span>
+            <span style={{ background: e.css }} className={`grid h-14 w-14 place-items-center rounded-2xl text-2xl ${value === e.id ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-black/40' : ''}`}>{e.emoji}</span>
             <span className={`text-[11px] ${value === e.id ? 'font-bold text-emerald-300' : 'text-white/80'}`}>{e.label}</span>
           </button>
         ))}
+        <button onClick={() => file.current.click()} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+          <span className={`grid h-14 w-14 place-items-center rounded-2xl bg-white/15 text-white ${value === 'bg:custom' ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-black/40' : ''}`}><ImagePlus size={22} /></span>
+          <span className={`text-[11px] ${value === 'bg:custom' ? 'font-bold text-emerald-300' : 'text-white/80'}`}>নিজের ছবি</span>
+        </button>
       </div>
+      {value !== 'none' && state === 'loading' && <p className="mt-1 px-1 text-xs text-white/70">ব্যাকগ্রাউন্ড মডেল লোড হচ্ছে… প্রথমবার একটু সময় লাগে</p>}
+      {value !== 'none' && state === 'failed' && <p className="mt-1 px-1 text-xs text-amber-300">এই ডিভাইস/ব্রাউজারে ব্যাকগ্রাউন্ড বদল চালু করা যায়নি</p>}
     </div>
   )
 }
