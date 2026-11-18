@@ -10,11 +10,11 @@ export function UnfriendDialog({ name, onClose, onConfirm }) {
     <div className="fixed inset-0 z-[130] grid place-items-center bg-ink/55 p-6 backdrop-blur-sm" onClick={onClose}>
       <div className="pop-in w-full max-w-xs rounded-[28px] bg-surface p-5 text-center shadow-soft" onClick={(e) => e.stopPropagation()}>
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger/10 text-danger"><UserX size={26} /></span>
-        <h3 className="mt-3 text-lg font-bold">আনফ্রেন্ড করবেন?</h3>
-        <p className="mt-1 text-sm text-fg/65"><b>{name}</b>-এর সাথে বন্ধুত্ব শেষ হবে। তার পোস্ট, ভিডিও ও তথ্য আর দেখতে পারবেন না।</p>
-        <div className="mt-4 space-y-2">
-          <button onClick={onConfirm} className="btn-soft w-full bg-danger !text-white">আনফ্রেন্ড করুন</button>
-          <button onClick={onClose} className="btn-soft w-full">বাতিল</button>
+        <h3 className="mt-3 text-lg font-bold">আনফ্রেন্ড করবেন কি?</h3>
+        <p className="mt-1 text-sm text-fg/65"><b>{name}</b>-এর সাথে বন্ধুত্ব শেষ করতে চান? "না" দিলে আগের মতোই থাকবে।</p>
+        <div className="mt-5 flex gap-3">
+          <button onClick={onClose} className="flex-1 rounded-2xl bg-slate-200 py-3 text-base font-bold text-slate-800 active:scale-95">না</button>
+          <button onClick={onConfirm} className="flex-1 rounded-2xl bg-red-600 py-3 text-base font-bold text-white active:scale-95">হ্যাঁ</button>
         </div>
       </div>
     </div>
