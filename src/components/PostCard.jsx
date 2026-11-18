@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useSaved } from '../context/Saved'
 import { linkify } from '../lib/linkify'
+import { findYt } from '../lib/yt'
+import YouTubeEmbed from './YouTubeEmbed'
 import { PRIVACY, REACTIONS, fmt } from '../lib/constants'
 import { mediaPathFromUrl } from '../lib/media'
 import Avatar from './Avatar'
@@ -126,6 +128,7 @@ export default function PostCard({ post, onChange, onHide }) {
       {!isNote && text && (
         <div className="mt-3">
           <p className={`whitespace-pre-wrap break-words leading-relaxed ${long && !expanded ? 'line-clamp-6' : ''}`}>{linkify(text)}</p>
+          {findYt(text) && <YouTubeEmbed id={findYt(text)} className="mt-2" />}
           {long && !expanded && <button onClick={() => setExpanded(true)} className="mt-1 text-sm font-bold text-brand">আরও দেখুন</button>}
         </div>
       )}

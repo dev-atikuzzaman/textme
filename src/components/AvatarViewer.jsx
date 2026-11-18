@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Download, Share2, ZoomIn, ZoomOut, ImagePlus, Trash2, Link2, Check } from 'lucide-react'
+import { ArrowLeft, Download, Share2, ZoomIn, ZoomOut, ImagePlus, Trash2, Link2, Check } from 'lucide-react'
 
 // ফেসবুকের মতো প্রোফাইল ছবি ফুল-স্ক্রিন ভিউ: জুম, ডাউনলোড, শেয়ার/লিংক কপি, (নিজের হলে) বদলান/মুছুন
-export default function AvatarViewer({ p, own, busy, onClose, onChange, onRemove }) {
+export default function AvatarViewer({ p, own, busy, title = 'প্রোফাইল ছবি', onClose, onChange, onRemove }) {
   const [z, setZ] = useState(1)
   const [copied, setCopied] = useState(false)
   const drag = useRef(null)
@@ -12,8 +12,13 @@ export default function AvatarViewer({ p, own, busy, onClose, onChange, onRemove
   useEffect(() => {
     const h = (e) => { if (e.key === 'Escape') onClose(); if (e.key === '+') setZ((v) => clamp(v + 0.5)); if (e.key === '-') setZ((v) => clamp(v - 0.5)) }
     window.addEventListener('keydown', h)
+    // ফোনের ব্যাক বাটনেও ভিউয়ার বন্ধ হয়
+    let popped = false
+    history.pushState({ viewer: 1 }, '')
+    const pop = () => { popped = true; onClose() }
+    window.addEventListener('popstate', pop)
     const o = document.body.style.overflow; document.body.style.overflow = 'hidden'
-    return () => { window.removeEventListener('keydown', h); document.body.style.overflow = o }
+    return () => { window.removeEventListener('keydown', h); window.removeEventListener('popstate', pop); document.body.style.overflow = o; if (!popped && history.state?.viewer) history.back() }
   }, [onClose])
   useEffect(() => { if (z === 1) setPos({ x: 0, y: 0 }) }, [z])
 
@@ -40,8 +45,8 @@ export default function AvatarViewer({ p, own, busy, onClose, onChange, onRemove
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 text-white">
       <div className="flex items-center gap-3 px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
-        <button onClick={onClose} aria-label="বন্ধ করুন" className="grid h-11 w-11 place-items-center rounded-full bg-white/12"><X size={22} /></button>
-        <div className="min-w-0 flex-1 leading-tight"><p className="truncate font-bold">{p.full_name}</p><p className="text-xs text-white/60">প্রোফাইল ছবি{z > 1 ? ` • ${Math.round(z * 100)}%` : ''}</p></div>
+        <button onClick={onClose} aria-label="পেছনে" className="flex h-11 items-center gap-1.5 rounded-full bg-white/15 pl-3 pr-4 text-sm font-semibold active:scale-95"><ArrowLeft size={20} />পেছনে</button>
+        <div className="min-w-0 flex-1 leading-tight"><p className="truncate font-bold">{p.full_name}</p><p className="text-xs text-white/60">{title}{z > 1 ? ` • ${Math.round(z * 100)}%` : ''}</p></div>
         <button onClick={() => setZ((v) => clamp(v - 0.5))} aria-label="ছোট করুন" disabled={z <= 1} className="grid h-10 w-10 place-items-center rounded-full bg-white/12 disabled:opacity-30"><ZoomOut size={19} /></button>
         <button onClick={() => setZ((v) => clamp(v + 0.5))} aria-label="বড় করুন" disabled={z >= 4} className="grid h-10 w-10 place-items-center rounded-full bg-white/12 disabled:opacity-30"><ZoomIn size={19} /></button>
       </div>

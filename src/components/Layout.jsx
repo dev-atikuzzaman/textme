@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
-import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Bell, Search, UsersRound } from 'lucide-react'
+import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Youtube, Bell, Search, UsersRound } from 'lucide-react'
 import { NotifProvider, useNotifs } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
 import BrandMark from './BrandMark'
@@ -22,6 +22,7 @@ const tabs = [
 const extra = [
   { to: '/groups', Icon: UsersRound, label: 'গ্রুপ ও পেজ' },
   { to: '/videos', Icon: PlaySquare, label: 'ভিডিও' },
+  { to: '/youtube', Icon: Youtube, label: 'ইউটিউব' },
   { to: '/search', Icon: Search, label: 'সার্চ' },
 ]
 
