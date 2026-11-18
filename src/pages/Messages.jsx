@@ -48,10 +48,11 @@ export default function Messages() {
     const { data: ps } = senders.length ? await supabase.from('profiles').select('id,full_name').in('id', senders) : { data: [] }
     const nm = Object.fromEntries((ps || []).map((p) => [p.id, p.full_name.split(' ')[0]]))
     setGroups((gs || []).map((g) => {
-      const read = gm.find((x) => x.group_id === g.id)?.last_read_at || ''
+      let local = ''; try { local = localStorage.getItem('gread:' + g.id) || '' } catch { /* ignore */ }
+      const rd = Math.max(Date.parse(gm.find((x) => x.group_id === g.id)?.last_read_at || 0) || 0, Date.parse(local) || 0)
       const mine = (ms || []).filter((m) => m.group_id === g.id)
       const last = mine[0]
-      return { g, last, name: last && last.sender_id !== user.id ? nm[last.sender_id] : last ? 'আপনি' : '', unread: mine.filter((m) => m.sender_id !== user.id && m.created_at > read).length }
+      return { g, last, name: last && last.sender_id !== user.id ? nm[last.sender_id] : last ? 'আপনি' : '', unread: mine.filter((m) => m.sender_id !== user.id && Date.parse(m.created_at) > rd).length }
     }))
   }, [user.id])
   useEffect(() => {
@@ -112,7 +113,7 @@ export default function Messages() {
           <Avatar p={{ full_name: g.name, avatar_url: g.avatar_url }} size={52} />
           <div className="min-w-0 flex-1">
             <p className={`flex items-center gap-1.5 truncate ${unread ? 'font-extrabold' : 'font-bold'}`}>{lk && <Lock size={13} className="shrink-0 text-brand" />}<span className="truncate">{g.name}</span></p>
-            <p className={`truncate text-sm ${unread ? 'font-semibold text-fg' : 'text-fg/50'}`}>{lk ? '🔒 লক করা চ্যাট' : last ? `${name}: ${last.content ? last.content.split('\n')[0] : '📷 ছবি'}` : 'গ্রুপ চ্যাট শুরু করুন'}</p>
+            <p className={`truncate text-sm ${unread ? 'font-semibold text-fg' : 'text-fg/50'}`}>{lk ? '🔒 লক করা চ্যাট' : last ? `${name}: ${last.content ? last.content.split('\n')[0] : ({ video: '🎬 ভিডিও', audio: '🎵 অডিও', file: '📄 ফাইল' }[last.media_type] || '📷 ছবি')}` : 'গ্রুপ চ্যাট শুরু করুন'}</p>
           </div>
           <Right time={last?.created_at} /><More />
         </Link>

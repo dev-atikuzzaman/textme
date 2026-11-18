@@ -14,6 +14,7 @@ import NoteSheet from '../components/NoteSheet'
 import GroupChat from '../components/groups/GroupChat'
 import AddMembersSheet from '../components/groups/AddMembersSheet'
 import AvatarViewer from '../components/AvatarViewer'
+import CameraSheet from '../components/CameraSheet'
 import UserCard from '../components/UserCard'
 import PinPad from '../components/chat/PinPad'
 import { useGroupCall, useGroupLive, MAX_GROUP_CALL } from '../context/GroupCall'
@@ -34,6 +35,7 @@ export default function Group() {
   const [posts, setPosts] = useState(null)
   const [sheet, setSheet] = useState(null) // upload | note | add | edit
   const [menu, setMenu] = useState(null)   // সদস্যের অ্যাকশন মেনু
+  const [camAv, setCamAv] = useState(false)
   const [busy, setBusy] = useState(false)
   const [form, setForm] = useState({ name: '', about: '' })
   const fileRef = useRef(), coverRef = useRef()
@@ -87,8 +89,8 @@ export default function Group() {
     if (error) return alert(error.message)
     setSheet(null); loadMeta()
   }
-  const changeAvatar = async (e) => {
-    const f = e.target.files[0]; e.target.value = ''
+  const changeAvatar = (e) => { const f = e.target.files[0]; e.target.value = ''; doAvatar(f) }
+  const doAvatar = async (f) => {
     if (!f) return
     setBusy(true)
     try {
@@ -149,7 +151,7 @@ export default function Group() {
       {/* হোয়াটসঅ্যাপের মতো উপরের বার: ← ছবি নাম | কল | ⋮ */}
       <div className="flex shrink-0 items-center gap-2 bg-surface p-2 pt-[max(0.5rem,env(safe-area-inset-top))] shadow-sm">
         <button onClick={() => nav('/messages')} aria-label="পেছনে" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-surface2"><ArrowLeft size={21} /></button>
-        <button onClick={() => (g.avatar_url ? setView(true) : isAdmin ? setSheet('photo') : setSheet('info'))} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={42} /></button>
+        <button onClick={() => setSheet('photo')} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={42} /></button>
         <button onClick={() => setSheet('info')} className="min-w-0 flex-1 text-left leading-tight">
           <b className="flex items-center gap-1.5 truncate text-base">{cp.isLocked(key) && <Lock size={13} className="text-brand" />}<span className="truncate">{g.name}</span></b>
           <span className={`block truncate text-xs ${live.length ? 'font-semibold text-brand' : 'text-fg/55'}`}>{me ? sub : g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'}</span>
@@ -227,17 +229,22 @@ export default function Group() {
       {view && g.avatar_url && <AvatarViewer p={{ ...gp, username: 'group' }} own={isAdmin} busy={busy} onClose={() => setView(false)} onChange={() => fileRef.current.click()} onRemove={removeAvatar} />}
       {pad && <PinPad mode={pad.mode} onClose={() => setPad(null)} onSubmit={async (p) => { if (pad.mode === 'set') { await cp.setPin(p); const f = pad.then; setPad(null); f(); return true } if (!(await cp.verify(p))) return false; const f = pad.then; setPad(null); f(); return true }} />}
 
-      {/* ছবি না থাকলে আইকনে চাপলে (অ্যাডমিন): হোয়াটসঅ্যাপের মতো ছবি যোগের শিট */}
+      {/* আইকনে চাপলে: হোয়াটসঅ্যাপের মতো ছবি দেখা / বদলানো */}
       {sheet === 'photo' && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={() => setSheet(null)}>
           <div className="w-full max-w-md space-y-3 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto w-fit"><Avatar p={gp} size={96} /></div>
-            <h3 className="text-center text-lg font-bold">গ্রুপের আইকন</h3>
-            <button onClick={() => { setSheet(null); fileRef.current.click() }} className="btn-primary w-full">গ্যালারি থেকে ছবি বাছুন</button>
+            <button onClick={() => { if (g.avatar_url) { setSheet(null); setView(true) } }} className="mx-auto block rounded-full"><Avatar p={gp} size={110} /></button>
+            <h3 className="text-center text-lg font-bold">{g.name}</h3>
+            {isAdmin ? (<>
+              <button disabled={busy} onClick={() => { setSheet(null); fileRef.current.click() }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold"><ImageIcon size={20} className="text-brand" />গ্যালারি থেকে ছবি বাছুন</button>
+              <button disabled={busy} onClick={() => { setSheet(null); setCamAv(true) }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold"><Camera size={20} className="text-brand" />ক্যামেরায় ছবি তুলুন</button>
+              {g.avatar_url && <button disabled={busy} onClick={() => { setSheet(null); removeAvatar() }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold text-danger"><Trash2 size={20} />ছবি মুছুন</button>}
+            </>) : <p className="text-center text-sm text-fg/60">শুধু গ্রুপ অ্যাডমিন গ্রুপের ছবি বদলাতে পারেন।</p>}
             <button onClick={() => setSheet('info')} className="btn-soft w-full">গ্রুপ ইনফো</button>
           </div>
         </div>
       )}
+      {camAv && <CameraSheet mode="photo" onClose={() => setCamAv(false)} onCapture={doAvatar} />}
 
       {/* ⋮ মেনু */}
       {sheet === 'menu' && (
