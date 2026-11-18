@@ -10,6 +10,7 @@ import Auth from './pages/Auth'
 import Feed from './pages/Feed'
 import Reels from './pages/Reels'
 import Videos from './pages/Videos'
+import YouTube from './pages/YouTube'
 import Friends from './pages/Friends'
 import Messages from './pages/Messages'
 import Chat from './pages/Chat'
@@ -54,6 +55,7 @@ export default function App() {
           <Route index element={<Feed />} />
           <Route path="reels" element={<Reels />} />
           <Route path="videos" element={<Videos />} />
+          <Route path="youtube" element={<YouTube />} />
           <Route path="friends" element={<Friends />} />
           <Route path="messages" element={<Messages />} />
           <Route path="chat/:id" element={<LockGate prefix="u"><Chat /></LockGate>} />
