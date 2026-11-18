@@ -5,6 +5,8 @@ import { useAuth } from '../../context/Auth'
 import { extOf, safeName, fmtSize } from '../../lib/media'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../../lib/upload'
 import AttachMenu from '../chat/AttachMenu'
+import { findYt } from '../../lib/yt'
+import YouTubeEmbed from '../YouTubeEmbed'
 import { playSend } from '../../lib/sound'
 import { linkify } from '../../lib/linkify'
 import Lightbox from '../post/Lightbox'
@@ -76,7 +78,7 @@ export default function GroupChat({ groupId, who, onUser }) {
 
   let lastDay = ''
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] bg-surface2/60 shadow-soft ring-1 ring-fg/5">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-surface2/60">
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {msgs === null && <p className="py-8 text-center text-fg/50">লোড হচ্ছে…</p>}
         {msgs?.length === 0 && <p className="py-8 text-center text-fg/50">এখনও কোনো মেসেজ নেই। প্রথম মেসেজটি আপনিই পাঠান 👋</p>}
@@ -102,6 +104,7 @@ export default function GroupChat({ groupId, who, onUser }) {
                     </a>
                   )}
                   {m.content && <p className="whitespace-pre-wrap break-words">{linkify(m.content)}</p>}
+                  {m.content && findYt(m.content) && <YouTubeEmbed id={findYt(m.content)} className="mt-1.5 w-64 max-w-full" />}
                   <p className={`mt-0.5 text-right text-[10px] ${mine ? 'text-white/60' : 'text-fg/45'}`}>{time(m.created_at)}</p>
                 </div>
               </div>
@@ -112,14 +115,14 @@ export default function GroupChat({ groupId, who, onUser }) {
       </div>
       {busy && <p className="bg-surface px-4 pt-2 text-sm text-brand">আপলোড হচ্ছে… {pct}%</p>}
       {err && <p className="bg-surface px-4 pt-2 text-sm text-danger">{err}</p>}
-      <form onSubmit={submit} className="flex items-center gap-2 bg-surface p-3">
+      <form onSubmit={submit} className="flex items-center gap-1.5 border-t border-fg/5 bg-surface px-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1.5">
         <input ref={refs.image} type="file" accept="image/*" hidden onChange={onFile('image')} />
         <input ref={refs.video} type="file" accept="video/*" hidden onChange={onFile('video')} />
         <input ref={refs.audio} type="file" accept="audio/*" hidden onChange={onFile('audio')} />
         <input ref={refs.file} type="file" hidden onChange={onFile('file')} />
-        <button type="button" disabled={busy} onClick={() => setMenu(true)} aria-label="যুক্ত করুন" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand/10 text-brand disabled:opacity-50"><Plus size={24} /></button>
-        <input className="input" placeholder="মেসেজ লিখুন…" value={text} onChange={(e) => setText(e.target.value)} />
-        <button aria-label="পাঠান" className="btn-primary !px-4"><Send size={20} /></button>
+        <button type="button" disabled={busy} onClick={() => setMenu(true)} aria-label="যুক্ত করুন" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand/10 text-brand disabled:opacity-50"><Plus size={22} /></button>
+        <input className="input !rounded-full !py-2" placeholder="মেসেজ লিখুন…" value={text} onChange={(e) => setText(e.target.value)} />
+        <button aria-label="পাঠান" className="btn-primary !h-10 !rounded-full !p-0 aspect-square"><Send size={19} /></button>
       </form>
       {menu && <AttachMenu only={['camera', 'image', 'video', 'audio', 'file']} note="ডকুমেন্ট: যেকোনো ধরনের ফাইল • সর্বোচ্চ ৫০MB" onPick={pick} onClose={() => setMenu(false)} />}
       {cam && <CameraSheet mode="photo" onClose={() => setCam(false)} onCapture={sendImage} />}
