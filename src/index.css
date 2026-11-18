@@ -16,7 +16,7 @@
   --bubble: 15 118 96;
   color-scheme: light;
 }
-html { font-size: 16.5px; overflow-x: hidden; }
+html { font-size: 18px; overflow-x: hidden; }
 body {
   @apply font-sans antialiased;
   margin: 0; overflow-x: clip; max-width: 100vw; /* clip: hidden-এর মতো নয়, sticky হেডার ভাঙে না */
