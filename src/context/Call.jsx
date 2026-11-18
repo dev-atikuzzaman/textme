@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Image as ImageIcon, Smile, Volume2 } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Smile, Volume2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
@@ -9,7 +9,7 @@ import { ringtone } from '../lib/sound'
 import { ICE } from '../lib/rtc'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import { useLoudspeaker } from '../lib/loudspeaker'
-import { EffectsTray, ReactBar, Floaters, useFloaters, useDrag } from '../components/call/CallParts'
+import { ReactBar, Floaters, useFloaters, useDrag } from '../components/call/CallParts'
 
 const Ctx = createContext(null)
 export const useCall = () => useContext(Ctx)
@@ -22,7 +22,6 @@ export function CallProvider({ children }) {
   const [note, setNote] = useState('')
   const [mini, setMini] = useState(false)
   const [swap, setSwap] = useState(false)          // true = নিজের ভিডিও বড়, অপরজনের ছোট
-  const [showFx, setShowFx] = useState(false)
   const [showReact, setShowReact] = useState(false)
   const [upAsk, setUpAsk] = useState(false)        // অপরজন ভিডিওতে যেতে চাইছে (পপ-আপ)
   const [upWait, setUpWait] = useState(false)      // আমি ভিডিওতে যেতে চেয়েছি
@@ -255,7 +254,7 @@ export function CallProvider({ children }) {
   // WhatsApp-স্টাইল গোল বাটন + নিচে লেখা
   const Ctl = ({ onClick, icon: I, label, active, danger, big, disabled, small, busy }) => (
     <button onClick={onClick} disabled={disabled} className="flex flex-col items-center gap-2 disabled:opacity-40">
-      <span className={`grid place-items-center rounded-full transition active:scale-90 ${big ? 'h-16 w-16' : small ? 'h-11 w-11' : 'h-14 w-14'} ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'} ${busy ? 'animate-pulse' : ''}`}><I size={big ? 28 : small ? 21 : 24} /></span>
+      <span className={`grid place-items-center rounded-full transition active:scale-90 ${big ? 'h-16 w-16' : small ? 'h-[2.6rem] w-[2.6rem]' : 'h-14 w-14'} ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'} ${busy ? 'animate-pulse' : ''}`}><I size={big ? 28 : small ? 21 : 24} /></span>
       {label && <span className="text-sm text-white/90">{label}</span>}
     </button>
   )
@@ -326,8 +325,6 @@ export function CallProvider({ children }) {
             </div>
           )}
           {upWait && <p className="absolute inset-x-0 top-28 z-30 mx-auto w-fit rounded-full bg-black/55 px-4 py-1.5 text-sm backdrop-blur">অপরজনের উত্তরের অপেক্ষা…</p>}
-
-          {showFx && isVideo && <EffectsTray state={lm.fxState} value={lm.effect} onPick={(id) => lm.setEffect(id)} onClose={() => setShowFx(false)} />}
           {showReact && active && <ReactBar onReact={react} />}
 
           {ringingIn ? (
@@ -336,11 +333,10 @@ export function CallProvider({ children }) {
               <Ctl onClick={accept} icon={isVideo ? Video : Phone} label="ধরুন" big />
             </div>
           ) : isVideo ? (
-            <div className="relative z-10 mx-3 mb-[max(1rem,env(safe-area-inset-bottom))] flex items-center justify-around rounded-full bg-black/45 px-2 py-2.5 backdrop-blur">
+            <div className="relative z-10 mb-[max(1rem,env(safe-area-inset-bottom))] mx-auto flex w-[calc(100%-1.5rem)] max-w-md items-center justify-between gap-1 rounded-full bg-black/45 px-3 py-2 backdrop-blur">
               <Ctl small onClick={lm.flip} icon={SwitchCamera} disabled={!lm.hasVideo} />
               <Ctl small onClick={toggleCam} icon={camOff ? VideoOff : Video} active={camOff} disabled={!lm.hasVideo} />
-              {lm.canFx && <Ctl small onClick={() => { setShowFx((v) => !v); setShowReact(false) }} icon={ImageIcon} active={showFx} disabled={!lm.hasVideo} />}
-              <Ctl small onClick={() => { setShowReact((v) => !v); setShowFx(false) }} icon={Smile} active={showReact} disabled={!active} />
+              <Ctl small onClick={() => { setShowReact((v) => !v) }} icon={Smile} active={showReact} disabled={!active} />
               <Ctl small onClick={() => setLoud((v) => !v)} icon={Volume2} active={loud} disabled={!active} />
               <Ctl small onClick={toggleMic} icon={muted ? MicOff : Mic} active={muted} />
               <Ctl small onClick={hangup} icon={PhoneOff} danger />

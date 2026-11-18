@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Image as ImageIcon, Smile, Users, Volume2 } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Smile, Users, Volume2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
@@ -8,7 +8,7 @@ import { ringtone } from '../lib/sound'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import Avatar from '../components/Avatar'
 import { useLoudspeaker } from '../lib/loudspeaker'
-import { EffectsTray, ReactBar, Floaters, useFloaters } from '../components/call/CallParts'
+import { ReactBar, Floaters, useFloaters } from '../components/call/CallParts'
 
 // গ্রুপ কল: মেশ WebRTC (প্রত্যেকে প্রত্যেকের সাথে সরাসরি) — সর্বোচ্চ ৬ জন।
 // ঘর = Supabase Realtime channel "gcall:<গ্রুপ-id>": presence = কে কলে আছে, broadcast = সিগন্যাল।
@@ -48,7 +48,6 @@ export function GroupCallProvider({ children }) {
   const [ring, setRing] = useState(null)          // ইনকামিং আমন্ত্রণ
   const [secs, setSecs] = useState(0)
   const [mini, setMini] = useState(false)
-  const [showFx, setShowFx] = useState(false)
   const [showReact, setShowReact] = useState(false)
   const [loud, setLoud] = useState(false)
   const [floats, addFloat] = useFloaters()
@@ -211,7 +210,7 @@ export function GroupCallProvider({ children }) {
   const cols = total <= 2 ? 'grid-cols-1' : 'grid-cols-2'
   const Ctl = ({ onClick, icon: I, active, danger, disabled }) => (
     <button onClick={onClick} disabled={disabled} className="disabled:opacity-40">
-      <span className={`grid h-12 w-12 place-items-center rounded-full transition active:scale-90 ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'}`}><I size={21} /></span>
+      <span className={`grid h-[2.6rem] w-[2.6rem] place-items-center rounded-full transition active:scale-90 ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'}`}><I size={21} /></span>
     </button>
   )
 
@@ -256,13 +255,11 @@ export function GroupCallProvider({ children }) {
             {peers.length === 0 && <div className="grid place-items-center rounded-3xl bg-white/5 text-center text-white/70"><div><Users className="mx-auto mb-2" />অন্যদের যোগ দেওয়ার অপেক্ষা…</div></div>}
           </div>
           <Floaters items={floats} />
-          {showFx && isVideo && <EffectsTray state={lm.fxState} value={lm.effect} onPick={(id) => lm.setEffect(id)} onClose={() => setShowFx(false)} />}
           {showReact && <ReactBar onReact={react} />}
-          <div className="relative z-10 mx-3 mb-[max(1rem,env(safe-area-inset-bottom))] flex items-center justify-around rounded-full bg-black/45 px-2 py-2.5 backdrop-blur">
+          <div className="relative z-10 mb-[max(1rem,env(safe-area-inset-bottom))] mx-auto flex w-[calc(100%-1.5rem)] max-w-md items-center justify-between gap-1 rounded-full bg-black/45 px-3 py-2 backdrop-blur">
             {isVideo && <Ctl onClick={lm.flip} icon={SwitchCamera} disabled={!lm.hasVideo} />}
             {isVideo && <Ctl onClick={lm.toggleCam} icon={lm.camOff ? VideoOff : Video} active={lm.camOff} disabled={!lm.hasVideo} />}
-            {isVideo && lm.canFx && <Ctl onClick={() => { setShowFx((v) => !v); setShowReact(false) }} icon={ImageIcon} active={showFx} disabled={!lm.hasVideo} />}
-            <Ctl onClick={() => { setShowReact((v) => !v); setShowFx(false) }} icon={Smile} active={showReact} />
+            <Ctl onClick={() => { setShowReact((v) => !v) }} icon={Smile} active={showReact} />
             <Ctl onClick={() => setLoud((v) => !v)} icon={Volume2} active={loud} />
             <Ctl onClick={lm.toggleMic} icon={lm.muted ? MicOff : Mic} active={lm.muted} />
             <Ctl onClick={leave} icon={PhoneOff} danger />
