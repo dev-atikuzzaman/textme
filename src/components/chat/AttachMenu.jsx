@@ -10,7 +10,8 @@ const ITEMS = [
   { k: 'poll', label: 'পোল', Icon: BarChart3, c: 'from-yellow-500 to-amber-600' },
 ]
 
-export default function AttachMenu({ onPick, onClose }) {
+export default function AttachMenu({ onPick, onClose, only, note }) {
+  const items = only ? ITEMS.filter((i) => only.includes(i.k)) : ITEMS
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/40 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
@@ -19,14 +20,14 @@ export default function AttachMenu({ onPick, onClose }) {
           <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
         </div>
         <div className="grid grid-cols-3 gap-4">
-          {ITEMS.map(({ k, label, Icon, c }) => (
+          {items.map(({ k, label, Icon, c }) => (
             <button key={k} onClick={() => onPick(k)} className="flex flex-col items-center gap-2">
               <span className={`grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br text-white shadow-soft ${c}`}><Icon size={26} /></span>
               <span className="text-sm font-semibold">{label}</span>
             </button>
           ))}
         </div>
-        <p className="mt-4 text-center text-xs text-fg/50">ডকুমেন্ট: PDF, Word, PowerPoint, Excel • সর্বোচ্চ ৫০MB</p>
+        <p className="mt-4 text-center text-xs text-fg/50">{note || 'ডকুমেন্ট: PDF, Word, PowerPoint, Excel • সর্বোচ্চ ৫০MB'}</p>
       </div>
     </div>
   )
