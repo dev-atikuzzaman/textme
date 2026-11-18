@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { ArrowLeft, Plus, Heart, MessageCircle, X } from 'lucide-react'
+import { ArrowLeft, Plus, Heart, MessageCircle, X, Youtube } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
@@ -39,6 +39,7 @@ export default function Videos() {
       <div className="flex items-center gap-3">
         <button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
         <h2 className="flex-1 text-2xl font-extrabold">ভিডিও</h2>
+        <button onClick={() => nav('/youtube')} aria-label="ইউটিউব" className="grid h-11 w-11 place-items-center rounded-2xl bg-red-600 text-white"><Youtube size={21} /></button>
         <button onClick={() => setOpen(true)} className="btn-primary !px-4 !py-2.5"><Plus size={18} />আপলোড</button>
       </div>
       <div className="no-scrollbar flex gap-2 overflow-x-auto">

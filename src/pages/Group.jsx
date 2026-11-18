@@ -36,6 +36,7 @@ export default function Group() {
   const [sheet, setSheet] = useState(null) // upload | note | add | edit
   const [menu, setMenu] = useState(null)   // সদস্যের অ্যাকশন মেনু
   const [camAv, setCamAv] = useState(false)
+  const [coverView, setCoverView] = useState(false)
   const [busy, setBusy] = useState(false)
   const [form, setForm] = useState({ name: '', about: '' })
   const fileRef = useRef(), coverRef = useRef()
@@ -149,11 +150,11 @@ export default function Group() {
       <input ref={coverRef} type="file" accept="image/*" hidden onChange={changeCover} />
 
       {/* হোয়াটসঅ্যাপের মতো উপরের বার: ← ছবি নাম | কল | ⋮ */}
-      <div className="flex shrink-0 items-center gap-2 bg-surface p-2 pt-[max(0.5rem,env(safe-area-inset-top))] shadow-sm">
-        <button onClick={() => nav('/messages')} aria-label="পেছনে" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-surface2"><ArrowLeft size={21} /></button>
-        <button onClick={() => setSheet('photo')} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={42} /></button>
+      <div className="flex shrink-0 items-center gap-1.5 border-b border-fg/5 bg-surface px-1.5 pb-1 pt-[max(0.125rem,env(safe-area-inset-top))]">
+        <button onClick={() => nav('/messages')} aria-label="পেছনে" className="grid h-9 w-9 shrink-0 place-items-center rounded-full hover:bg-surface2"><ArrowLeft size={20} /></button>
+        <button onClick={() => setSheet('photo')} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={36} /></button>
         <button onClick={() => setSheet('info')} className="min-w-0 flex-1 text-left leading-tight">
-          <b className="flex items-center gap-1.5 truncate text-base">{cp.isLocked(key) && <Lock size={13} className="text-brand" />}<span className="truncate">{g.name}</span></b>
+          <b className="flex items-center gap-1.5 truncate text-[0.95rem]">{cp.isLocked(key) && <Lock size={13} className="text-brand" />}<span className="truncate">{g.name}</span></b>
           <span className={`block truncate text-xs ${live.length ? 'font-semibold text-brand' : 'text-fg/55'}`}>{me ? sub : g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'}</span>
         </button>
         {me && (<>
@@ -163,7 +164,7 @@ export default function Group() {
         <button onClick={() => setSheet('menu')} aria-label="আরও অপশন" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-surface2"><MoreVertical size={21} /></button>
       </div>
 
-      <div className={`flex min-h-0 flex-1 flex-col gap-3 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${panel || !me ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+      <div className={`flex min-h-0 flex-1 flex-col gap-3 ${panel || !me ? 'overflow-y-auto p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]' : 'overflow-hidden'}`}>
       {me && live.length > 0 && !inCall && (
         <div className="flex w-full items-center gap-3 rounded-2xl bg-brand/10 p-3 text-brand">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-inverse"><Phone size={18} /></span>
@@ -227,6 +228,7 @@ export default function Group() {
 
       {card && <UserCard userId={card} onClose={() => setCard(null)} />}
       {view && g.avatar_url && <AvatarViewer p={{ ...gp, username: 'group' }} own={isAdmin} busy={busy} onClose={() => setView(false)} onChange={() => fileRef.current.click()} onRemove={removeAvatar} />}
+      {coverView && g.cover_url && <AvatarViewer p={{ avatar_url: g.cover_url, full_name: g.name, username: 'cover' }} title="কভার ফটো" own={isAdmin} busy={busy} onClose={() => setCoverView(false)} onChange={() => { setCoverView(false); coverRef.current.click() }} onRemove={() => { setCoverView(false); removeCover() }} />}
       {pad && <PinPad mode={pad.mode} onClose={() => setPad(null)} onSubmit={async (p) => { if (pad.mode === 'set') { await cp.setPin(p); const f = pad.then; setPad(null); f(); return true } if (!(await cp.verify(p))) return false; const f = pad.then; setPad(null); f(); return true }} />}
 
       {/* আইকনে চাপলে: হোয়াটসঅ্যাপের মতো ছবি দেখা / বদলানো */}
@@ -270,18 +272,18 @@ export default function Group() {
       {sheet === 'info' && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center" onClick={() => setSheet(null)}>
           <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-[32px] bg-surface pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-[32px]" onClick={(e) => e.stopPropagation()}>
-            <div className="relative h-36 bg-gradient-to-br from-brand to-coral">
-              {g.cover_url && <img src={g.cover_url} alt="" className="h-full w-full object-cover" />}
-              <button onClick={() => setSheet(null)} aria-label="বন্ধ" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/35 text-white"><X size={18} /></button>
+            <div className="relative h-36 bg-gradient-to-br from-brand to-coral" onClick={() => (g.cover_url ? (setSheet(null), setCoverView(true)) : isAdmin && coverRef.current.click())}>
+              {g.cover_url && <img src={g.cover_url} alt="" className="h-full w-full cursor-pointer object-cover" />}
+              <button onClick={(e) => { e.stopPropagation(); setSheet(null) }} aria-label="বন্ধ" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/35 text-white"><X size={18} /></button>
               {isAdmin && (
-                <div className="absolute bottom-2 right-3 flex gap-2">
+                <div className="absolute bottom-2 right-3 flex gap-2" onClick={(e) => e.stopPropagation()}>
                   {g.cover_url && <button onClick={removeCover} className="rounded-full bg-black/45 px-3 py-1.5 text-xs font-bold text-white">কভার মুছুন</button>}
                   <button onClick={() => coverRef.current.click()} disabled={busy} className="flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5 text-xs font-bold text-white"><Camera size={14} />কভার ফটো</button>
                 </div>
               )}
             </div>
             <div className="-mt-12 px-5 text-center">
-              <button onClick={() => (g.avatar_url ? (setSheet(null), setView(true)) : isAdmin && fileRef.current.click())} className="relative mx-auto block rounded-full ring-4 ring-surface">
+              <button onClick={() => setSheet('photo')} className="relative mx-auto block rounded-full ring-4 ring-surface">
                 <Avatar p={gp} size={96} />
                 {isAdmin && <span onClick={(e) => { e.stopPropagation(); fileRef.current.click() }} className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-brand text-inverse"><Camera size={15} /></span>}
               </button>
@@ -289,9 +291,9 @@ export default function Group() {
               <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm text-fg/60">{g.privacy === 'public' ? <Globe size={14} /> : <Lock size={14} />}{g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'} • {members.length.toLocaleString('bn-BD')} জন সদস্য</p>
               {g.about && <p className="mx-auto mt-3 max-w-sm text-sm text-fg/80">{g.about}</p>}
               {me && (
-                <div className="mt-4 flex items-start justify-center gap-4">
+                <div className="mt-4 grid grid-cols-4 items-start gap-1">
                   {[[Phone, 'অডিও কল', () => startCall('audio')], [Video, 'ভিডিও কল', () => startCall('video')], ...(isAdmin ? [[UserPlus, 'যোগ করুন', () => setSheet('add')], [Pencil, 'এডিট', () => setSheet('edit')]] : [])].map(([I, l, fn]) => (
-                    <button key={l} onClick={() => { setSheet(null); fn() }} className="flex w-16 flex-col items-center gap-1.5"><span className="grid h-12 w-12 place-items-center rounded-full bg-brand/10 text-brand"><I size={21} /></span><span className="text-xs font-semibold">{l}</span></button>
+                    <button key={l} onClick={() => { setSheet(null); fn() }} className="flex w-full flex-col items-center gap-1.5"><span className="grid h-12 w-12 place-items-center rounded-full bg-brand/10 text-brand"><I size={21} /></span><span className="text-xs font-semibold">{l}</span></button>
                   ))}
                 </div>
               )}
@@ -304,6 +306,7 @@ export default function Group() {
               ) })}
               {members.length > 8 && <button onClick={() => { setSheet(null); openPanel('members') }} className="w-full py-2 text-sm font-bold text-brand">সবাইকে দেখুন</button>}
               {me && <button onClick={() => { setSheet(null); leave() }} className="btn-soft mt-2 w-full !text-danger"><LogOut size={17} />গ্রুপ ছাড়ুন</button>}
+              {isAdmin && <button onClick={() => { setSheet(null); del() }} className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 py-3 font-bold text-white active:scale-95"><Trash2 size={17} />গ্রুপ মুছে ফেলুন</button>}
             </div>
           </div>
         </div>
