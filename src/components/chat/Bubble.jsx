@@ -1,5 +1,7 @@
 import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck } from 'lucide-react'
 import { linkify } from '../../lib/linkify'
+import { findYt } from '../../lib/yt'
+import YouTubeEmbed from '../YouTubeEmbed'
 import { fmtSize, mmss, downloadVcf } from '../../lib/media'
 
 const time = (d) => new Date(d).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
@@ -82,7 +84,7 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
       break
     }
     default:
-      body = <p className="whitespace-pre-wrap break-words">{linkify(m.content || '')}</p>
+      body = <><p className="whitespace-pre-wrap break-words">{linkify(m.content || '')}</p>{findYt(m.content) && <YouTubeEmbed id={findYt(m.content)} className="mt-1.5 w-64 max-w-full" />}</>
   }
 
   return (
