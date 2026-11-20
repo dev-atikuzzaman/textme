@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Kalpurush — অ্যাপের সাথে বান্ডিল করা বাংলা ফন্ট (bkbbg-র মতো); না লোড হলে Hind Siliguri-তে ফিরে যায় */
+@font-face {
+  font-family: 'Kalpurush';
+  src: url('/fonts/Kalpurush.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+
 /* Premium Forest থিম — রঙের মান (R G B) */
 :root {
   --ink: 20 33 29;
