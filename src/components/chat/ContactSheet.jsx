@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, BookUser } from 'lucide-react'
+import { X, BookUser } from '../../lib/icons'
 
 export default function ContactSheet({ onClose, onSend }) {
   const [name, setName] = useState('')

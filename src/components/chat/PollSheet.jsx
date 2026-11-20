@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Plus, Trash2 } from 'lucide-react'
+import { X, Plus, Trash2 } from '../../lib/icons'
 
 export default function PollSheet({ onClose, onCreate }) {
   const [q, setQ] = useState('')

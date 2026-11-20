@@ -1,4 +1,4 @@
-import { Camera, Image, Film, Music, FileText, UserRound, BarChart3, X } from 'lucide-react'
+import { Camera, Image, Film, Music, FileText, UserRound, BarChart3, X } from '../../lib/icons'
 
 const ITEMS = [
   { k: 'camera', label: 'ক্যামেরা', Icon: Camera, c: 'from-rose-500 to-pink-600' },

@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Lock } from 'lucide-react'
+import { Lock } from '../../lib/icons'
 import { useChatPrefs } from '../../context/ChatPrefs'
 import PinPad from './PinPad'
 

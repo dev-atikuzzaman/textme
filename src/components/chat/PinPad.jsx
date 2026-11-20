@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Lock, X, Delete } from 'lucide-react'
+import { Lock, X, Delete } from '../../lib/icons'
 
 // ৪ সংখ্যার PIN প্যাড। mode: 'set' (নতুন, দুইবার) | 'verify'
 export default function PinPad({ mode = 'verify', title, onSubmit, onClose }) {

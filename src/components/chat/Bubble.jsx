@@ -1,4 +1,4 @@
-import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck } from 'lucide-react'
+import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck } from '../../lib/icons'
 import { linkify } from '../../lib/linkify'
 import { findYt } from '../../lib/yt'
 import YouTubeEmbed from '../YouTubeEmbed'
