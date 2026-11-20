@@ -9,7 +9,7 @@ export default {
         ink: c('ink'), fg: c('fg'), surface: c('surface'), surface2: c('surface2'), mist: c('surface2'),
         brand: c('brand'), coral: c('coral'), danger: c('danger'), success: c('success'), inverse: c('inverse'), bubble: c('bubble'),
       },
-      fontFamily: { sans: ['"Hind Siliguri"', '"Plus Jakarta Sans"', 'sans-serif'] },
+      fontFamily: { sans: ['Kalpurush', '"Hind Siliguri"', 'sans-serif'] },
       boxShadow: { soft: '0 1px 2px rgba(20,40,32,.05), 0 8px 24px -12px rgba(20,40,32,.18)' },
     },
   },
