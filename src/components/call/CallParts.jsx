@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { ImagePlus } from 'lucide-react'
+import { ImagePlus } from '../../lib/icons'
 import { EFFECTS, setCustomBg } from '../../lib/videoFx'
 
 // ব্যাকগ্রাউন্ড বাছাইয়ের স্ট্রিপ (হোয়াটসঅ্যাপের মতো নিচে আসে)
