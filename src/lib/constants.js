@@ -1,4 +1,4 @@
-import { Lock, Users, Globe } from 'lucide-react'
+import { Lock, Users, Globe } from './icons'
 export const PRIVACY = [
   { id: 'only_me', label: 'শুধু আমি', Icon: Lock },
   { id: 'friends', label: 'বন্ধুরা', Icon: Users },
