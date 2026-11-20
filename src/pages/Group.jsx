@@ -68,7 +68,7 @@ export default function Group() {
     setPosts(await withContext(data))
   }, [id])
   useEffect(() => { loadMeta() }, [loadMeta])
-  useEffect(() => { if (me) loadPosts(); else if (g) setPosts([]) }, [me?.user_id, g?.id, loadPosts]) // eslint-disable-line
+  useEffect(() => { if (g) loadPosts() }, [me?.user_id, g?.id, loadPosts]) // eslint-disable-line  — সদস্য না হলেও, দেখার অনুমতি থাকলে (সদস্যের বন্ধু) ডাটাবেস পোস্ট দেয়
 
   const rpc = async (fn, args, after) => {
     setBusy(true)
@@ -125,7 +125,7 @@ export default function Group() {
   if (g === undefined) return <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>
   if (g === null) return (
     <div className="space-y-4 pt-2"><button onClick={() => nav('/groups')} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
-      <p className="py-10 text-center text-fg/60">গ্রুপটি পাওয়া যায়নি, মুছে ফেলা হয়েছে, অথবা এটি প্রাইভেট।</p></div>
+      <p className="py-10 text-center text-fg/60">গ্রুপটি পাওয়া যায়নি। এটি মুছে ফেলা হয়েছে, প্রাইভেট, অথবা এই গ্রুপের কোনো সদস্যের সাথে আপনার বন্ধুত্ব নেই — বন্ধু হলে গ্রুপের পোস্ট ও তথ্য দেখতে পাবেন।</p></div>
   )
   const gp = { id: g.id, full_name: g.name, avatar_url: g.avatar_url }
   const key = 'g:' + id
@@ -178,9 +178,10 @@ export default function Group() {
         <div className="rounded-[28px] bg-surface p-6 text-center shadow-soft">
           {g.about && <p className="mb-3 text-sm text-fg/75">{g.about}</p>}
           {g.privacy === 'public' ? <button disabled={busy} onClick={join} className="btn-primary w-full">গ্রুপে যোগ দিন</button> : <p className="text-fg/65">এটি একটি প্রাইভেট গ্রুপ।</p>}
-          <p className="mt-3 text-sm text-fg/55">পোস্ট, চ্যাট ও সদস্যদের দেখতে গ্রুপে যোগ দিন।</p>
+          <p className="mt-3 text-sm text-fg/55">{members.length.toLocaleString('bn-BD')} জন সদস্য • চ্যাটে অংশ নিতে গ্রুপে যোগ দিন।</p>
         </div>
       )}
+      {!me && posts?.map((p) => <PostCard key={p.id} post={p} onChange={loadPosts} />)}
 
       {me && (<>
         {panel && (
