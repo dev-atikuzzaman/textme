@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
 import Avatar from '../Avatar'

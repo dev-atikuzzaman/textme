@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { X, Type, ImagePlus, Globe, Users } from 'lucide-react'
+import { X, Type, ImagePlus, Globe, Users } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../../lib/upload'

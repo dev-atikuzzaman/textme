@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Trash2, Eye, Volume2, VolumeX } from 'lucide-react'
+import { X, Trash2, Eye, Volume2, VolumeX } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { mediaPathFromUrl } from '../../lib/media'
 import Avatar from '../Avatar'
