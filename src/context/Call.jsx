@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Smile, Volume2 } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchCamera, Smile, Volume2 } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
