@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
-import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Youtube, Bell, Search, UsersRound } from 'lucide-react'
+import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Youtube, Bell, Search, UsersRound } from '../lib/icons'
 import { NotifProvider, useNotifs } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
 import BrandMark from './BrandMark'

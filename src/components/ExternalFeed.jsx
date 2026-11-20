@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Volume2, VolumeX, ExternalLink, Play, RefreshCw } from 'lucide-react'
+import { Volume2, VolumeX, ExternalLink, Play, RefreshCw } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { startYoutubeConnect, syncMyShorts, disconnectYoutube } from '../lib/youtube'

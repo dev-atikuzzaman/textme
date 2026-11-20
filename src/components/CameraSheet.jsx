@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, SwitchCamera, Circle, Square, Check, RotateCcw } from 'lucide-react'
+import { X, SwitchCamera, Circle, Square, Check, RotateCcw } from '../lib/icons'
 
 const MAX_REC = 60 // সেকেন্ড
 

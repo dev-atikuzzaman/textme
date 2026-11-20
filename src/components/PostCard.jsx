@@ -1,7 +1,7 @@
 import { APP_NAME } from '../lib/brand'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MoreHorizontal, MessageCircle, Share2, Pin, Bookmark, Users } from 'lucide-react'
+import { MoreHorizontal, MessageCircle, Share2, Pin, Bookmark, Users } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useSaved } from '../context/Saved'

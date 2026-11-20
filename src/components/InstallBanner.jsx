@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download, X } from 'lucide-react'
+import { Download, X } from '../lib/icons'
 
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)

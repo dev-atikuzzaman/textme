@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Check, AlertCircle, BadgeCheck, Mail, Phone, AtSign, Loader2 } from 'lucide-react'
+import { X, Check, AlertCircle, BadgeCheck, Mail, Phone, AtSign, Loader2 } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 

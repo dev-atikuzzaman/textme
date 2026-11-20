@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { X, MessageCircle, Phone, Video, UserRound, BadgeCheck } from 'lucide-react'
+import { X, MessageCircle, Phone, Video, UserRound, BadgeCheck } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useCall } from '../context/Call'

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Download, Share2, ZoomIn, ZoomOut, ImagePlus, Trash2, Link2, Check } from 'lucide-react'
+import { ArrowLeft, Download, Share2, ZoomIn, ZoomOut, ImagePlus, Trash2, Link2, Check } from '../lib/icons'
 
 // ফেসবুকের মতো প্রোফাইল ছবি ফুল-স্ক্রিন ভিউ: জুম, ডাউনলোড, শেয়ার/লিংক কপি, (নিজের হলে) বদলান/মুছুন
 export default function AvatarViewer({ p, own, busy, title = 'প্রোফাইল ছবি', onClose, onChange, onRemove }) {

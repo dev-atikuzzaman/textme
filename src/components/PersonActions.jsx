@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { UserPlus, UserCheck, UserX, Hand, Ban, Archive, ArchiveRestore, MoreVertical, MessageCircle, X, ShieldOff } from 'lucide-react'
+import { UserPlus, UserCheck, UserX, Hand, Ban, Archive, ArchiveRestore, MoreVertical, MessageCircle, X, ShieldOff } from '../lib/icons'
 import { useRelation } from '../lib/useRelation'
 import { useChatPrefs } from '../context/ChatPrefs'
 

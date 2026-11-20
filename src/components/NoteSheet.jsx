@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { X, ImagePlus, FileText } from 'lucide-react'
+import { X, ImagePlus, FileText } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { uploadToStorage, friendlyUploadError } from '../lib/upload'

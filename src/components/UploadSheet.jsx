@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, ImagePlus, Video as VideoIcon, Camera } from 'lucide-react'
+import { X, ImagePlus, Video as VideoIcon, Camera } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { CATEGORIES } from '../lib/constants'

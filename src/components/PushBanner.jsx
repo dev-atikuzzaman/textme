@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BellRing, X } from 'lucide-react'
+import { BellRing, X } from '../lib/icons'
 import { pushState, enablePush } from '../lib/push'
 
 // অ্যাপ বন্ধ থাকলেও কল/মেসেজ/পোস্টের পপ-আপ ও সাউন্ড পেতে ১ ট্যাপে চালু করার বাটন

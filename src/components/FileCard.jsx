@@ -1,4 +1,4 @@
-import { FileText, FileSpreadsheet, FileArchive, File as FileIcon, Presentation, Download } from 'lucide-react'
+import { FileText, FileSpreadsheet, FileArchive, File as FileIcon, Presentation, Download } from '../lib/icons'
 import { fmtSize } from '../lib/media'
 
 const KINDS = {

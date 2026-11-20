@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from '../lib/icons'
 
 // পাসওয়ার্ড ঘর + ডানদিকে দেখান/লুকান টগল
 export default function PasswordInput({ className = '', ...props }) {

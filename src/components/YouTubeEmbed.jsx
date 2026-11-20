@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Play } from 'lucide-react'
+import { Play } from '../lib/icons'
 import { ytThumb, ytEmbed } from '../lib/yt'
 
 // ক্লিক করলে অ্যাপের ভেতরেই ইউটিউব প্লেয়ার চালু হয় (পোস্ট/চ্যাটের লিংকে)

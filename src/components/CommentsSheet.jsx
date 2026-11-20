@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { X, Send, Paperclip, CornerDownRight, ChevronUp } from 'lucide-react'
+import { X, Send, Paperclip, CornerDownRight, ChevronUp } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { extOf, fmtSize, mediaPathFromUrl } from '../lib/media'
