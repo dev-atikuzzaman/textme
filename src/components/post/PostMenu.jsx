@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pin, PinOff, Pencil, Link2, Share2, Trash2, X, Bookmark, BookmarkCheck, EyeOff } from 'lucide-react'
+import { Pin, PinOff, Pencil, Link2, Share2, Trash2, X, Bookmark, BookmarkCheck, EyeOff } from '../../lib/icons'
 
 function Row({ Icon, title, sub, onClick, danger }) {
   return (

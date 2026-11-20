@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { ThumbsUp } from 'lucide-react'
+import { ThumbsUp } from '../../lib/icons'
 import { REACTIONS } from '../../lib/constants'
 
 // ট্যাপ = লাইক/তুলে নেওয়া • চেপে ধরলে (বা মাউস রাখলে) ৬টি রিয়্যাকশন। compact = কমেন্টের ছোট টেক্সট বাটন

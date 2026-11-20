@@ -1,7 +1,7 @@
 import { APP_NAME } from '../../lib/brand'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Link2, Share2, Send, Check } from 'lucide-react'
+import { X, Link2, Share2, Send, Check } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
 import { useFriends } from '../../lib/useFriends'

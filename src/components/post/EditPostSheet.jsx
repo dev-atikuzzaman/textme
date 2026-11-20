@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { X, ImagePlus, Trash2, Undo2 } from 'lucide-react'
+import { X, ImagePlus, Trash2, Undo2 } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
 import { CATEGORIES } from '../../lib/constants'

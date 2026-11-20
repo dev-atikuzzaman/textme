@@ -1,4 +1,4 @@
-import { FileText } from 'lucide-react'
+import { FileText } from '../../lib/icons'
 
 export const readMins = (t = '') => Math.max(1, Math.round(t.trim().split(/\s+/).length / 150))
 

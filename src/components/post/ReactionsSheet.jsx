@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { X } from 'lucide-react'
+import { X } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { REACTIONS } from '../../lib/constants'
 import Avatar from '../Avatar'

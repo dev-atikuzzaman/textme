@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X } from '../../lib/icons'
 
 export default function Lightbox({ src, onClose }) {
   useEffect(() => {
