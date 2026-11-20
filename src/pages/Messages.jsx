@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, CheckCheck, Check, UsersRound, Pin, Archive, ArchiveRestore, Lock, LockOpen, MoreVertical, ArrowLeft, PinOff } from 'lucide-react'
+import { Search, CheckCheck, Check, UsersRound, Pin, Archive, ArchiveRestore, Lock, LockOpen, MoreVertical, ArrowLeft, PinOff } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useInbox } from '../context/Inbox'

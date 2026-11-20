@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Camera, ImagePlus, FileText, ImageIcon, Pencil, Trash2, BellRing, Check } from 'lucide-react'
+import { ArrowLeft, Camera, ImagePlus, FileText, ImageIcon, Pencil, Trash2, BellRing, Check } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { SELECT_POST } from '../lib/constants'

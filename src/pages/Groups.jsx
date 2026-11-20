@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Plus, Search, Lock, Globe } from 'lucide-react'
+import { ArrowLeft, Plus, Search, Lock, Globe } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import Avatar from '../components/Avatar'

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PowerOff } from 'lucide-react'
+import { PowerOff } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 

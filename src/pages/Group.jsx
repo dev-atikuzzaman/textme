@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Lock, Globe, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X, Phone, Video, MoreVertical, Info, Users, Pin, PinOff, Archive, ArchiveRestore, LockOpen, ImagePlus } from 'lucide-react'
+import { ArrowLeft, Lock, Globe, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X, Phone, Video, MoreVertical, Info, Users, Pin, PinOff, Archive, ArchiveRestore, LockOpen, ImagePlus } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { SELECT_POST } from '../lib/constants'

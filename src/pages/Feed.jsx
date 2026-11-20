@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { Image as ImageIcon, Video, Paperclip, FileText, LayoutGrid, Users, Bookmark, RefreshCw, ArrowUp } from 'lucide-react'
+import { Image as ImageIcon, Video, Paperclip, FileText, LayoutGrid, Users, Bookmark, RefreshCw, ArrowUp } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useSaved } from '../context/Saved'

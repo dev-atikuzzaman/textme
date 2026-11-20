@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
-import { LogOut, Camera, KeyRound, X, Pencil, PowerOff, Trash2, ShieldOff, Settings2 } from 'lucide-react'
+import { LogOut, Camera, KeyRound, X, Pencil, PowerOff, Trash2, ShieldOff, Settings2 } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { SELECT_POST } from '../lib/constants'
@@ -13,7 +13,7 @@ import ProfileEditSheet from '../components/ProfileEditSheet'
 import PersonActions from '../components/PersonActions'
 import { withContext } from '../lib/context'
 import { useRelation } from '../lib/useRelation'
-import { Lock } from 'lucide-react'
+import { Lock } from '../lib/icons'
 
 export default function Profile() {
   const { id } = useParams()

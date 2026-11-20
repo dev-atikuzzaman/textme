@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { CheckCircle2, KeyRound } from 'lucide-react'
+import { CheckCircle2, KeyRound } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import PasswordInput from '../components/PasswordInput'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search as SearchIcon, X } from 'lucide-react'
+import { Search as SearchIcon, X } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { SELECT_POST } from '../lib/constants'
 import PostCard from '../components/PostCard'

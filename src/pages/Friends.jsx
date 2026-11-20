@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Check, X, MessageCircle, UsersRound, Flag } from 'lucide-react'
+import { Search, Check, X, MessageCircle, UsersRound, Flag } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useFriends } from '../lib/useFriends'

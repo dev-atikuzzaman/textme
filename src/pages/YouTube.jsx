@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowLeft, Search, Play, X, ExternalLink, Clock } from 'lucide-react'
+import { ArrowLeft, Search, Play, X, ExternalLink, Clock } from '../lib/icons'
 import { useNavigate } from 'react-router-dom'
 import { ytId, ytEmbed, ytThumb, ytMeta, ytSearch, ytKey } from '../lib/yt'
 

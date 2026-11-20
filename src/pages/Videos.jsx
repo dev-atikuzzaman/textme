@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { ArrowLeft, Plus, Heart, MessageCircle, X, Youtube } from 'lucide-react'
+import { ArrowLeft, Plus, Heart, MessageCircle, X, Youtube } from '../lib/icons'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, BellOff } from 'lucide-react'
+import { Bell, BellOff } from '../lib/icons'
 import { useNotifs, NOTIF_TEXT } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
 import { fmt } from '../lib/constants'

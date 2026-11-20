@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { ArrowLeft, MailCheck } from 'lucide-react'
+import { ArrowLeft, MailCheck } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { APP_NAME, APP_TAGLINE } from '../lib/brand'

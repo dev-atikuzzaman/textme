@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Send, Plus, Mic, Phone, Video, Trash2 } from 'lucide-react'
+import { ArrowLeft, Send, Plus, Mic, Phone, Video, Trash2 } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useCall } from '../context/Call'

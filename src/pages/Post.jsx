@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { SELECT_POST } from '../lib/constants'
 import { withContext } from '../lib/context'

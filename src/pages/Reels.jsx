@@ -1,7 +1,7 @@
 import { APP_NAME } from '../lib/brand'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Heart, MessageCircle, Plus, Volume2, VolumeX, Share2, Bookmark } from 'lucide-react'
+import { Heart, MessageCircle, Plus, Volume2, VolumeX, Share2, Bookmark } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useSaved } from '../context/Saved'
