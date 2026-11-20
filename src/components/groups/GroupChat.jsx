@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Send, Plus, FileText, Download } from 'lucide-react'
+import { Send, Plus, FileText, Download } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
 import { extOf, safeName, fmtSize } from '../../lib/media'

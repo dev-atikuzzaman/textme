@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Check } from 'lucide-react'
+import { X, Check } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { useFriends } from '../../lib/useFriends'
 import Avatar from '../Avatar'
