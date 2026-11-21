@@ -1,4 +1,4 @@
-const V = 'apon-v9'
+const V = 'apon-v10'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -45,11 +45,12 @@ self.addEventListener('push', (e) => {
 
   e.waitUntil((async () => {
     const list = await clients.matchAll({ type: 'window', includeUncontrolled: true })
-    const visible = list.filter((c) => c.visibilityState === 'visible')
+    // শুধু দেখা যাচ্ছে + ফোকাসে থাকা উইন্ডোকেই "অ্যাপ খোলা" ধরি। অন্য উইন্ডো/অ্যাপে থাকলে (ডেস্কটপে) পপ-আপও দেখানো হবে
+    const visible = list.filter((c) => c.visibilityState === 'visible' && c.focused !== false)
 
-    // অ্যাপ খোলা ও দেখা যাচ্ছে: সিস্টেম নোটিফিকেশনের বদলে অ্যাপের ভেতরে সাউন্ড বাজবে
-    // (কলের রিং অ্যাপ নিজেই বাজায়, তাই কলে আলাদা ডিং নয়)
-    if (visible.length > 0) {
+    // অ্যাপ খোলা ও ফোকাসে: সিস্টেম নোটিফিকেশনের বদলে অ্যাপের ভেতরে সাউন্ড বাজবে
+    // (কলের রিং অ্যাপ নিজেই বাজায়, তাই কলে আলাদা ডিং নয়; টেস্ট পুশে সবসময় পপ-আপ দেখানো হয়)
+    if (visible.length > 0 && d.type !== 'test') {
       if (!isCall) visible.forEach((c) => c.postMessage({ type: 'PLAY_SOUND', payload: d }))
       return
     }
