@@ -1,4 +1,4 @@
-const V = 'apon-v8'
+const V = 'apon-v9'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -19,6 +19,9 @@ self.addEventListener('fetch', (e) => {
   if (r.method !== 'GET') return
   const u = new URL(r.url)
   if (u.origin !== location.origin) return // Supabase, ফন্ট, মিডিয়া ক্যাশ হবে না
+  // অডিও/ভিডিও (যেমন /notify.mp3) সরাসরি নেটওয়ার্ক থেকে: ক্যাশ করা পুরো-ফাইল রেসপন্স Range রিকোয়েস্টে
+  // Safari/iPhone-এ সাউন্ড বাজতে দেয় না। তাই এগুলো SW ছুঁয়ে দেখবে না।
+  if (r.destination === 'audio' || r.destination === 'video' || r.headers.has('range') || /\.(mp3|wav|ogg|m4a|mp4|webm)$/i.test(u.pathname)) return
   if (r.mode === 'navigate') {
     e.respondWith(
       fetch(r)
