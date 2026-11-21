@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Volume2, VolumeX, ExternalLink, Play, RefreshCw, Bookmark, Share2 } from '../lib/icons'
 import { APP_NAME } from '../lib/brand'
+import { useVideoMuted } from '../lib/videoSound'
 import { useSavedVideos } from '../context/SavedVideos'
 import ShareSheet from './post/ShareSheet'
 import { supabase } from '../lib/supabase'
@@ -41,9 +42,20 @@ export function ExtReel({ v, index, active, onActive, muted, setMuted }) {
     return () => io.disconnect()
   }, [index, onActive])
 
+  const cmd = (func) => frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args: [] }), '*')
   useEffect(() => {
-    if (active) frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: muted ? 'mute' : 'unMute', args: [] }), '*')
+    if (!active) return
+    if (muted) cmd('mute'); else { cmd('unMute'); cmd('playVideo') }
   }, [muted])
+  // সাউন্ড চালু থাকলে: প্লেয়ার লোডের পরে ও ইউজারের প্রথম ট্যাপে আনমিউট+প্লে (অটোপ্লে ব্লক হলেও সাউন্ড আসবে)
+  useEffect(() => {
+    if (!active || muted) return
+    const go = () => { cmd('unMute'); cmd('playVideo') }
+    const t = [setTimeout(go, 800), setTimeout(go, 2000)]
+    const ev = ['pointerdown', 'touchstart']
+    ev.forEach((e) => window.addEventListener(e, go, { passive: true, once: true }))
+    return () => { t.forEach(clearTimeout); ev.forEach((e) => window.removeEventListener(e, go)) }
+  }, [active])
 
   return (
     <section ref={sec} className="relative h-full snap-start snap-always overflow-hidden bg-black">
@@ -80,7 +92,7 @@ export function ExtReel({ v, index, active, onActive, muted, setMuted }) {
 export function SavedFeed() {
   const { list, ready } = useSavedVideos()
   const [active, setActive] = useState(0)
-  const [muted, setMuted] = useState(true)
+  const [muted, setMuted] = useVideoMuted()
   const center = 'grid h-full place-items-center px-8 text-center text-white'
   if (!ready) return <div className={center}>লোড হচ্ছে…</div>
   if (list.length === 0) return <div className={center}><p className="text-white/80">কোনো ভিডিও সেভ করা নেই। রিলের 🔖 চেপে সেভ করুন।</p></div>
@@ -98,7 +110,7 @@ export default function ExternalFeed({ note = '' }) {
   const [items, setItems] = useState(null)
   const [conn, setConn] = useState(undefined)
   const [active, setActive] = useState(0)
-  const [muted, setMuted] = useState(true)
+  const [muted, setMuted] = useVideoMuted()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [reload, setReload] = useState(0)
