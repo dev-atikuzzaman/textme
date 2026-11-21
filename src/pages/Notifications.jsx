@@ -4,7 +4,7 @@ import { Bell, BellOff, Volume2, VolumeX } from '../lib/icons'
 import { useNotifs, NOTIF_TEXT } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
 import { fmt } from '../lib/constants'
-import { pushState, enablePush, disablePush } from '../lib/push'
+import { pushState, enablePush, disablePush, pushDiagnose, sendTestPush } from '../lib/push'
 import { playDing, soundOn, setSoundOn } from '../lib/sound'
 import Avatar from '../components/Avatar'
 
@@ -18,6 +18,9 @@ export default function Notifications() {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [snd, setSnd] = useState(soundOn)
+  const [diag, setDiag] = useState(null)
+  const [diagBusy, setDiagBusy] = useState(false)
+  const [srv, setSrv] = useState('')
   useEffect(() => () => { markAllRead() }, [markAllRead])
   useEffect(() => { pushState().then(setPs) }, [])
 
@@ -26,6 +29,19 @@ export default function Notifications() {
     try { ps === 'on' ? await disablePush() : await enablePush() } catch (e) { setErr(e.message) }
     setPs(await pushState()); setBusy(false)
   }
+
+  const runDiag = async () => {
+    setDiagBusy(true); setSrv(''); setErr('')
+    setDiag(await pushDiagnose())
+    try {
+      const r = await sendTestPush()
+      setSrv(r.subs === 0 ? '❌ সার্ভারে এই অ্যাকাউন্টের কোনো ডিভাইস সেভ নেই — "চালু" চেপে অ্যালার্ট চালু করুন।'
+        : r.sent > 0 ? `✅ সার্ভার থেকে ${r.sent}টি ডিভাইসে টেস্ট পুশ গেছে — কিছুক্ষণের মধ্যে পপ-আপ ও সাউন্ড আসার কথা।`
+        : `❌ পুশ পাঠানো যায়নি: ${(r.errors || []).join(' | ') || 'অজানা কারণ'} (VAPID কী/সিক্রেট মিলছে কিনা দেখুন)`)
+    } catch (e) { setSrv('❌ ' + e.message) }
+    setDiagBusy(false)
+  }
+  const row = (ok, t) => <p className={ok ? 'text-success' : 'text-danger'}>{ok ? '✅' : '❌'} {t}</p>
 
   return (
     <div className="space-y-3 pt-2">
@@ -53,10 +69,20 @@ export default function Notifications() {
           {ps === 'off' && <span className="rounded-2xl bg-surface px-3 py-1.5 text-sm font-bold text-fg">চালু</span>}
         </button>
       )}
-      {ps === 'on' && (
-        <button onClick={async () => {
-          try { const r = await navigator.serviceWorker.ready; await r.showNotification(`${APP_NAME} — টেস্ট`, { body: 'সাউন্ড আসছে? না এলে ফোন/পিসির নোটিফিকেশন সেটিংসে সাউন্ড চালু করুন।', icon: '/icons/icon-192.png', tag: 'apon-test', renotify: true, silent: false, vibrate: [200, 100, 200] }) } catch (e) { setErr(e.message) }
-        }} className="w-full rounded-3xl bg-surface p-3 text-sm font-bold text-fg">🔔 টেস্ট নোটিফিকেশন পাঠান</button>
+      <button disabled={diagBusy} onClick={runDiag} className="w-full rounded-3xl bg-surface p-3 text-sm font-bold text-fg disabled:opacity-60">
+        {diagBusy ? 'যাচাই হচ্ছে…' : '🔍 পুশ ঠিক আছে কিনা যাচাই করুন + টেস্ট পুশ'}
+      </button>
+      {diag && (
+        <div className="space-y-1 rounded-3xl bg-surface p-4 text-sm">
+          {row(diag.supported, 'ব্রাউজার/ডিভাইস পুশ সমর্থন করে' + (diag.supported ? '' : ' (iPhone-এ Add to Home Screen করে খুলুন)'))}
+          {row(diag.key, 'VITE_VAPID_PUBLIC_KEY সেট করা আছে')}
+          {row(diag.permission === 'granted', `নোটিফিকেশনের অনুমতি: ${diag.permission}`)}
+          {row(diag.sw, 'Service Worker চালু (শুধু ডিপ্লয় করা সাইটে চলে, লোকালহোস্টে নয়)')}
+          {row(diag.sub, 'এই ডিভাইসে পুশ সাবস্ক্রিপশন আছে')}
+          {diag.sub && row(diag.keyOk, 'সাবস্ক্রিপশন বর্তমান VAPID কী-র সাথে মেলে')}
+          {diag.sub && row(diag.saved, 'সাবস্ক্রিপশন সার্ভারে সেভ আছে')}
+          {srv && <p className="pt-1 font-semibold">{srv}</p>}
+        </div>
       )}
       {err && <p className="text-sm text-danger">{err}</p>}
 
