@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { APP_NAME } from './lib/brand'
 import { configured } from './lib/supabase'
@@ -8,22 +8,33 @@ import Layout from './components/Layout'
 import Setup from './pages/Setup'
 import Auth from './pages/Auth'
 import Feed from './pages/Feed'
-import Reels from './pages/Reels'
-import Videos from './pages/Videos'
-import YouTube from './pages/YouTube'
-import Friends from './pages/Friends'
-import Messages from './pages/Messages'
-import Chat from './pages/Chat'
-import Profile from './pages/Profile'
-import Notifications from './pages/Notifications'
-import Post from './pages/Post'
-import SearchPage from './pages/Search'
-import Groups from './pages/Groups'
-import Group from './pages/Group'
-import PageView from './pages/PageView'
 import LockGate from './components/chat/LockGate'
-import ResetPassword from './pages/ResetPassword'
 import Deactivated from './pages/Deactivated'
+import UIHost from './components/UIHost'
+import OfflineBanner from './components/OfflineBanner'
+import PageLoader from './components/PageLoader'
+import { isChunkError, reloadOnceForChunk } from './components/ErrorBoundary'
+
+// পেজগুলো দরকার হলে তবেই লোড হয় (অ্যাপ প্রথমবার খুলতে অনেক দ্রুত)।
+// নতুন ভার্সন ডিপ্লয়ের পর পুরনো ট্যাবে ফাইল না মিললে একবার নিজে থেকে রিফ্রেশ করে নেয়।
+const lazyPage = (load) => lazy(() => load().catch((e) => {
+  if (isChunkError(e) && reloadOnceForChunk()) return new Promise(() => {})
+  throw e
+}))
+const Reels = lazyPage(() => import('./pages/Reels'))
+const Videos = lazyPage(() => import('./pages/Videos'))
+const YouTube = lazyPage(() => import('./pages/YouTube'))
+const Friends = lazyPage(() => import('./pages/Friends'))
+const Messages = lazyPage(() => import('./pages/Messages'))
+const Chat = lazyPage(() => import('./pages/Chat'))
+const Profile = lazyPage(() => import('./pages/Profile'))
+const Notifications = lazyPage(() => import('./pages/Notifications'))
+const Post = lazyPage(() => import('./pages/Post'))
+const SearchPage = lazyPage(() => import('./pages/Search'))
+const Groups = lazyPage(() => import('./pages/Groups'))
+const Group = lazyPage(() => import('./pages/Group'))
+const PageView = lazyPage(() => import('./pages/PageView'))
+const ResetPassword = lazyPage(() => import('./pages/ResetPassword'))
 
 // অ্যাপ খোলা বা পেছনে থাকা অবস্থায় Service Worker থেকে মেসেজ এলে সাউন্ড বাজায়
 function NotificationSound() {
@@ -48,6 +59,9 @@ export default function App() {
   return (
     <AuthProvider>
       <NotificationSound />
+      <OfflineBanner />
+      <UIHost />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset" element={<ResetPassword />} />
@@ -69,6 +83,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </AuthProvider>
   )
 }

@@ -23,21 +23,40 @@
   --success: 22 163 74;
   --inverse: 255 255 255;
   --bubble: 15 118 96;
+  --bg-a: 248 251 249;
+  --bg-b: 241 246 243;
   color-scheme: light;
+}
+
+/* ডার্ক থিম (প্রোফাইল → দেখার ধরন থেকে বাছা যায়; "অটো" = ফোনের সেটিং অনুযায়ী) */
+:root[data-theme='dark'] {
+  --ink: 38 54 48;
+  --fg: 228 238 233;
+  --surface: 22 32 28;
+  --surface2: 33 46 41;
+  --brand: 22 150 122;
+  --coral: 44 176 142;
+  --danger: 236 84 96;
+  --success: 52 190 110;
+  --inverse: 255 255 255;
+  --bubble: 17 112 92;
+  --bg-a: 13 21 18;
+  --bg-b: 10 16 14;
+  color-scheme: dark;
 }
 html { font-size: 18px; overflow-x: hidden; }
 body {
   @apply font-sans antialiased;
   margin: 0; overflow-x: clip; max-width: 100vw; /* clip: hidden-এর মতো নয়, sticky হেডার ভাঙে না */
   color: rgb(var(--fg));
-  background: linear-gradient(180deg, #f8fbf9 0%, #f1f6f3 100%);
+  background: linear-gradient(180deg, rgb(var(--bg-a)) 0%, rgb(var(--bg-b)) 100%);
   background-attachment: fixed;
   -webkit-tap-highlight-color: transparent;
 }
-.bg-forest { background: linear-gradient(180deg, #f8fbf9 0%, #f1f6f3 100%); }
+.bg-forest { background: linear-gradient(180deg, rgb(var(--bg-a)) 0%, rgb(var(--bg-b)) 100%); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: rgb(var(--surface2)); }
-::-webkit-scrollbar-thumb { background: rgba(15,118,96,.28); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--brand) / .32); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgb(var(--brand)); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
@@ -49,6 +68,18 @@ body {
 .pop-in { animation: pop-in .16s ease-out; }
 @keyframes heart-burst { 0% { opacity: 0; transform: scale(.3); } 30% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.7); } }
 .heart-burst { animation: heart-burst .7s ease-out forwards; }
+
+/* ছবি লোডের সময় ঝিলিমিলি + লোড হলে নরমভাবে ফুটে ওঠা */
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.skeleton { background: linear-gradient(90deg, rgb(var(--surface2)) 25%, rgb(var(--fg) / .09) 50%, rgb(var(--surface2)) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes img-in { from { opacity: 0; } to { opacity: 1; } }
+.img-in { animation: img-in .3s ease-out; }
+
+/* কিবোর্ড দিয়ে চালালে বাটন/লিংকে স্পষ্ট ফোকাস রিং */
+button:focus-visible, a:focus-visible, [role='button']:focus-visible { outline: 2px solid rgb(var(--brand)); outline-offset: 2px; }
+
+/* যাদের ফোনে "অ্যানিমেশন কমান" চালু, তাদের জন্য নড়াচড়া বন্ধ */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 
 /* কলে ভেসে ওঠা ইমোজি */
 @keyframes floaty { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: 1 } 100% { transform: translateY(-46vh) scale(1.3); opacity: 0 } }
