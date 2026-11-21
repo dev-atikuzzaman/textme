@@ -1,4 +1,5 @@
 import { FileText } from '../../lib/icons'
+import SmartImg from '../SmartImg'
 
 export const readMins = (t = '') => Math.max(1, Math.round(t.trim().split(/\s+/).length / 150))
 
@@ -6,7 +7,7 @@ export const readMins = (t = '') => Math.max(1, Math.round(t.trim().split(/\s+/)
 export default function NoteCard({ post, onOpen }) {
   return (
     <button onClick={onOpen} className="mt-3 block w-full overflow-hidden rounded-2xl bg-surface2 text-left transition active:scale-[0.99]">
-      {post.media_url && <img src={post.media_url} alt="" loading="lazy" className="h-44 w-full object-cover" />}
+      {post.media_url && <SmartImg src={post.media_url} alt="" className="h-44 w-full object-cover" />}
       <div className="p-4">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/15 px-2.5 py-1 text-xs font-bold text-brand"><FileText size={13} />নোট • {readMins(post.content).toLocaleString('bn-BD')} মিনিটের পড়া</span>
         <h3 className="mt-2 text-xl font-extrabold leading-snug">{post.title}</h3>

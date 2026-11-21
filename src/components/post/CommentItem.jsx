@@ -8,6 +8,7 @@ import Avatar from '../Avatar'
 import FileCard from '../FileCard'
 import ReactionBar from './ReactionBar'
 import ReactionsSheet from './ReactionsSheet'
+import SmartImg from '../SmartImg'
 
 const bn = (n) => n.toLocaleString('bn-BD')
 function ago(d) {
@@ -59,7 +60,7 @@ export default function CommentItem({ c, isReply = false, postOwnerId, parentAut
               {showMention && <span className="mr-1 font-bold text-brand">@{nameOf(c.reply_to)}</span>}{c.content}
             </p>
           )}
-          {c.media_url && c.media_type === 'image' && <img src={c.media_url} alt="" loading="lazy" onClick={() => onOpenImage(c.media_url)} className="mt-2 max-h-64 rounded-2xl object-cover" />}
+          {c.media_url && c.media_type === 'image' && <SmartImg src={c.media_url} alt="" reserve="min-h-[6rem]" onClick={() => onOpenImage(c.media_url)} className="mt-2 max-h-64 rounded-2xl object-cover" />}
           {c.media_url && c.media_type === 'video' && <video src={c.media_url} controls playsInline preload="metadata" className="mt-2 max-h-64 rounded-2xl bg-black" />}
           {c.media_url && c.media_type === 'file' && <FileCard url={c.media_url} name={c.media_name} size={c.media_size} className="mt-2 !bg-surface" />}
           {top.length > 0 && (

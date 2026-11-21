@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
 import { CATEGORIES } from '../../lib/constants'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../../lib/upload'
-import { extOf } from '../../lib/media'
+import { extOf, compressImage } from '../../lib/media'
 import PrivacyPicker from '../PrivacyPicker'
 
 const mb = (b) => (b / 1048576).toFixed(1)
@@ -56,11 +56,12 @@ export default function EditPostSheet({ post, onClose, onSaved }) {
       if (hasTitle) patch.title = title.trim() || null
       if (isReel || isVideo) patch.category = category
       if (newFile) {
-        newPath = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(newFile)}`
-        await uploadToStorage('media', newPath, newFile, setPct)
+        const nf = await compressImage(newFile)
+        newPath = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(nf)}`
+        await uploadToStorage('media', newPath, nf, setPct)
         patch.media_url = supabase.storage.from('media').getPublicUrl(newPath).data.publicUrl
-        patch.media_name = newFile.name; patch.media_size = newFile.size
-        patch.media_type = newFile.type.startsWith('video/') ? 'video' : newFile.type.startsWith('image/') ? 'image' : 'file'
+        patch.media_name = nf.name; patch.media_size = nf.size
+        patch.media_type = nf.type.startsWith('video/') ? 'video' : nf.type.startsWith('image/') ? 'image' : 'file'
       } else if (removed) {
         patch.media_url = null; patch.media_type = null; patch.media_name = null; patch.media_size = null
       }
