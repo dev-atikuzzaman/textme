@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Send, Plus, FileText, Download } from '../../lib/icons'
+import { Send, Plus, FileText, Download, Clock, AlertCircle } from '../../lib/icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/Auth'
-import { extOf, safeName, fmtSize } from '../../lib/media'
+import { extOf, safeName, fmtSize, compressImage } from '../../lib/media'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../../lib/upload'
 import AttachMenu from '../chat/AttachMenu'
 import { findYt } from '../../lib/yt'
@@ -11,6 +11,8 @@ import { playSend } from '../../lib/sound'
 import { linkify } from '../../lib/linkify'
 import Lightbox from '../post/Lightbox'
 import CameraSheet from '../CameraSheet'
+import SmartImg from '../SmartImg'
+import { toast, errMsg } from '../../lib/ui'
 
 const NAME_COLORS = ['text-emerald-600', 'text-sky-600', 'text-amber-600', 'text-pink-600', 'text-violet-600', 'text-orange-600', 'text-teal-600', 'text-lime-600']
 const nameColor = (id = '') => NAME_COLORS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % NAME_COLORS.length]
@@ -56,13 +58,28 @@ export default function GroupChat({ groupId, who, onUser }) {
     if (error) return setErr('মেসেজ পাঠানো যায়নি')
     add(data); playSend()
   }
+  // টেক্সট মেসেজ: সঙ্গে সঙ্গে "পাঠানো হচ্ছে" দেখায়; ব্যর্থ হলে লেখা হারায় না, "আবার পাঠান" থাকে
+  const sendOptimistic = async (t, tmpId) => {
+    const tid = tmpId || `tmp-${crypto.randomUUID()}`
+    if (tmpId) setMsgs((l) => l.map((x) => (x.id === tid ? { ...x, _st: 'sending' } : x)))
+    else setMsgs((l) => [...(l || []), { id: tid, group_id: groupId, sender_id: user.id, content: t, created_at: new Date().toISOString(), _st: 'sending' }])
+    const { data, error } = await supabase.from('group_messages').insert({ group_id: groupId, sender_id: user.id, content: t }).select().single()
+    if (error) {
+      setMsgs((l) => (l || []).map((x) => (x.id === tid ? { ...x, _st: 'failed' } : x)))
+      toast.error(errMsg(error, 'মেসেজ পাঠানো যায়নি'))
+      return
+    }
+    setMsgs((l) => (l || []).some((x) => x.id === data.id) ? l.filter((x) => x.id !== tid) : l.map((x) => (x.id === tid ? data : x)))
+    playSend()
+  }
   const submit = async (e) => {
     e.preventDefault()
     const t = text.trim(); if (!t) return
-    setText(''); await send({ content: t })
+    setText(''); await sendOptimistic(t)
   }
-  const sendFile = async (f, kind) => {
-    if (!f) return
+  const sendFile = async (f0, kind) => {
+    if (!f0) return
+    const f = kind === 'file' ? f0 : await compressImage(f0) // ছবি ছোট হয়ে যায়, "ফাইল" হিসেবে পাঠালে আসলটাই
     if (f.size > MAX_UPLOAD) return setErr(`ফাইলটি ${fmtSize(f.size)} — সর্বোচ্চ ৫০MB`)
     const type = kind || (f.type.startsWith('image/') ? 'image' : f.type.startsWith('video/') ? 'video' : f.type.startsWith('audio/') ? 'audio' : 'file')
     setBusy(true); setPct(0); setErr('')
@@ -93,7 +110,7 @@ export default function GroupChat({ groupId, who, onUser }) {
               <div className={`flex ${mine ? 'justify-end' : ''}`}>
                 <div className={`max-w-[80%] rounded-2xl px-3 py-1.5 ${mine ? 'rounded-tr-sm bg-bubble text-white' : 'rounded-tl-sm bg-surface2'}`}>
                   {showName && <button type="button" onClick={() => onUser?.(m.sender_id)} className={`mb-0.5 block text-xs font-bold hover:underline ${nameColor(m.sender_id)}`}>{who[m.sender_id]?.full_name || 'সদস্য'}</button>}
-                  {m.media_url && (!m.media_type || m.media_type === 'image') && <img src={m.media_url} alt="" loading="lazy" onClick={() => setZoom(m.media_url)} className="mb-1 max-h-64 cursor-zoom-in rounded-2xl object-cover" />}
+                  {m.media_url && (!m.media_type || m.media_type === 'image') && <SmartImg src={m.media_url} alt="" reserve="min-h-[10rem] min-w-[12rem]" onClick={() => setZoom(m.media_url)} className="mb-1 max-h-64 cursor-zoom-in rounded-2xl object-cover" />}
                   {m.media_url && m.media_type === 'video' && <video src={m.media_url} controls playsInline preload="metadata" className="mb-1 max-h-64 rounded-2xl" />}
                   {m.media_url && m.media_type === 'audio' && <div className="mb-1"><p className="max-w-[14rem] truncate text-sm font-semibold">🎵 {m.file_name || 'অডিও'}</p><audio src={m.media_url} controls preload="none" className="h-10 w-56" /></div>}
                   {m.media_url && m.media_type === 'file' && (
@@ -105,9 +122,16 @@ export default function GroupChat({ groupId, who, onUser }) {
                   )}
                   {m.content && <p className="whitespace-pre-wrap break-words">{linkify(m.content)}</p>}
                   {m.content && findYt(m.content) && <YouTubeEmbed id={findYt(m.content)} className="mt-1.5 w-64 max-w-full" />}
-                  <p className={`mt-0.5 text-right text-[10px] ${mine ? 'text-white/60' : 'text-fg/45'}`}>{time(m.created_at)}</p>
+                  <p className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-white/60' : 'text-fg/45'}`}>{time(m.created_at)}{m._st === 'sending' && <Clock size={11} aria-label="পাঠানো হচ্ছে" />}{m._st === 'failed' && <AlertCircle size={12} aria-label="পাঠানো যায়নি" className="text-red-300" />}</p>
                 </div>
               </div>
+              {m._st === 'failed' && (
+                <div className="mt-1 flex items-center justify-end gap-3 pr-1 text-xs font-semibold">
+                  <span className="text-danger">পাঠানো যায়নি</span>
+                  <button onClick={() => sendOptimistic(m.content, m.id)} className="text-brand">আবার পাঠান</button>
+                  <button onClick={() => setMsgs((l) => (l || []).filter((x) => x.id !== m.id))} className="text-fg/60">মুছুন</button>
+                </div>
+              )}
             </div>
           )
         })}
