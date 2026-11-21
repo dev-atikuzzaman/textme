@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
+import { toast, errMsg } from '../lib/ui'
 
 // পিন / আর্কাইভ = অ্যাকাউন্টে সেভ (সব ডিভাইসে)। চ্যাট লক = এই ডিভাইসের PIN দিয়ে (WhatsApp-এর মতোই)।
 const Ctx = createContext(null)
@@ -37,7 +38,7 @@ export function ChatPrefsProvider({ children }) {
     const next = { chat_key: key, pinned: false, archived: false, ...prefs[key], ...patch }
     setPrefs((p) => ({ ...p, [key]: next }))
     const { error } = await supabase.from('chat_prefs').upsert({ user_id: user.id, chat_key: key, pinned: next.pinned, archived: next.archived, updated_at: new Date().toISOString() })
-    if (error) alert('সেভ করা যায়নি — update-15.sql চালানো হয়েছে কি?\n' + error.message)
+    if (error) toast.error(/relation|does not exist|schema cache/i.test(error.message || '') ? 'সেভ করা যায়নি — update-15.sql চালানো হয়েছে কি?' : errMsg(error, 'সেভ করা যায়নি — আবার চেষ্টা করুন'))
   }, [prefs, user.id])
 
   const value = useMemo(() => ({

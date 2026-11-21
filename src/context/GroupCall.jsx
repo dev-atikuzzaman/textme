@@ -9,6 +9,7 @@ import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import Avatar from '../components/Avatar'
 import { useLoudspeaker } from '../lib/loudspeaker'
 import { ReactBar, Floaters, useFloaters } from '../components/call/CallParts'
+import { toast } from '../lib/ui'
 
 // গ্রুপ কল: মেশ WebRTC (প্রত্যেকে প্রত্যেকের সাথে সরাসরি) — সর্বোচ্চ ৬ জন।
 // ঘর = Supabase Realtime channel "gcall:<গ্রুপ-id>": presence = কে কলে আছে, broadcast = সিগন্যাল।
@@ -150,13 +151,13 @@ export function GroupCallProvider({ children }) {
 
   // ---------- কলে যোগ / বের হওয়া ----------
   const join = async (group, kind, { starting = false } = {}) => {
-    if (gcRef.current) return alert('আপনি আগে থেকেই একটি কলে আছেন')
-    if (!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) return alert('এই ব্রাউজারে কল সমর্থিত নয়।')
+    if (gcRef.current) return toast('আপনি আগে থেকেই একটি কলে আছেন')
+    if (!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) return toast.error('এই ব্রাউজারে কল সমর্থিত নয়।')
     stopRing.current?.(); stopRing.current = null; setRing(null)
     const r = ensureRoom(group.id); r.refs++
     await r.ready
-    if (presenceList(group.id).filter((m) => m.id !== user.id).length >= MAX_GROUP_CALL - 1) { r.refs--; closeRoomIfIdle(group.id); return alert(`একসাথে সর্বোচ্চ ${MAX_GROUP_CALL} জন কলে থাকতে পারে`) }
-    try { await lm.acquire(kind) } catch (e) { r.refs--; closeRoomIfIdle(group.id); return alert(mediaMsg(e, kind)) }
+    if (presenceList(group.id).filter((m) => m.id !== user.id).length >= MAX_GROUP_CALL - 1) { r.refs--; closeRoomIfIdle(group.id); return toast(`একসাথে সর্বোচ্চ ${MAX_GROUP_CALL} জন কলে থাকতে পারে`) }
+    try { await lm.acquire(kind) } catch (e) { r.refs--; closeRoomIfIdle(group.id); return toast.error(mediaMsg(e, kind), 9000) }
     myAt.current = Date.now()
     const g = { group, kind }
     gcRef.current = g; setGc(g); setSecs(0)
@@ -176,7 +177,7 @@ export function GroupCallProvider({ children }) {
     Object.keys(pcs.current).forEach(dropPeer)
     lm.release()
     if (r) r.refs--
-    setGc(null); setTiles({}); setMini(false); setShowFx(false); setShowReact(false); setLoud(false)
+    setGc(null); setTiles({}); setMini(false); setShowReact(false); setLoud(false)
     closeRoomIfIdle(g.group.id)
   }
   const startGroupCall = (group, kind) => join(group, kind, { starting: true })

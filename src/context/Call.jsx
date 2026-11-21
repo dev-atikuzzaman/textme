@@ -10,6 +10,7 @@ import { ICE } from '../lib/rtc'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import { useLoudspeaker } from '../lib/loudspeaker'
 import { ReactBar, Floaters, useFloaters, useDrag } from '../components/call/CallParts'
+import { toast } from '../lib/ui'
 
 const Ctx = createContext(null)
 export const useCall = () => useContext(Ctx)
@@ -72,7 +73,7 @@ export function CallProvider({ children }) {
     lm.release()
     remote.current = null; pending.current = []
     setTimeout(() => { Object.values(chans.current).forEach((x) => supabase.removeChannel(x.ch)); chans.current = {} }, 800)
-    setCallState(null); setSecs(0); setNote(''); setMini(false); setSwap(false); setShowFx(false); setShowReact(false); setUpAsk(false); setUpWait(false)
+    setCallState(null); setSecs(0); setNote(''); setMini(false); setSwap(false); setShowReact(false); setUpAsk(false); setUpWait(false)
   }
 
   const becomeActive = () => {
@@ -110,15 +111,15 @@ export function CallProvider({ children }) {
   // ---------- কল শুরু (কলার) ----------
   const startCall = async (peer, kind) => {
     if (callRef.current) return
-    if (!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) return alert('এই ব্রাউজারে কল সমর্থিত নয়।')
+    if (!navigator.mediaDevices?.getUserMedia || !window.RTCPeerConnection) return toast.error('এই ব্রাউজারে কল সমর্থিত নয়।')
     let m
-    try { m = await lm.acquire(kind) } catch (e) { return alert(mediaMsg(e, kind)) }
+    try { m = await lm.acquire(kind) } catch (e) { return toast.error(mediaMsg(e, kind), 9000) }
     setNote(m.note || '')
     const { data, error } = await supabase.from('messages').insert({
       sender_id: user.id, receiver_id: peer.id, type: 'call',
       content: kind === 'video' ? '📹 ভিডিও কল করছেন' : '📞 অডিও কল করছেন', meta: { kind, status: 'calling' },
     }).select().single()
-    if (error) { lm.release(); setNote(''); return alert('কল করা যায়নি — শুধু বন্ধুদের কল করা যায়।') }
+    if (error) { lm.release(); setNote(''); return toast.error('কল করা যায়নি — শুধু বন্ধুদের কল করা যায়।') }
     setCall({ peer, kind, dir: 'out', state: 'ringing', msgId: data.id })
     makePC(peer.id, kind)
     startRing('out') // কলার রিংব্যাক টোন শোনে
@@ -132,7 +133,7 @@ export function CallProvider({ children }) {
     if (!c) return
     stopRing()
     let m
-    try { m = await lm.acquire(c.kind) } catch (e) { alert(mediaMsg(e, c.kind)); return finish('declined') }
+    try { m = await lm.acquire(c.kind) } catch (e) { toast.error(mediaMsg(e, c.kind), 9000); return finish('declined') }
     setNote(m.note || '')
     setCall({ ...c, state: 'connecting' })
     makePC(c.peer.id, c.kind)
@@ -313,7 +314,7 @@ export function CallProvider({ children }) {
           {/* ভিডিওতে যাওয়ার অনুরোধ পপ-আপ */}
           {upAsk && (
             <div className="absolute inset-0 z-40 grid place-items-center bg-black/60 px-6">
-              <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center text-fg shadow-soft">
+              <div className="w-full max-w-sm rounded-[28px] bg-surface p-6 text-center text-fg shadow-soft">
                 <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Video size={26} /></span>
                 <h3 className="mt-3 text-lg font-bold">ভিডিও কলে যাবেন?</h3>
                 <p className="mt-1 text-sm text-fg/65"><b>{call.peer.full_name}</b> অডিও কল থেকে ভিডিও কলে যেতে চাইছেন। গ্রহণ করলে আপনার ক্যামেরা চালু হবে।</p>
