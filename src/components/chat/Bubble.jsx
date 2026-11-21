@@ -1,8 +1,9 @@
-import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck } from '../../lib/icons'
+import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck, Clock, AlertCircle } from '../../lib/icons'
 import { linkify } from '../../lib/linkify'
 import { findYt } from '../../lib/yt'
 import YouTubeEmbed from '../YouTubeEmbed'
 import { fmtSize, mmss, downloadVcf } from '../../lib/media'
+import SmartImg from '../SmartImg'
 
 const time = (d) => new Date(d).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
 
@@ -24,7 +25,7 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
 
   switch (m.type) {
     case 'image':
-      body = url ? <img src={url} alt="" onClick={() => onOpenImage(url)} className="max-h-72 rounded-2xl object-cover" /> : loading
+      body = url ? <SmartImg src={url} alt="" loading="eager" reserve="min-h-[10rem] min-w-[12rem]" onClick={() => onOpenImage(url)} className="max-h-72 rounded-2xl object-cover" /> : loading
       break
     case 'video':
       body = url ? <video src={url} controls playsInline preload="metadata" className="max-h-72 rounded-2xl bg-black" /> : loading
@@ -91,7 +92,7 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
     <div className={`flex ${mine ? 'justify-end' : ''}`}>
       <div className={`max-w-[82%] rounded-2xl px-3.5 py-2 ${mine ? 'rounded-tr-sm bg-bubble text-white' : 'rounded-tl-sm bg-surface2'}`}>
         {body}
-        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${sub}`}>{time(m.created_at)}{mine && (m.read_at ? <CheckCheck size={14} className="text-sky-300" /> : <Check size={14} />)}</p>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${sub}`}>{time(m.created_at)}{mine && (m._st === 'sending' ? <Clock size={13} aria-label="পাঠানো হচ্ছে" /> : m._st === 'failed' ? <AlertCircle size={14} aria-label="পাঠানো যায়নি" className="text-red-300" /> : m.read_at ? <CheckCheck size={14} className="text-sky-300" /> : <Check size={14} />)}</p>
       </div>
     </div>
   )
