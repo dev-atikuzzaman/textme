@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { syncPush } from '../lib/push'
+import { playDing } from '../lib/sound'
 
 const Ctx = createContext(null)
 export const useNotifs = () => useContext(Ctx)
@@ -53,11 +54,32 @@ export function NotifProvider({ children }) {
     const nameOf = async (id) => (await supabase.from('profiles').select('full_name').eq('id', id).single()).data?.full_name || 'কেউ'
     const ch = supabase.channel(`notif-${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        async (p) => { load(); announce(await nameOf(p.new.actor_id), NOTIF_TEXT[p.new.type], p.new.link || '/notifications') })
+        async (p) => {
+          load()
+          // গ্রুপ কলের রিং GroupCall নিজেই বাজায়, তাই আলাদা ডিং নয়
+          if (p.new.type !== 'group_call') playDing()
+          announce(await nameOf(p.new.actor_id), NOTIF_TEXT[p.new.type], p.new.link || '/notifications')
+        })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` },
         async (p) => {
-          if (path.current === `/chat/${p.new.sender_id}`) return
+          if (p.new.type === 'call') return // কলের রিংটোন Call context বাজায়
+          // চ্যাট খোলা থাকলেও নতুন মেসেজে হালকা সাউন্ড (WhatsApp-এর মতো), কিন্তু পপ-আপ নয়
+          if (path.current === `/chat/${p.new.sender_id}`) { playDing(0.5); return }
+          playDing()
           announce(await nameOf(p.new.sender_id), p.new.content, `/chat/${p.new.sender_id}`)
+        })
+      // গ্রুপ মেসেজ: RLS অনুযায়ী শুধু আপনার গ্রুপগুলোর মেসেজই আসে
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages' },
+        async (p) => {
+          if (p.new.sender_id === user.id) return
+          const to = `/groups/${p.new.group_id}?tab=chat`
+          if (path.current.startsWith(`/groups/${p.new.group_id}`)) { playDing(0.5); return }
+          playDing()
+          const [{ data: g }, who] = await Promise.all([
+            supabase.from('groups').select('name').eq('id', p.new.group_id).maybeSingle(),
+            nameOf(p.new.sender_id),
+          ])
+          announce(g?.name || 'গ্রুপ', `${who}: ${p.new.content ? String(p.new.content).slice(0, 100) : '📷 ছবি/ফাইল'}`, to)
         })
       .subscribe()
     return () => { supabase.removeChannel(ch) }
