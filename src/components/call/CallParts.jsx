@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { ImagePlus } from '../../lib/icons'
 import { EFFECTS, setCustomBg } from '../../lib/videoFx'
+import { toast, confirmDialog, errMsg } from '../../lib/ui'
 
 // ব্যাকগ্রাউন্ড বাছাইয়ের স্ট্রিপ (হোয়াটসঅ্যাপের মতো নিচে আসে)
 export function EffectsTray({ value, onPick, onClose, state }) {
@@ -8,8 +9,8 @@ export function EffectsTray({ value, onPick, onClose, state }) {
   const custom = async (e) => {
     const f = e.target.files[0]; e.target.value = ''
     if (!f) return
-    if (!f.type.startsWith('image/')) return alert('একটি ছবি বাছুন')
-    try { await setCustomBg(f); onPick('bg:custom') } catch (er) { alert(er.message) }
+    if (!f.type.startsWith('image/')) return toast.error('একটি ছবি বাছুন')
+    try { await setCustomBg(f); onPick('bg:custom') } catch (er) { toast.error(errMsg(er)) }
   }
   return (
     <div className="relative z-20 mx-3 mb-2 rounded-3xl bg-black/55 p-3 backdrop-blur">
