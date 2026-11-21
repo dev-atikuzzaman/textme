@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { mediaPathFromUrl } from '../../lib/media'
 import Avatar from '../Avatar'
 import { STORY_BG, ago } from './storyUtils'
+import { toast, confirmDialog, errMsg } from '../../lib/ui'
 
 const DURATION = 5000
 
@@ -66,10 +67,10 @@ export default function StoryViewer({ groups, start, startIndex = 0, meId, onClo
   }, [s.id]) // eslint-disable-line
 
   const remove = async () => {
-    if (!window.confirm('এই স্টোরিটি মুছে ফেলবেন?')) return
+    if (!(await confirmDialog('এই স্টোরিটি মুছে ফেলবেন?', { danger: true, confirmText: 'মুছুন' }))) return
     const path = mediaPathFromUrl(s.media_url)
     const { error } = await supabase.from('stories').delete().eq('id', s.id)
-    if (error) return window.alert(error.message)
+    if (error) return toast.error(errMsg(error))
     if (path) supabase.storage.from('media').remove([path])
     onClose()
   }

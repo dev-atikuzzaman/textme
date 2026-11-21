@@ -5,6 +5,7 @@ import { useAuth } from '../../context/Auth'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../../lib/upload'
 import { extOf } from '../../lib/media'
 import { STORY_BG } from './storyUtils'
+import { compressImage } from '../../lib/media'
 
 export default function StoryComposer({ onClose, onDone }) {
   const { user } = useAuth()
@@ -36,10 +37,11 @@ export default function StoryComposer({ onClose, onDone }) {
     try {
       let media_url = null, media_type = null
       if (mode === 'media') {
-        path = `${user.id}/story-${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(file)}`
-        await uploadToStorage('media', path, file, setPct)
+        const up = await compressImage(file)
+        path = `${user.id}/story-${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(up)}`
+        await uploadToStorage('media', path, up, setPct)
         media_url = supabase.storage.from('media').getPublicUrl(path).data.publicUrl
-        media_type = file.type.startsWith('video/') ? 'video' : 'image'
+        media_type = up.type.startsWith('video/') ? 'video' : 'image'
       }
       const { error } = await supabase.from('stories').insert({
         user_id: user.id, content: text.trim() || null, bg, media_url, media_type, privacy,
