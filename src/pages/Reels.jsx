@@ -10,6 +10,7 @@ import { CATEGORIES, SELECT_POST } from '../lib/constants'
 import UploadSheet from '../components/UploadSheet'
 import Avatar from '../components/Avatar'
 import CommentsSheet from '../components/CommentsSheet'
+import { playWithSound, useVideoMuted } from '../lib/videoSound'
 import ExternalFeed, { SavedFeed } from '../components/ExternalFeed'
 
 function Reel({ post, muted, setMuted, onChange }) {
@@ -24,10 +25,11 @@ function Reel({ post, muted, setMuted, onChange }) {
   const url = `${window.location.origin}/post/${post.id}`
   const liked = post.likes?.some((l) => l.user_id === user.id)
   useEffect(() => {
-    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? ref.current?.play().catch(() => {}) : ref.current?.pause()), { threshold: 0.7 })
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? playWithSound(ref.current) : ref.current?.pause()), { threshold: 0.7 })
     io.observe(ref.current)
     return () => io.disconnect()
   }, [])
+  useEffect(() => { if (ref.current) ref.current.muted = muted }, [muted])
   const like = async () => {
     if (liked) await supabase.from('likes').delete().match({ post_id: post.id, user_id: user.id })
     else await supabase.from('likes').insert({ post_id: post.id, user_id: user.id })
@@ -78,7 +80,7 @@ export default function Reels() {
   const [items, setItems] = useState(null)
   const [open, setOpen] = useState(false)
   const [loadErr, setLoadErr] = useState('')
-  const [muted, setMuted] = useState(true)
+  const [muted, setMuted] = useVideoMuted()
   const load = useCallback(async () => {
     let q = supabase.from('posts').select(SELECT_POST).in('kind', ['reel', 'video']).eq('media_type', 'video').order('created_at', { ascending: false }).limit(30)
     if (cat !== 'সব') q = q.eq('category', cat)
