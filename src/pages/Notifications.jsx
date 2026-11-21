@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, BellOff } from '../lib/icons'
+import { Bell, BellOff, Volume2, VolumeX } from '../lib/icons'
 import { useNotifs, NOTIF_TEXT } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
 import { fmt } from '../lib/constants'
 import { pushState, enablePush, disablePush } from '../lib/push'
+import { playDing, soundOn, setSoundOn } from '../lib/sound'
 import Avatar from '../components/Avatar'
 
 const target = (n) => (n.link ? n.link : n.post_id ? `/post/${n.post_id}` : n.type === 'friend_request' ? '/friends' : `/profile/${n.actor_id}`)
@@ -16,6 +17,7 @@ export default function Notifications() {
   const [ps, setPs] = useState(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [snd, setSnd] = useState(soundOn)
   useEffect(() => () => { markAllRead() }, [markAllRead])
   useEffect(() => { pushState().then(setPs) }, [])
 
@@ -28,6 +30,14 @@ export default function Notifications() {
   return (
     <div className="space-y-3 pt-2">
       <h2 className="text-2xl font-extrabold">নোটিফিকেশন</h2>
+
+      <div className="flex gap-2">
+        <button onClick={() => { const n = !snd; setSnd(n); setSoundOn(n); if (n) playDing() }}
+          className={`flex flex-1 items-center gap-2 rounded-3xl p-3 text-left text-sm font-bold ${snd ? 'bg-surface text-fg' : 'bg-ink text-white'}`}>
+          {snd ? <Volume2 size={20} /> : <VolumeX size={20} />}{snd ? 'অ্যাপের সাউন্ড চালু' : 'অ্যাপের সাউন্ড বন্ধ'}
+        </button>
+        <button onClick={() => { setSnd(true); setSoundOn(true); playDing() }} className="rounded-3xl bg-surface px-4 text-sm font-bold text-fg">🔊 সাউন্ড টেস্ট</button>
+      </div>
 
       {ps === 'unsupported' && (
         <p className="rounded-3xl bg-surface p-4 text-sm text-fg/70">

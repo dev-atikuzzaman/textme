@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowLeft, Search, Play, X, ExternalLink, Clock } from '../lib/icons'
+import { ArrowLeft, Search, Play, X, ExternalLink, Clock, Bookmark, Share2 } from '../lib/icons'
+import { APP_NAME } from '../lib/brand'
+import { useSavedVideos } from '../context/SavedVideos'
+import ShareSheet from '../components/post/ShareSheet'
 import { useNavigate } from 'react-router-dom'
 import { ytId, ytEmbed, ytThumb, ytMeta, ytSearch, ytKey } from '../lib/yt'
 
@@ -15,6 +18,14 @@ export default function YouTube() {
   const [hist, setHist] = useState(loadH)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const { ids, list: savedList, toggle } = useSavedVideos()
+  const [share, setShare] = useState(false)
+  const [flash, setFlash] = useState('')
+  const say = (t) => { setFlash(t); setTimeout(() => setFlash(''), 1800) }
+  const link = cur ? `https://www.youtube.com/watch?v=${cur.id}` : ''
+  const doSave = async () => { const r = await toggle(cur); say(r.ok ? (r.saved ? 'সেভ করা হয়েছে' : 'সেভ থেকে সরানো হয়েছে') : 'সেভ করা যায়নি — update-21.sql চালান') }
+  const copy = async () => { try { await navigator.clipboard.writeText(link) } catch { /* ignore */ } setShare(false); say('লিংক কপি হয়েছে') }
+  const native = async () => { setShare(false); try { await navigator.share({ title: APP_NAME, text: cur.title || '', url: link }) } catch { /* বাতিল */ } }
 
   const play = useCallback(async (v) => {
     setCur(v); window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -48,11 +59,16 @@ export default function YouTube() {
           </div>
           <div className="flex items-start gap-2 px-1.5 pb-1">
             <div className="min-w-0 flex-1"><p className="line-clamp-2 font-bold leading-snug">{cur.title || 'লোড হচ্ছে…'}</p>{cur.channel && <p className="text-sm text-fg/60">{cur.channel}</p>}</div>
+            <button onClick={doSave} aria-label="সেভ" className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2 ${ids.has(cur.id) ? 'text-coral' : ''}`}><Bookmark size={17} fill={ids.has(cur.id) ? 'currentColor' : 'none'} /></button>
+            <button onClick={() => setShare(true)} aria-label="শেয়ার" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2"><Share2 size={17} /></button>
             <a href={`https://www.youtube.com/watch?v=${cur.id}`} target="_blank" rel="noreferrer" aria-label="ইউটিউবে খুলুন" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2"><ExternalLink size={17} /></a>
             <button onClick={() => setCur(null)} aria-label="বন্ধ" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2"><X size={18} /></button>
           </div>
         </div>
       )}
+
+      {flash && <p className="rounded-2xl bg-ink p-2.5 text-center text-sm font-semibold text-white">{flash}</p>}
+      {share && cur && <ShareSheet url={link} text={cur.title || ''} onClose={() => setShare(false)} onCopy={copy} onNative={native} />}
 
       <form onSubmit={(e) => { e.preventDefault(); if (q.trim()) run(q) }} className="relative">
         <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-fg/45" />
@@ -70,6 +86,21 @@ export default function YouTube() {
             </button>
           ))}
         </div>
+      )}
+
+      {savedList.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="flex items-center gap-1.5 px-1 font-bold"><Bookmark size={16} />সেভ করা ভিডিও</h2>
+          {savedList.map((v) => (
+            <div key={v.id} className="flex items-center gap-2 rounded-2xl bg-surface p-2 shadow-soft">
+              <button onClick={() => play(v)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                <img src={ytThumb(v.id)} alt="" loading="lazy" className="h-14 w-24 shrink-0 rounded-xl object-cover" />
+                <span className="min-w-0 flex-1"><span className="line-clamp-2 text-sm font-semibold leading-snug">{v.title || 'ইউটিউব ভিডিও'}</span><span className="block truncate text-xs text-fg/55">{v.channel}</span></span>
+              </button>
+              <button onClick={() => toggle(v)} aria-label="সেভ থেকে সরান" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2 text-fg/60"><X size={16} /></button>
+            </div>
+          ))}
+        </section>
       )}
 
       {hist.length > 0 && (

@@ -10,7 +10,7 @@ import { CATEGORIES, SELECT_POST } from '../lib/constants'
 import UploadSheet from '../components/UploadSheet'
 import Avatar from '../components/Avatar'
 import CommentsSheet from '../components/CommentsSheet'
-import ExternalFeed from '../components/ExternalFeed'
+import ExternalFeed, { SavedFeed } from '../components/ExternalFeed'
 
 function Reel({ post, muted, setMuted, onChange }) {
   const { user } = useAuth()
@@ -67,6 +67,7 @@ function Reel({ post, muted, setMuted, onChange }) {
 const TABS = [
   { id: 'own', label: 'আপন' },
   { id: 'sub', label: 'সাবস্ক্রিপশন' },
+  { id: 'saved', label: 'সেভ করা' },
 ]
 
 export default function Reels() {
@@ -119,6 +120,8 @@ export default function Reels() {
           {!loadErr && items?.length === 0 && <p className="grid h-full place-items-center px-10 text-center text-white/70">এই বিষয়ে এখনও কোনো রিল নেই। + চেপে প্রথম রিলটি আপলোড করুন।</p>}
           {items?.map((p) => <Reel key={p.id} post={p} muted={muted} setMuted={setMuted} onChange={load} />)}
         </div>
+      ) : tab === 'saved' ? (
+        <SavedFeed />
       ) : (
         <ExternalFeed note={ytNote} />
       )}
