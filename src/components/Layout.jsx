@@ -6,6 +6,7 @@ import BrandMark from './BrandMark'
 import { CallProvider } from '../context/Call'
 import { GroupCallProvider } from '../context/GroupCall'
 import { SavedProvider } from '../context/Saved'
+import { SavedVideosProvider } from '../context/SavedVideos'
 import { PresenceProvider } from '../context/Presence'
 import { InboxProvider, useInbox } from '../context/Inbox'
 import { ChatPrefsProvider } from '../context/ChatPrefs'
@@ -96,6 +97,6 @@ function Shell() {
 
 export default function Layout() {
   return (
-    <NotifProvider><CallProvider><GroupCallProvider><PresenceProvider><InboxProvider><SavedProvider><ChatPrefsProvider><Shell /></ChatPrefsProvider></SavedProvider></InboxProvider></PresenceProvider></GroupCallProvider></CallProvider></NotifProvider>
+    <NotifProvider><CallProvider><GroupCallProvider><PresenceProvider><InboxProvider><SavedProvider><SavedVideosProvider><ChatPrefsProvider><Shell /></ChatPrefsProvider></SavedVideosProvider></SavedProvider></InboxProvider></PresenceProvider></GroupCallProvider></CallProvider></NotifProvider>
   )
 }

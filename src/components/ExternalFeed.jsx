@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Volume2, VolumeX, ExternalLink, Play, RefreshCw } from '../lib/icons'
+import { Volume2, VolumeX, ExternalLink, Play, RefreshCw, Bookmark, Share2 } from '../lib/icons'
+import { APP_NAME } from '../lib/brand'
+import { useSavedVideos } from '../context/SavedVideos'
+import ShareSheet from './post/ShareSheet'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { startYoutubeConnect, syncMyShorts, disconnectYoutube } from '../lib/youtube'
@@ -13,7 +16,19 @@ function ytSrc(id, muted) {
   return `https://www.youtube.com/embed/${id}?${p}`
 }
 
-function ExtReel({ v, index, active, onActive, muted, setMuted }) {
+export function ExtReel({ v, index, active, onActive, muted, setMuted }) {
+  const { ids, toggle } = useSavedVideos()
+  const saved = ids.has(v.external_id)
+  const [share, setShare] = useState(false)
+  const [flash, setFlash] = useState('')
+  const link = v.url || `https://www.youtube.com/shorts/${v.external_id}`
+  const doSave = async () => {
+    const r = await toggle({ id: v.external_id, title: v.title, channel: v.channel_title })
+    setFlash(r.ok ? (r.saved ? 'সেভ করা হয়েছে' : 'সেভ থেকে সরানো হয়েছে') : 'সেভ করা যায়নি — update-21.sql চালান')
+    setTimeout(() => setFlash(''), 1800)
+  }
+  const copy = async () => { try { await navigator.clipboard.writeText(link) } catch { /* ignore */ } setShare(false); setFlash('লিংক কপি হয়েছে'); setTimeout(() => setFlash(''), 1800) }
+  const native = async () => { setShare(false); try { await navigator.share({ title: APP_NAME, text: v.title || '', url: link }) } catch { /* বাতিল */ } }
   const sec = useRef(null)
   const frame = useRef(null)
   const thumb = v.thumbnail || `https://i.ytimg.com/vi/${v.external_id}/hqdefault.jpg`
@@ -40,6 +55,10 @@ function ExtReel({ v, index, active, onActive, muted, setMuted }) {
       {active && <div className="absolute inset-0" onClick={() => setMuted(!muted)} />}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/80 to-transparent" />
       <div className="absolute bottom-28 right-4 z-10 flex flex-col items-center gap-4 text-white">
+        <button onClick={doSave} aria-label="সেভ" className="grid h-11 w-11 place-items-center rounded-full bg-white/20 backdrop-blur">
+          <Bookmark size={20} fill={saved ? '#F5B942' : 'none'} stroke={saved ? '#F5B942' : 'white'} />
+        </button>
+        <button onClick={() => setShare(true)} aria-label="শেয়ার" className="grid h-11 w-11 place-items-center rounded-full bg-white/20 backdrop-blur"><Share2 size={20} /></button>
         <button onClick={() => setMuted(!muted)} className="grid h-11 w-11 place-items-center rounded-full bg-white/20 backdrop-blur">
           {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
         </button>
@@ -51,7 +70,26 @@ function ExtReel({ v, index, active, onActive, muted, setMuted }) {
         <p className="text-sm font-bold">{v.channel_title || 'ইউটিউব'}</p>
         {v.title && <p className="mt-1 line-clamp-2 text-sm text-white/90">{v.title}</p>}
       </div>
+      {flash && <div className="pointer-events-none absolute inset-x-0 bottom-44 z-20 mx-auto w-fit rounded-full bg-black/75 px-4 py-2 text-sm font-semibold text-white">{flash}</div>}
+      {share && <ShareSheet url={link} text={v.title || ''} onClose={() => setShare(false)} onCopy={copy} onNative={native} />}
     </section>
+  )
+}
+
+// সেভ করা ইউটিউব ভিডিওর রিল-ফিড
+export function SavedFeed() {
+  const { list, ready } = useSavedVideos()
+  const [active, setActive] = useState(0)
+  const [muted, setMuted] = useState(true)
+  const center = 'grid h-full place-items-center px-8 text-center text-white'
+  if (!ready) return <div className={center}>লোড হচ্ছে…</div>
+  if (list.length === 0) return <div className={center}><p className="text-white/80">কোনো ভিডিও সেভ করা নেই। রিলের 🔖 চেপে সেভ করুন।</p></div>
+  return (
+    <div className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll">
+      {list.map((x, i) => (
+        <ExtReel key={x.id} v={{ id: x.id, external_id: x.id, title: x.title, channel_title: x.channel }} index={i} active={i === active} onActive={setActive} muted={muted} setMuted={setMuted} />
+      ))}
+    </div>
   )
 }
 
