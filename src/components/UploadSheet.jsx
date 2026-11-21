@@ -9,6 +9,7 @@ import { extOf, fmtSize } from '../lib/media'
 import { playPop } from '../lib/sound'
 import PrivacyPicker from './PrivacyPicker'
 import CameraSheet from './CameraSheet'
+import { compressImage } from '../lib/media'
 
 const TITLES = { post: 'নতুন পোস্ট', reel: 'নতুন রিল', video: 'ভিডিও আপলোড' }
 const mb = (b) => (b / 1048576).toFixed(1)
@@ -50,11 +51,12 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
     try {
       let media_url = null, media_type = null, media_name = null, media_size = null
       if (file) {
-        path = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(file)}`
-        await uploadToStorage('media', path, file, setPct)
+        const up = await compressImage(file)
+        path = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(up)}`
+        await uploadToStorage('media', path, up, setPct)
         media_url = supabase.storage.from('media').getPublicUrl(path).data.publicUrl
-        media_name = file.name; media_size = file.size
-        media_type = file.type.startsWith('video/') ? 'video' : file.type.startsWith('image/') ? 'image' : 'file'
+        media_name = up.name; media_size = up.size
+        media_type = up.type.startsWith('video/') ? 'video' : up.type.startsWith('image/') ? 'image' : 'file'
       }
       const { error } = await supabase.from('posts').insert({
         user_id: user.id, kind, content: content.trim() || null, title: title.trim() || null,

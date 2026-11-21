@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { UserPlus, UserCheck, UserX, Hand, Ban, Archive, ArchiveRestore, MoreVertical, MessageCircle, X, ShieldOff } from '../lib/icons'
 import { useRelation } from '../lib/useRelation'
 import { useChatPrefs } from '../context/ChatPrefs'
+import { confirmDialog } from '../lib/ui'
 
 // ফেসবুকের মতো আনফ্রেন্ড কনফার্ম পপ-আপ
 export function UnfriendDialog({ name, onClose, onConfirm }) {
@@ -63,7 +64,7 @@ export default function PersonActions({ p, size = 'sm', onChange }) {
             {r.state === 'friends' && <Item icon={UserX} label="বন্ধুত্ব শেষ করুন" onClick={() => setUnf(true)} danger />}
             {r.state === 'blocked'
               ? <Item icon={ShieldOff} label="আনব্লক করুন" onClick={after(r.unblock)} />
-              : <Item icon={Ban} label="ব্লক করুন" onClick={() => confirm(`${p.full_name}-কে ব্লক করবেন? বন্ধুত্ব শেষ হবে, সে আপনাকে মেসেজ বা রিকুয়েস্ট পাঠাতে পারবে না।`) && after(r.block)()} danger />}
+              : <Item icon={Ban} label="ব্লক করুন" onClick={async () => (await confirmDialog(`${p.full_name}-কে ব্লক করবেন? বন্ধুত্ব শেষ হবে, সে আপনাকে মেসেজ বা রিকুয়েস্ট পাঠাতে পারবে না।`, { danger: true, confirmText: 'ব্লক করুন' })) && after(r.block)()} danger />}
           </div>
         </div>
       )}

@@ -6,6 +6,8 @@ import { extOf, fmtSize, mediaPathFromUrl } from '../lib/media'
 import { uploadToStorage, friendlyUploadError, MAX_UPLOAD } from '../lib/upload'
 import Avatar from './Avatar'
 import CommentItem from './post/CommentItem'
+import { confirmDialog } from '../lib/ui'
+import { compressImage } from '../lib/media'
 
 const bn = (n) => n.toLocaleString('bn-BD')
 
@@ -76,12 +78,13 @@ export default function CommentsSheet({ post, onClose, onChange }) {
     try {
       let media = {}
       if (file) {
-        path = `${user.id}/c-${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(file)}`
-        await uploadToStorage('media', path, file, setPct)
+        const up = await compressImage(file)
+        path = `${user.id}/c-${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extOf(up)}`
+        await uploadToStorage('media', path, up, setPct)
         media = {
           media_url: supabase.storage.from('media').getPublicUrl(path).data.publicUrl,
-          media_type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'file',
-          media_name: file.name, media_size: file.size,
+          media_type: up.type.startsWith('image/') ? 'image' : up.type.startsWith('video/') ? 'video' : 'file',
+          media_name: up.name, media_size: up.size,
         }
       }
       const reply = replyTo ? { parent_id: replyTo.parentId, reply_to: replyTo.userId } : {}
@@ -99,7 +102,7 @@ export default function CommentsSheet({ post, onClose, onChange }) {
 
   const del = async (c) => {
     const replies = kids[c.id] || []
-    if (replies.length && !window.confirm(`এই কমেন্টের ${bn(replies.length)}টি উত্তরও মুছে যাবে। মুছবেন?`)) return
+    if (replies.length && !(await confirmDialog(`এই কমেন্টের ${bn(replies.length)}টি উত্তরও মুছে যাবে। মুছবেন?`, { danger: true, confirmText: 'মুছুন' }))) return
     const paths = [c, ...replies].map((x) => mediaPathFromUrl(x.media_url)).filter(Boolean)
     const { error } = await supabase.from('comments').delete().eq('id', c.id)
     if (error) return setErr(error.message)

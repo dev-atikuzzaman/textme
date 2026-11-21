@@ -1,4 +1,7 @@
+import { Suspense } from 'react'
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
+import ErrorBoundary from './ErrorBoundary'
+import PageLoader from './PageLoader'
 import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Youtube, Bell, Search, UsersRound } from '../lib/icons'
 import { NotifProvider, useNotifs } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
@@ -62,7 +65,7 @@ function Shell() {
 
       <div className="mx-auto w-full max-w-md sm:max-w-xl lg:max-w-2xl">
         {showHeader && (
-          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-brand/10 bg-white px-5 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-[0_2px_14px_rgba(15,118,96,0.07)]">
+          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-brand/10 bg-surface px-5 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-[0_2px_14px_rgba(15,118,96,0.07)]">
             <h1 className="flex items-center gap-2 text-2xl font-extrabold text-brand lg:invisible"><BrandMark size={32} />{APP_NAME}</h1>
             <div className="flex gap-2">
               <Link to="/search" aria-label="সার্চ" className="grid h-11 w-11 place-items-center rounded-2xl bg-surface shadow-soft"><Search size={22} /></Link>
@@ -76,7 +79,7 @@ function Shell() {
         )}
         <main className={inChat ? '' : inPage ? 'px-4 pb-10 pt-3' : 'px-4 pb-24 lg:pb-10'}>
           {pathname === '/' && <><PushBanner /><InstallBanner /></>}
-          <Outlet />
+          <ErrorBoundary resetKey={pathname}><Suspense fallback={<PageLoader />}><Outlet /></Suspense></ErrorBoundary>
         </main>
       </div>
 

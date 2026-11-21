@@ -22,6 +22,7 @@ import Lightbox from './post/Lightbox'
 import AutoVideo from './post/AutoVideo'
 import NoteCard from './post/NoteCard'
 import NoteReader from './post/NoteReader'
+import SmartImg from './SmartImg'
 
 export default function PostCard({ post, onChange, onHide }) {
   const { user } = useAuth()
@@ -139,7 +140,7 @@ export default function PostCard({ post, onChange, onHide }) {
             ? <FileCard url={post.media_url} name={post.media_name} size={post.media_size} />
             : post.media_type === 'video'
             ? <AutoVideo src={post.media_url} />
-            : <img src={post.media_url} alt="" loading="lazy" className="w-full cursor-zoom-in rounded-2xl object-cover" />}
+            : <SmartImg src={post.media_url} alt="" reserve="min-h-[14rem]" className="w-full cursor-zoom-in rounded-2xl object-cover" />}
           {burst && <span className="heart-burst pointer-events-none absolute inset-0 grid place-items-center text-7xl">❤️</span>}
         </div>
       )}

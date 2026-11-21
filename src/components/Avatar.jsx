@@ -1,7 +1,9 @@
+import SmartImg from './SmartImg'
+
 export default function Avatar({ p, size = 44, online }) {
   const s = { width: size, height: size }
   const img = p?.avatar_url
-    ? <img src={p.avatar_url} alt="" style={s} className="rounded-full object-cover shrink-0" />
+    ? <SmartImg src={p.avatar_url} alt="" style={s} className="rounded-full object-cover shrink-0" />
     : (
       <div style={{ ...s, fontSize: size / 2.4 }} className="grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-coral font-bold text-inverse">
         {(p?.full_name || '?').trim().charAt(0)}
