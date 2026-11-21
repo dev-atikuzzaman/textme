@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import { useAuth } from '../context/Auth'
+import { toast, errMsg } from './ui'
 
 // আমার ও অন্য একজনের সম্পর্ক: বন্ধুত্ব/রিকুয়েস্ট + ব্লক
 export function useRelation(otherId) {
@@ -25,7 +26,7 @@ export function useRelation(otherId) {
     setBusy(true)
     const { error } = await fn()
     setBusy(false)
-    if (error) { alert(/blocked|policy|row-level/i.test(error.message) ? 'এই কাজটি করা যাচ্ছে না (ব্লক বা অনুমতি সমস্যা)' : error.message); return false }
+    if (error) { toast.error(/blocked|policy|row-level/i.test(error.message) ? 'এই কাজটি করা যাচ্ছে না (ব্লক বা অনুমতি সমস্যা)' : errMsg(error)); return false }
     await load(); return true
   }
   const state = blocked ? 'blocked' : !rel ? 'none' : rel.status === 'accepted' ? 'friends' : rel.requester_id === user.id ? 'sent' : 'incoming'
@@ -34,7 +35,7 @@ export function useRelation(otherId) {
     send: () => run(() => supabase.from('friendships').insert({ requester_id: user.id, addressee_id: otherId })),
     cancel: () => run(() => supabase.from('friendships').delete().eq('id', rel.id)),      // পাঠানো রিকুয়েস্ট বাতিল / প্রাপ্ত রিকুয়েস্ট মুছা / আনফ্রেন্ড
     accept: () => run(() => supabase.from('friendships').update({ status: 'accepted' }).eq('id', rel.id)),
-    poke: async () => { const ok = await run(() => supabase.rpc('poke_user', { p_user: otherId })); if (ok) alert('পোক পাঠানো হয়েছে 👉'); return ok },
+    poke: async () => { const ok = await run(() => supabase.rpc('poke_user', { p_user: otherId })); if (ok) toast.success('পোক পাঠানো হয়েছে 👉'); return ok },
     block: () => run(() => supabase.rpc('block_user', { p_user: otherId })),
     unblock: () => run(() => supabase.rpc('unblock_user', { p_user: otherId })),
   }

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { makeFx, fxSupported } from './videoFx'
+import { toast } from './ui'
 
 const gum = (c) => navigator.mediaDevices.getUserMedia(c)
 
@@ -88,9 +89,9 @@ export function useLocalMedia(getPCs = () => []) {
         try { s = await gum({ video: { facingMode: facing } }) } catch { s = null }
       }
     }
-    if (!s) { alert('ক্যামেরা বদলানো যায়নি'); return false }
+    if (!s) { toast.error('ক্যামেরা বদলানো যায়নি'); return false }
     await useRaw(s.getVideoTracks()[0])
-    if (ok) setFacing(next); else alert('এই ডিভাইসে আরেকটি ক্যামেরা পাওয়া যায়নি')
+    if (ok) setFacing(next); else toast('এই ডিভাইসে আরেকটি ক্যামেরা পাওয়া যায়নি')
     return ok
   }
 
