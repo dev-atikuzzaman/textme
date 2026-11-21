@@ -1,4 +1,4 @@
-const V = 'apon-v10'
+const V = 'apon-v11'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -25,8 +25,8 @@ self.addEventListener('fetch', (e) => {
   if (r.mode === 'navigate') {
     e.respondWith(
       fetch(r)
-        .then((res) => { const c = res.clone(); caches.open(V).then((x) => x.put('/', c)); return res })
-        .catch(() => caches.match('/'))
+        .then((res) => { if (res.ok) { const c = res.clone(); caches.open(V).then((x) => x.put('/', c)) } return res })
+        .catch(async () => (await caches.match('/')) || new Response('ইন্টারনেট সংযোগ নেই — সংযোগ ফিরলে পেজটি আবার লোড করুন', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }))
     )
     return
   }
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (e) => {
     caches.match(r).then((hit) => hit || fetch(r).then((res) => {
       if (res.ok) { const c = res.clone(); caches.open(V).then((x) => x.put(r, c)) }
       return res
-    }))
+    }).catch(() => new Response('', { status: 504 })))
   )
 })
 
