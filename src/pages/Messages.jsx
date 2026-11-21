@@ -10,6 +10,7 @@ import { useChatPrefs } from '../context/ChatPrefs'
 import PinPad from '../components/chat/PinPad'
 import Avatar from '../components/Avatar'
 import CreateGroupSheet from '../components/groups/CreateGroupSheet'
+import { toast } from '../lib/ui'
 
 const short = (d) => {
   const t = new Date(d), n = new Date()
@@ -179,7 +180,7 @@ export default function Messages() {
               const k = menu.key, lk = cp.isLocked(k)
               const Item = ({ icon: I, label, onClick, danger }) => <button onClick={() => { setMenu(null); onClick() }} className={`flex w-full items-center gap-4 rounded-2xl bg-surface2 p-4 font-semibold ${danger ? 'text-danger' : ''}`}><I size={20} />{label}</button>
               return (<>
-                {!lk && <Item icon={cp.isPinned(k) ? PinOff : Pin} label={cp.isPinned(k) ? 'পিন সরান' : 'চ্যাট পিন করুন'} onClick={() => { if (!cp.isPinned(k) && cp.pinnedCount >= 3) return alert('সর্বোচ্চ ৩টি চ্যাট পিন করা যায়'); cp.setPref(k, { pinned: !cp.isPinned(k) }) }} />}
+                {!lk && <Item icon={cp.isPinned(k) ? PinOff : Pin} label={cp.isPinned(k) ? 'পিন সরান' : 'চ্যাট পিন করুন'} onClick={() => { if (!cp.isPinned(k) && cp.pinnedCount >= 3) return toast('সর্বোচ্চ ৩টি চ্যাট পিন করা যায়'); cp.setPref(k, { pinned: !cp.isPinned(k) }) }} />}
                 {!lk && <Item icon={cp.isArchived(k) ? ArchiveRestore : Archive} label={cp.isArchived(k) ? 'আর্কাইভ থেকে বের করুন' : 'আর্কাইভ করুন'} onClick={() => cp.setPref(k, { archived: !cp.isArchived(k) })} />}
                 <Item icon={lk ? LockOpen : Lock} label={lk ? 'লক খুলুন' : 'চ্যাট লক করুন'} onClick={() => { if (lk) setPad({ mode: 'verify', then: () => cp.unlock(k) }); else doLock(k) }} />
               </>)

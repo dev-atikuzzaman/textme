@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PowerOff } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
+import { toast, errMsg } from '../lib/ui'
 
 // ডিঅ্যাক্টিভ একাউন্টে লগ-ইন করলে এই স্ক্রিন আসে
 export default function Deactivated() {
@@ -10,7 +11,7 @@ export default function Deactivated() {
   const back = async () => {
     setBusy(true)
     const { error } = await supabase.rpc('reactivate_my_account')
-    if (error) { setBusy(false); return alert(error.message) }
+    if (error) { setBusy(false); return toast.error(errMsg(error)) }
     await refreshProfile(); setBusy(false)
   }
   return (

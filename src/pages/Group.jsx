@@ -19,6 +19,7 @@ import UserCard from '../components/UserCard'
 import PinPad from '../components/chat/PinPad'
 import { useGroupCall, useGroupLive, MAX_GROUP_CALL } from '../context/GroupCall'
 import { useChatPrefs } from '../context/ChatPrefs'
+import { toast, confirmDialog, errMsg } from '../lib/ui'
 
 const PANELS = { posts: 'গ্রুপ পোস্ট', members: 'সদস্য' }
 
@@ -74,20 +75,20 @@ export default function Group() {
     setBusy(true)
     const { error } = await supabase.rpc(fn, args)
     setBusy(false)
-    if (error) return alert(error.message)
+    if (error) return toast.error(errMsg(error))
     after ? after() : loadMeta()
   }
   const join = () => rpc('join_group', { p_group: id })
-  const leave = () => confirm('গ্রুপ ছেড়ে চলে যাবেন?') && rpc('leave_group', { p_group: id }, () => nav('/groups'))
+  const leave = async () => (await confirmDialog('গ্রুপ ছেড়ে চলে যাবেন?', { danger: true, confirmText: 'ছেড়ে যান' })) && rpc('leave_group', { p_group: id }, () => nav('/groups'))
   const del = async () => {
-    if (!confirm('গ্রুপটি স্থায়ীভাবে মুছে ফেলবেন? সব পোস্ট ও মেসেজ চলে যাবে।')) return
+    if (!(await confirmDialog('গ্রুপটি স্থায়ীভাবে মুছে ফেলবেন? সব পোস্ট ও মেসেজ চলে যাবে।', { title: 'গ্রুপ মুছবেন?', danger: true, confirmText: 'মুছে ফেলুন' }))) return
     const { error } = await supabase.from('groups').delete().eq('id', id)
-    if (error) return alert(error.message)
+    if (error) return toast.error(errMsg(error))
     nav('/groups')
   }
   const saveInfo = async () => {
     const { error } = await supabase.from('groups').update({ name: form.name.trim() || g.name, about: form.about.trim() || null }).eq('id', id)
-    if (error) return alert(error.message)
+    if (error) return toast.error(errMsg(error))
     setSheet(null); loadMeta()
   }
   const changeAvatar = (e) => { const f = e.target.files[0]; e.target.value = ''; doAvatar(f) }
@@ -99,26 +100,26 @@ export default function Group() {
       const { error } = await supabase.from('groups').update({ avatar_url: url }).eq('id', id)
       if (error) throw error
       loadMeta()
-    } catch (er) { alert(er.message) } finally { setBusy(false) }
+    } catch (er) { toast.error(errMsg(er)) } finally { setBusy(false) }
   }
 
   const removeAvatar = async () => {
-    if (!confirm('গ্রুপের ছবি মুছবেন?')) return
+    if (!(await confirmDialog('গ্রুপের ছবি মুছবেন?', { danger: true, confirmText: 'মুছুন' }))) return
     const { error } = await supabase.from('groups').update({ avatar_url: null }).eq('id', id)
-    if (error) return alert(error.message)
+    if (error) return toast.error(errMsg(error))
     setView(false); loadMeta()
   }
   const changeCover = async (e) => {
     const f = e.target.files[0]; e.target.value = ''
     if (!f) return
-    if (!f.type.startsWith('image/') || f.size > 8 * 1048576) return alert('৮MB-এর মধ্যে একটি ছবি দিন')
+    if (!f.type.startsWith('image/') || f.size > 8 * 1048576) return toast.error('৮MB-এর মধ্যে একটি ছবি দিন')
     setBusy(true)
     try {
       const url = await uploadImage(user.id, f, false)
       const { error } = await supabase.from('groups').update({ cover_url: url }).eq('id', id)
       if (error) throw error
       loadMeta()
-    } catch (er) { alert(/cover_url/.test(er.message) ? 'update-17.sql চালানো হয়নি (cover_url কলাম নেই)' : er.message) } finally { setBusy(false) }
+    } catch (er) { toast.error(/cover_url/.test(er.message) ? 'update-17.sql চালানো হয়নি (cover_url কলাম নেই)' : errMsg(er)) } finally { setBusy(false) }
   }
   const removeCover = async () => { await supabase.from('groups').update({ cover_url: null }).eq('id', id); loadMeta() }
 
@@ -260,7 +261,7 @@ export default function Group() {
             {isAdmin && <MenuItem icon={Pencil} label="নাম ও বিবরণ এডিট" onClick={() => setSheet('edit')} />}
             {isAdmin && <MenuItem icon={Camera} label="গ্রুপের ছবি বদলান" onClick={() => fileRef.current.click()} />}
             {isAdmin && <MenuItem icon={ImagePlus} label="কভার ফটো বদলান" onClick={() => coverRef.current.click()} />}
-            {me && !cp.isLocked(key) && <MenuItem icon={cp.isPinned(key) ? PinOff : Pin} label={cp.isPinned(key) ? 'পিন সরান' : 'চ্যাট পিন করুন'} onClick={() => { if (!cp.isPinned(key) && cp.pinnedCount >= 3) return alert('সর্বোচ্চ ৩টি চ্যাট পিন করা যায়'); cp.setPref(key, { pinned: !cp.isPinned(key) }) }} />}
+            {me && !cp.isLocked(key) && <MenuItem icon={cp.isPinned(key) ? PinOff : Pin} label={cp.isPinned(key) ? 'পিন সরান' : 'চ্যাট পিন করুন'} onClick={() => { if (!cp.isPinned(key) && cp.pinnedCount >= 3) return toast('সর্বোচ্চ ৩টি চ্যাট পিন করা যায়'); cp.setPref(key, { pinned: !cp.isPinned(key) }) }} />}
             {me && !cp.isLocked(key) && <MenuItem icon={cp.isArchived(key) ? ArchiveRestore : Archive} label={cp.isArchived(key) ? 'আর্কাইভ থেকে বের করুন' : 'চ্যাট আর্কাইভ করুন'} onClick={() => cp.setPref(key, { archived: !cp.isArchived(key) })} />}
             {me && <MenuItem icon={cp.isLocked(key) ? LockOpen : Lock} label={cp.isLocked(key) ? 'চ্যাট লক খুলুন' : 'চ্যাট লক করুন'} onClick={() => (cp.isLocked(key) ? cp.unlock(key) : doLock())} />}
             {me && <MenuItem icon={LogOut} label="গ্রুপ ছাড়ুন" onClick={leave} danger />}
@@ -331,7 +332,7 @@ export default function Group() {
           <div className="w-full max-w-md space-y-2 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
             <h2 className="mb-1 text-lg font-bold">{who[menu.user_id]?.full_name}</h2>
             <button onClick={() => { const m = menu; setMenu(null); rpc('set_group_admin', { p_group: id, p_user: m.user_id, p_admin: m.role !== 'admin' }) }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold"><Crown size={20} />{menu.role === 'admin' ? 'অ্যাডমিন থেকে সরান' : 'অ্যাডমিন বানান'}</button>
-            <button onClick={() => { const m = menu; setMenu(null); confirm('গ্রুপ থেকে বাদ দেবেন?') && rpc('remove_group_member', { p_group: id, p_user: m.user_id }) }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold text-danger"><LogOut size={20} />গ্রুপ থেকে বাদ দিন</button>
+            <button onClick={async () => { const m = menu; setMenu(null); (await confirmDialog('গ্রুপ থেকে বাদ দেবেন?', { danger: true, confirmText: 'বাদ দিন' })) && rpc('remove_group_member', { p_group: id, p_user: m.user_id }) }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold text-danger"><LogOut size={20} />গ্রুপ থেকে বাদ দিন</button>
           </div>
         </div>
       )}

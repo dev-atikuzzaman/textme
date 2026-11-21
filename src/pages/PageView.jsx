@@ -12,6 +12,7 @@ import PostSkeleton from '../components/PostSkeleton'
 import UploadSheet from '../components/UploadSheet'
 import NoteSheet from '../components/NoteSheet'
 import PageSheet from '../components/groups/PageSheet'
+import { toast, confirmDialog, errMsg } from '../lib/ui'
 
 export default function PageView() {
   const { id } = useParams()
@@ -48,7 +49,7 @@ export default function PageView() {
       ? await supabase.from('page_follows').delete().match({ page_id: id, user_id: user.id })
       : await supabase.from('page_follows').insert({ page_id: id, user_id: user.id })
     setBusy(false)
-    if (r.error) return alert(r.error.message)
+    if (r.error) return toast.error(errMsg(r.error))
     load()
   }
   const upload = (field, square) => async (e) => {
@@ -60,12 +61,12 @@ export default function PageView() {
       const { error } = await supabase.from('pages').update({ [field]: url }).eq('id', id)
       if (error) throw error
       load()
-    } catch (er) { alert(er.message) } finally { setBusy(false) }
+    } catch (er) { toast.error(errMsg(er)) } finally { setBusy(false) }
   }
   const del = async () => {
-    if (!confirm('পেজটি স্থায়ীভাবে মুছে ফেলবেন? পেজের সব পোস্ট চলে যাবে।')) return
+    if (!(await confirmDialog('পেজটি স্থায়ীভাবে মুছে ফেলবেন? পেজের সব পোস্ট চলে যাবে।', { title: 'পেজ মুছবেন?', danger: true, confirmText: 'মুছে ফেলুন' }))) return
     const { error } = await supabase.from('pages').delete().eq('id', id)
-    if (error) return alert(error.message)
+    if (error) return toast.error(errMsg(error))
     nav('/groups?tab=pages')
   }
 

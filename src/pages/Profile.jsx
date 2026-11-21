@@ -8,12 +8,15 @@ import { resizeSquare, mediaPathFromUrl } from '../lib/media'
 import Avatar from '../components/Avatar'
 import PostCard from '../components/PostCard'
 import PasswordSheet from '../components/PasswordSheet'
+import AppearanceSheet from '../components/AppearanceSheet'
+import { Palette } from 'lucide-react'
 import AvatarViewer from '../components/AvatarViewer'
 import ProfileEditSheet from '../components/ProfileEditSheet'
 import PersonActions from '../components/PersonActions'
 import { withContext } from '../lib/context'
 import { useRelation } from '../lib/useRelation'
 import { Lock } from '../lib/icons'
+import { toast, confirmDialog, errMsg } from '../lib/ui'
 
 export default function Profile() {
   const { id } = useParams()
@@ -22,7 +25,7 @@ export default function Profile() {
   const own = uid === user.id
   const [p, setP] = useState(own ? me : null)
   const [posts, setPosts] = useState([])
-  const [sheet, setSheet] = useState(null) // view | edit | password | account | blocked | delete
+  const [sheet, setSheet] = useState(null) // view | edit | password | appearance | account | blocked | delete
   const [blocked, setBlocked] = useState([])
   const [confirmTxt, setConfirmTxt] = useState('')
   const [busy, setBusy] = useState(false)
@@ -48,18 +51,18 @@ export default function Profile() {
   }
   const unblock = async (bid) => { await supabase.rpc('unblock_user', { p_user: bid }); loadBlocked() }
   const deactivate = async () => {
-    if (!confirm('একাউন্ট ডিঅ্যাক্টিভ করবেন? কেউ আপনাকে খুঁজে পাবে না, পোস্ট লুকানো থাকবে। আবার লগ-ইন করলে চালু করতে পারবেন।')) return
+    if (!(await confirmDialog('কেউ আপনাকে খুঁজে পাবে না, পোস্ট লুকানো থাকবে। আবার লগ-ইন করলে চালু করতে পারবেন।', { title: 'একাউন্ট ডিঅ্যাক্টিভ করবেন?', danger: true, confirmText: 'ডিঅ্যাক্টিভ করুন' }))) return
     setBusy(true)
     const { error } = await supabase.rpc('deactivate_my_account')
     setBusy(false)
-    if (error) return alert(error.message)
+    if (error) return toast.error(errMsg(error))
     await refreshProfile()
   }
   const deleteAccount = async () => {
     setBusy(true)
     const old = mediaPathFromUrl(p.avatar_url)
     const { error } = await supabase.rpc('delete_my_account')
-    if (error) { setBusy(false); return alert(error.message) }
+    if (error) { setBusy(false); return toast.error(errMsg(error)) }
     if (old) supabase.storage.from('media').remove([old]).catch(() => {})
     await supabase.auth.signOut()
   }
@@ -79,15 +82,15 @@ export default function Profile() {
       if (e2) throw e2
       if (old) supabase.storage.from('media').remove([old])
       await refreshProfile(); await load(); setSheet(null)
-    } catch (er) { alert(er.message) } finally { setBusy(false) }
+    } catch (er) { toast.error(errMsg(er)) } finally { setBusy(false) }
   }
 
   const removeAvatar = async () => {
-    if (!confirm('প্রোফাইল ছবি মুছে ফেলবেন?')) return
+    if (!(await confirmDialog('প্রোফাইল ছবি মুছে ফেলবেন?', { danger: true, confirmText: 'মুছুন' }))) return
     setBusy(true)
     const old = mediaPathFromUrl(p.avatar_url)
     const { error } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id)
-    if (error) alert(error.message)
+    if (error) toast.error(errMsg(error))
     else { if (old) supabase.storage.from('media').remove([old]); await refreshProfile(); await load(); setSheet(null) }
     setBusy(false)
   }
@@ -103,7 +106,7 @@ export default function Profile() {
       <div className="rounded-[32px] bg-gradient-to-br from-brand to-coral p-6 text-center text-inverse shadow-soft">
         <div className="relative mx-auto w-fit">
           <button onClick={openAvatar} aria-label="ছবি দেখুন" className="block rounded-full ring-4 ring-white/40 transition active:scale-95"><Avatar p={p} size={104} /></button>
-          {own && <button onClick={() => fileRef.current.click()} aria-label="ছবি বদলান" disabled={busy} className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-white text-brand shadow-soft"><Camera size={18} /></button>}
+          {own && <button onClick={() => fileRef.current.click()} aria-label="ছবি বদলান" disabled={busy} className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-surface text-brand shadow-soft"><Camera size={18} /></button>}
         </div>
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
         <h2 className="mt-3 text-2xl font-extrabold">{p.full_name}</h2>
@@ -117,6 +120,7 @@ export default function Profile() {
             <button onClick={() => setSheet('edit')} className="btn-primary flex-1"><Pencil size={17} />প্রোফাইল এডিট</button>
             <button onClick={() => setSheet('password')} className="btn-soft flex-1 bg-surface shadow-soft"><KeyRound size={18} />পাসওয়ার্ড</button>
           </div>
+          <button onClick={() => setSheet('appearance')} className="btn-soft w-full bg-surface shadow-soft"><Palette size={18} />দেখার ধরন (থিম ও লেখার সাইজ)</button>
           <div className="flex gap-3">
             <button onClick={() => setSheet('account')} className="btn-soft flex-1 bg-surface shadow-soft"><Settings2 size={18} />একাউন্ট সেটিংস</button>
             <button onClick={() => supabase.auth.signOut()} className="btn-soft flex-1 bg-surface shadow-soft !text-danger"><LogOut size={18} />লগ-আউট</button>
@@ -139,6 +143,7 @@ export default function Profile() {
       {sheet === 'view' && p.avatar_url && <AvatarViewer p={p} own={own} busy={busy} onClose={() => setSheet(null)} onChange={() => fileRef.current.click()} onRemove={removeAvatar} />}
       {sheet === 'edit' && <ProfileEditSheet profile={p} onClose={() => setSheet(null)} onSaved={() => { refreshProfile(); load() }} />}
       {sheet === 'password' && <PasswordSheet onClose={() => setSheet(null)} />}
+      {sheet === 'appearance' && <AppearanceSheet onClose={() => setSheet(null)} />}
 
       {(sheet === 'account' || sheet === 'blocked' || sheet === 'delete') && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center" onClick={() => setSheet(null)}>
