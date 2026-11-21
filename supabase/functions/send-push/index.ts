@@ -22,9 +22,44 @@ webpush.setVapidDetails(
 )
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret' }
+const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } })
+
+// একটি পুশ পাঠায়; মেয়াদোত্তীর্ণ (404/410) সাবস্ক্রিপশন মুছে ফেলে। ফেরত দেয় { sent, errors }
+async function deliver(subs: any[], payload: string, isCall: boolean) {
+  let sent = 0
+  const errors: string[] = []
+  await Promise.all(subs.map(async (s) => {
+    try {
+      await webpush.sendNotification(
+        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload,
+        // কলে urgency high ও ছোট TTL (৪৫ সেকেন্ডের পর পুরোনো কল দেখানোর মানে নেই)
+        { urgency: isCall ? 'high' : 'normal', TTL: isCall ? 45 : 60 * 60 * 24 },
+      )
+      sent++
+    } catch (e) {
+      errors.push(`${e.statusCode ?? 'ERR'}: ${String(e.body ?? e.message ?? e).slice(0, 120)}`)
+      if (e.statusCode === 404 || e.statusCode === 410) await db.from('push_subscriptions').delete().eq('id', s.id)
+    }
+  }))
+  return { sent, errors }
+}
+
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+
+  // ── অ্যাপ থেকে "সার্ভার টেস্ট পুশ": লগ-ইন করা ইউজার নিজের সব ডিভাইসে একটি টেস্ট পুশ পাঠায় ──
+  // (ট্রিগার/ওয়েবহুক ছাড়াই VAPID কী, সাবস্ক্রিপশন ও Edge Function ঠিক আছে কিনা যাচাই হয়)
   if (req.headers.get('x-webhook-secret') !== Deno.env.get('WEBHOOK_SECRET')) {
-    return new Response('forbidden', { status: 403 })
+    const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '')
+    const { data: u } = token ? await db.auth.getUser(token) : { data: { user: null } }
+    let body: any = {}
+    try { body = await req.json() } catch { /* ignore */ }
+    if (!u?.user || body?.test !== true) return json({ error: 'forbidden' }, 403)
+    const { data: mine } = await db.from('push_subscriptions').select('*').eq('user_id', u.user.id)
+    if (!mine?.length) return json({ subs: 0, sent: 0, errors: [] })
+    const r = await deliver(mine, JSON.stringify({ title: 'বন্ধু — টেস্ট', body: 'সাউন্ড ও পপ-আপ ঠিক আছে ✅', url: '/notifications', type: 'test', tag: 'apon-test' }), false)
+    return json({ subs: mine.length, ...r })
   }
   const { table, record } = await req.json()
 
@@ -47,6 +82,8 @@ Deno.serve(async (req) => {
     } else {
       body = String(record.content ?? '').slice(0, 120)
       url = `/chat/${record.sender_id}`
+      tag = `msg-${record.sender_id}`
+      if (!body) body = '📎 নতুন মেসেজ'
     }
     targets = [record.receiver_id]
     actorId = record.sender_id
@@ -74,17 +111,7 @@ Deno.serve(async (req) => {
 
   const payload = JSON.stringify({ title: title ?? actor?.full_name ?? 'বন্ধু', body, url, type, tag })
   const isCall = type === 'call'
-  await Promise.all((subs ?? []).map(async (s) => {
-    try {
-      await webpush.sendNotification(
-        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload,
-        // কলে urgency high ও ছোট TTL (৪৫ সেকেন্ডের পর পুরোনো কল দেখানোর মানে নেই)
-        { urgency: isCall ? 'high' : 'normal', TTL: isCall ? 45 : 60 * 60 * 24 },
-      )
-    } catch (e) {
-      // মেয়াদোত্তীর্ণ সাবস্ক্রিপশন মুছে ফেলা
-      if (e.statusCode === 404 || e.statusCode === 410) await db.from('push_subscriptions').delete().eq('id', s.id)
-    }
-  }))
-  return new Response('ok')
+  const r = await deliver(subs ?? [], payload, isCall)
+  console.log(`push ${table}: subs=${subs?.length ?? 0} sent=${r.sent} errors=${JSON.stringify(r.errors)}`)
+  return json({ ok: true, subs: subs?.length ?? 0, sent: r.sent })
 })
