@@ -13,6 +13,11 @@ const TEXT: Record<string, string> = {
   group_add: 'আপনাকে একটি গ্রুপে যোগ করেছেন',
   poke: 'আপনাকে পোক করেছেন 👉',
   group_call: 'গ্রুপ কল শুরু করেছেন 📞 — যোগ দিন',
+  invite_joined: 'আপনার আমন্ত্রণে যোগ দিয়েছেন — এখন আপনারা বন্ধু 🎉',
+  birthday: 'আজ জন্মদিন পালন করছেন 🎂 — শুভেচ্ছা জানান',
+  event_new: 'একটি নতুন অনুষ্ঠানের আয়োজন করেছেন 📅',
+  event_reminder: 'আয়োজিত অনুষ্ঠানটি খুব কাছে 📅',
+  album_add: 'আপনাকে একটি ফ্যামিলি অ্যালবামে যোগ করেছেন 📷',
 }
 
 webpush.setVapidDetails(
@@ -27,6 +32,7 @@ const CAT: Record<string, string> = {
   like: 'n_likes', comment: 'n_comments', reply: 'n_comments',
   friend_request: 'n_friends', friend_accept: 'n_friends', poke: 'n_friends',
   post: 'n_posts', group_post: 'n_posts', page_post: 'n_posts', group_add: 'n_posts', group_call: 'n_messages',
+  invite_joined: 'n_family', birthday: 'n_family', event_new: 'n_family', event_reminder: 'n_family', album_add: 'n_family',
 }
 function inQuiet(p: any, now = new Date()): boolean {
   if (!p?.quiet_on) return false
