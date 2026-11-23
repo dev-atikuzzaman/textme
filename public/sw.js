@@ -1,4 +1,4 @@
-const V = 'apon-v12'
+const V = 'apon-v13'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
