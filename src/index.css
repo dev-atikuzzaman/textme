@@ -5,7 +5,7 @@
 /* Kalpurush — অ্যাপের সাথে বান্ডিল করা বাংলা ফন্ট (bkbbg-র মতো); না লোড হলে Hind Siliguri-তে ফিরে যায় */
 @font-face {
   font-family: 'Kalpurush';
-  src: url('/fonts/Kalpurush.ttf') format('truetype');
+  src: url('/fonts/Kalpurush.woff2') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
