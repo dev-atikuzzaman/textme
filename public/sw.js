@@ -1,4 +1,4 @@
-const V = 'apon-v11'
+const V = 'apon-v12'
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png']
 
 self.addEventListener('install', (e) => {
@@ -73,6 +73,7 @@ self.addEventListener('push', (e) => {
       actions: isCall ? [{ action: 'answer', title: '📞 ধরুন' }, { action: 'decline', title: 'কেটে দিন' }] : [],
     })
     await show()
+    try { self.navigator.setAppBadge?.()?.catch?.(() => {}) } catch { /* ignore */ } // অ্যাপ আইকনে ব্যাজ-ডট
 
     // কল: রিংয়ের মতো প্রতি ৪ সেকেন্ডে (সর্বোচ্চ ~28 সেকেন্ড) আবার সাউন্ড; ধরলে/কাটলে নোটিফিকেশন বন্ধ হলেই থামে
     if (isCall) {
