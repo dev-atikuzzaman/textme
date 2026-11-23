@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
-import { LogOut, Camera, KeyRound, X, Pencil, PowerOff, Trash2, ShieldOff, Settings2 } from '../lib/icons'
+import { LogOut, Camera, KeyRound, X, Pencil, PowerOff, Trash2, ShieldOff, Settings2, Download } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { SELECT_POST } from '../lib/constants'
@@ -9,7 +9,9 @@ import Avatar from '../components/Avatar'
 import PostCard from '../components/PostCard'
 import PasswordSheet from '../components/PasswordSheet'
 import AppearanceSheet from '../components/AppearanceSheet'
-import { Palette } from 'lucide-react'
+import { Palette, Smartphone } from 'lucide-react'
+import DevicesSheet from '../components/DevicesSheet'
+import { exportMyData } from '../lib/exportData'
 import AvatarViewer from '../components/AvatarViewer'
 import ProfileEditSheet from '../components/ProfileEditSheet'
 import PersonActions from '../components/PersonActions'
@@ -57,6 +59,13 @@ export default function Profile() {
     setBusy(false)
     if (error) return toast.error(errMsg(error))
     await refreshProfile()
+  }
+  const exportData = async () => {
+    toast('ডেটা জোগাড় হচ্ছে… একটু অপেক্ষা করুন', 'info', 6000)
+    try {
+      const c = await exportMyData(user)
+      toast.success(`ডেটা ডাউনলোড হয়েছে — পোস্ট ${(c.posts ?? 0).toLocaleString('bn-BD')}টি, মেসেজ ${(c.messages ?? 0).toLocaleString('bn-BD')}টি`)
+    } catch (e) { toast.error(errMsg(e, 'ডেটা ডাউনলোড করা যায়নি')) }
   }
   const deleteAccount = async () => {
     setBusy(true)
@@ -144,6 +153,7 @@ export default function Profile() {
       {sheet === 'edit' && <ProfileEditSheet profile={p} onClose={() => setSheet(null)} onSaved={() => { refreshProfile(); load() }} />}
       {sheet === 'password' && <PasswordSheet onClose={() => setSheet(null)} />}
       {sheet === 'appearance' && <AppearanceSheet onClose={() => setSheet(null)} />}
+      {sheet === 'devices' && <DevicesSheet onClose={() => setSheet(null)} />}
 
       {(sheet === 'account' || sheet === 'blocked' || sheet === 'delete') && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center" onClick={() => setSheet(null)}>
@@ -153,6 +163,8 @@ export default function Profile() {
               <button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
             </div>
             {sheet === 'account' && (<>
+              <Row Icon={Smartphone} onClick={() => setSheet('devices')}>লগইন করা ডিভাইস ও সেশন</Row>
+              <Row Icon={Download} onClick={exportData}>আমার ডেটা ডাউনলোড করুন</Row>
               <Row Icon={ShieldOff} onClick={() => { loadBlocked(); setSheet('blocked') }}>ব্লক করা ব্যবহারকারী</Row>
               <Row Icon={PowerOff} onClick={deactivate}>একাউন্ট ডিঅ্যাক্টিভ করুন (সাময়িক)</Row>
               <Row Icon={Trash2} danger onClick={() => { setConfirmTxt(''); setSheet('delete') }}>একাউন্ট ডিলিট করুন (স্থায়ী)</Row>

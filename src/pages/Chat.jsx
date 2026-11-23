@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Send, Plus, Mic, Phone, Video, Trash2 } from '../lib/icons'
+import { ArrowLeft, Send, Plus, Mic, Phone, Video, Trash2, MoreVertical } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useCall } from '../context/Call'
@@ -16,9 +16,27 @@ import CameraSheet from '../components/CameraSheet'
 import UserCard from '../components/UserCard'
 import PollSheet from '../components/chat/PollSheet'
 import ContactSheet from '../components/chat/ContactSheet'
+import MessageMenu from '../components/chat/MessageMenu'
+import PinnedBanner from '../components/chat/PinnedBanner'
+import ChatSearchBar from '../components/chat/ChatSearchBar'
+import ChatToolsSheet, { ttlLabel } from '../components/chat/ChatToolsSheet'
+import { useLongPress } from '../lib/useLongPress'
 
 const MAX = 50 * 1024 * 1024
 const LABEL = { image: '📷 ছবি', video: '🎬 ভিডিও', audio: '🎵 অডিও', voice: '🎤 ভয়েস মেসেজ' }
+
+// রেকর্ডিংয়ের সময় নেওয়া আওয়াজের মাপ থেকে ৪০টি তরঙ্গ-দণ্ড (০–১) বানানো
+const toBars = (arr, n = 40) => {
+  if (!arr.length) return null
+  const out = []
+  for (let i = 0; i < n; i++) {
+    const a = Math.floor((i * arr.length) / n), b = Math.max(a + 1, Math.floor(((i + 1) * arr.length) / n))
+    let m = 0
+    for (let j = a; j < b && j < arr.length; j++) m = Math.max(m, arr[j])
+    out.push(Math.round(m * 100) / 100)
+  }
+  return out
+}
 
 export default function Chat() {
   const { id } = useParams()
@@ -40,8 +58,15 @@ export default function Chat() {
   const [card, setCard] = useState(false)
   const [viewer, setViewer] = useState(null)
   const [rec, setRec] = useState(null)
+  const [ttl, setTtl] = useState(0)            // অদৃশ্য হওয়া মেসেজের সময় (সেকেন্ড, ০ = বন্ধ)
+  const [searching, setSearching] = useState(false)
+  const [menuMsg, setMenuMsg] = useState(null)
+  const [hl, setHl] = useState(null)
+  const [now, setNow] = useState(() => Date.now())
+  const hlT = useRef()
   const end = useRef(), msgsRef = useRef([])
   const mr = useRef(), chunks = useRef([]), recTimer = useRef(), recStart = useRef()
+  const peakBuf = useRef([]), peakTimer = useRef(), peakCtx = useRef()
   const refs = { image: useRef(), video: useRef(), audio: useRef(), file: useRef() }
   msgsRef.current = msgs
 
@@ -100,6 +125,26 @@ export default function Chat() {
     lastTyping.current = n
     typeCh.current.send({ type: 'broadcast', event: 'typing', payload: { from: user.id } })
   }
+
+  // ── অদৃশ্য হওয়া মেসেজ: সেটিং আনা, মেয়াদ শেষ মেসেজ সাফ ও লুকানো ──
+  const loadTtl = useCallback(async () => {
+    const [a, b] = user.id < id ? [user.id, id] : [id, user.id]
+    const { data } = await supabase.from('chat_ttl').select('ttl_secs').eq('user_a', a).eq('user_b', b).maybeSingle()
+    setTtl(data?.ttl_secs || 0)
+  }, [user.id, id])
+  useEffect(() => {
+    loadTtl()
+    supabase.rpc('purge_expired_messages').then(() => {}, () => {}) // ফাংশন না থাকলে কিছু হয় না
+    window.addEventListener('focus', loadTtl)
+    return () => window.removeEventListener('focus', loadTtl)
+  }, [loadTtl])
+  useEffect(() => {
+    if (!msgs.some((m) => m.expires_at)) return
+    const t = setInterval(() => setNow(Date.now()), 20000)
+    return () => clearInterval(t)
+  }, [msgs])
+  const shown = useMemo(() => msgs.filter((m) => !m.expires_at || new Date(m.expires_at).getTime() > now), [msgs, now])
+  const pinned = useMemo(() => shown.filter((m) => m.pinned_at).sort((a, b) => new Date(b.pinned_at) - new Date(a.pinned_at)), [shown])
 
   useEffect(() => { end.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
 
@@ -161,11 +206,41 @@ export default function Chat() {
     loadVotes([m])
   }
 
+  // ---------- মেসেজ চেপে ধরলে মেনু: কপি / পিন; খোঁজা থেকে লাফ ----------
+  const jump = (mid) => {
+    document.getElementById('m-' + mid)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setHl(mid); clearTimeout(hlT.current); hlT.current = setTimeout(() => setHl(null), 1600)
+  }
+  const copyText = async (t) => { try { await navigator.clipboard.writeText(t); toast.success('কপি হয়েছে') } catch { toast.error('কপি করা যায়নি') } }
+  const pinMsg = async (m) => {
+    const pin = !m.pinned_at
+    const { error } = await supabase.rpc('pin_message', { p_msg: m.id, p_pin: pin })
+    if (error) return toast.error(/pin_limit/.test(error.message) ? 'সর্বোচ্চ ৩টি মেসেজ পিন করা যায়' : /could not find the function|schema cache/i.test(error.message) ? 'চালু হয়নি — update-22.sql চালানো হয়নি' : errMsg(error))
+    setMsgs((l) => l.map((x) => (x.id === m.id ? { ...x, pinned_at: pin ? new Date().toISOString() : null } : x)))
+    toast.success(pin ? 'মেসেজ পিন করা হয়েছে' : 'পিন সরানো হয়েছে')
+  }
+  const lp = useLongPress((m) => { if (!String(m.id).startsWith('tmp-') && m.type !== 'call') setMenuMsg(m) })
+
   // ---------- ভয়েস রেকর্ডিং ----------
   const startRec = async () => {
     setErr('')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // আওয়াজের ওঠানামা মেপে রাখি, যাতে প্লেয়ারে আসল তরঙ্গ দেখানো যায়
+      peakBuf.current = []
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext
+        const actx = new AC(); peakCtx.current = actx
+        const an = actx.createAnalyser(); an.fftSize = 256
+        actx.createMediaStreamSource(stream).connect(an)
+        const data = new Uint8Array(an.fftSize)
+        clearInterval(peakTimer.current)
+        peakTimer.current = setInterval(() => {
+          an.getByteTimeDomainData(data)
+          let mx = 0; for (let i = 0; i < data.length; i++) mx = Math.max(mx, Math.abs(data[i] - 128))
+          peakBuf.current.push(Math.min(1, mx / 90))
+        }, 100)
+      } catch { /* তরঙ্গ ছাড়াই রেকর্ড হবে */ }
       const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((t) => window.MediaRecorder?.isTypeSupported(t)) || ''
       const r = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
       chunks.current = []
@@ -176,19 +251,21 @@ export default function Chat() {
   }
   const stopRec = (shouldSend) => {
     const r = mr.current; if (!r) return
-    clearInterval(recTimer.current)
+    clearInterval(recTimer.current); clearInterval(peakTimer.current)
+    try { peakCtx.current?.close() } catch { /* ignore */ }
+    const peaks = toBars(peakBuf.current)
     const duration = Math.round((Date.now() - recStart.current) / 1000)
     r.onstop = () => {
       r.stream.getTracks().forEach((t) => t.stop())
       if (shouldSend && duration >= 1) {
         const base = (r.mimeType || 'audio/webm').split(';')[0]
         const ext = base.includes('mp4') ? 'm4a' : base.includes('ogg') ? 'ogg' : 'webm'
-        sendFile(new File([new Blob(chunks.current, { type: base })], `voice-${Date.now()}.${ext}`, { type: base }), 'voice', { duration })
+        sendFile(new File([new Blob(chunks.current, { type: base })], `voice-${Date.now()}.${ext}`, { type: base }), 'voice', { duration, peaks })
       }
     }
     r.stop(); mr.current = null; setRec(null)
   }
-  useEffect(() => () => { clearInterval(recTimer.current); mr.current?.stream.getTracks().forEach((t) => t.stop()) }, [])
+  useEffect(() => () => { clearInterval(recTimer.current); clearInterval(peakTimer.current); try { peakCtx.current?.close() } catch { /* ignore */ } mr.current?.stream.getTracks().forEach((t) => t.stop()) }, [])
 
   return (
     <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-forest sm:max-w-xl lg:left-64 lg:max-w-3xl">
@@ -200,11 +277,16 @@ export default function Chat() {
         </button>
         <button disabled={inCall || !other} onClick={() => startCall(other, 'audio')} aria-label="অডিও কল" className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Phone size={19} /></button>
         <button disabled={inCall || !other} onClick={() => startCall(other, 'video')} aria-label="ভিডিও কল" className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Video size={19} /></button>
+        <button onClick={() => setSheet('tools')} aria-label="চ্যাট টুলস" className="grid h-10 w-10 place-items-center rounded-full bg-surface2"><MoreVertical size={19} /></button>
       </header>
 
+      {searching && <ChatSearchBar msgs={shown} onJump={jump} onClose={() => setSearching(false)} />}
+      {ttl > 0 && <p className="bg-surface2 px-4 py-1.5 text-center text-xs font-semibold text-fg/70">⏱ এই চ্যাটে নতুন মেসেজ {ttlLabel(ttl)} পর মুছে যায়</p>}
+      <PinnedBanner pinned={pinned} onJump={jump} />
+
       <div className="flex-1 space-y-2 overflow-y-auto p-4">
-        {msgs.map((m) => (
-          <div key={m.id}>
+        {shown.map((m) => (
+          <div key={m.id} id={`m-${m.id}`} {...lp(m)} className={`select-none rounded-2xl transition ${hl === m.id ? 'ring-2 ring-coral/60' : ''}`}>
             <Bubble m={m} mine={m.sender_id === user.id} myId={user.id} url={urls[m.media_path]}
               votes={votes[m.id]} onVote={vote} onOpenImage={setViewer} />
             {m._st === 'failed' && (
@@ -250,6 +332,8 @@ export default function Chat() {
       {sheet === 'menu' && <AttachMenu onPick={pick} onClose={() => setSheet(null)} />}
       {sheet === 'poll' && <PollSheet onClose={() => setSheet(null)} onCreate={async (meta) => { setSheet(null); await sendMsg({ type: 'poll', content: `📊 ${meta.question}`, meta }) }} />}
       {sheet === 'contact' && <ContactSheet onClose={() => setSheet(null)} onSend={async (meta) => { setSheet(null); await sendMsg({ type: 'contact', content: `👤 ${meta.name}`, meta }) }} />}
+      {menuMsg && <MessageMenu m={menuMsg} onClose={() => setMenuMsg(null)} onCopy={copyText} onPin={pinMsg} />}
+      {sheet === 'tools' && <ChatToolsSheet otherId={id} ttl={ttl} onTtl={setTtl} onSearch={() => setSearching(true)} onClose={() => setSheet(null)} />}
       {viewer && <div className="fixed inset-0 z-[80] grid place-items-center bg-black/90" onClick={() => setViewer(null)}><img src={viewer} alt="" className="max-h-full max-w-full" /></div>}
     </div>
   )

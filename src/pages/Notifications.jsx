@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, BellOff, Volume2, VolumeX } from '../lib/icons'
+import { Bell, BellOff, Volume2, VolumeX, Settings2 } from '../lib/icons'
 import { useNotifs, NOTIF_TEXT } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
 import { fmt } from '../lib/constants'
 import { pushState, enablePush, disablePush, pushDiagnose, sendTestPush } from '../lib/push'
 import { playDing, soundOn, setSoundOn } from '../lib/sound'
 import Avatar from '../components/Avatar'
+import NotifSettingsSheet from '../components/NotifSettingsSheet'
 
 const target = (n) => (n.link ? n.link : n.post_id ? `/post/${n.post_id}` : n.type === 'friend_request' ? '/friends' : `/profile/${n.actor_id}`)
 const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -21,6 +22,7 @@ export default function Notifications() {
   const [diag, setDiag] = useState(null)
   const [diagBusy, setDiagBusy] = useState(false)
   const [srv, setSrv] = useState('')
+  const [cfg, setCfg] = useState(false)
   useEffect(() => () => { markAllRead() }, [markAllRead])
   useEffect(() => { pushState().then(setPs) }, [])
 
@@ -45,7 +47,10 @@ export default function Notifications() {
 
   return (
     <div className="space-y-3 pt-2">
-      <h2 className="text-2xl font-extrabold">নোটিফিকেশন</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-extrabold">নোটিফিকেশন</h2>
+        <button onClick={() => setCfg(true)} aria-label="নোটিফিকেশন সেটিংস" className="grid h-10 w-10 place-items-center rounded-full bg-surface shadow-soft"><Settings2 size={20} /></button>
+      </div>
 
       <div className="flex gap-2">
         <button onClick={() => { const n = !snd; setSnd(n); setSoundOn(n); if (n) playDing() }}
@@ -85,6 +90,7 @@ export default function Notifications() {
         </div>
       )}
       {err && <p className="text-sm text-danger">{err}</p>}
+      {cfg && <NotifSettingsSheet onClose={() => setCfg(false)} />}
 
       {items.length === 0 && <p className="py-10 text-center text-fg/60">এখনও কোনো নোটিফিকেশন নেই।</p>}
       {items.map((n) => (
