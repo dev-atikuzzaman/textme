@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pin, PinOff, Pencil, Link2, Share2, Trash2, X, Bookmark, BookmarkCheck, EyeOff } from '../../lib/icons'
+import { Pin, PinOff, Pencil, Link2, Share2, Trash2, X, Bookmark, BookmarkCheck, EyeOff, Flag } from '../../lib/icons'
 
 function Row({ Icon, title, sub, onClick, danger }) {
   return (
@@ -10,7 +10,7 @@ function Row({ Icon, title, sub, onClick, danger }) {
   )
 }
 
-export default function PostMenu({ own, canPin, pinned, saved, onSave, onHide, onClose, onPin, onEdit, onCopy, onShare, onDelete }) {
+export default function PostMenu({ own, canPin, pinned, saved, onSave, onHide, onReport, onClose, onPin, onEdit, onCopy, onShare, onDelete }) {
   const [confirm, setConfirm] = useState(false)
   return (
     <div className="fixed inset-0 z-[65] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={onClose}>
@@ -34,6 +34,7 @@ export default function PostMenu({ own, canPin, pinned, saved, onSave, onHide, o
             {own && <Row Icon={Pencil} title="পোস্ট এডিট করুন" sub="লেখা ও গোপনীয়তা বদলান" onClick={onEdit} />}
             {onSave && <Row Icon={saved ? BookmarkCheck : Bookmark} title={saved ? 'সেভ থেকে সরান' : 'পোস্ট সেভ করুন'} sub={saved ? undefined : 'পরে ফিডের "সেভ করা" ট্যাবে দেখুন'} onClick={onSave} />}
             {!own && onHide && <Row Icon={EyeOff} title="পোস্টটি লুকান" sub="আপনার ফিডে আর দেখাবে না" onClick={onHide} />}
+            {!own && onReport && <Row Icon={Flag} title="রিপোর্ট করুন" sub="আপত্তিকর বা ক্ষতিকর মনে হলে" onClick={onReport} />}
             <Row Icon={Link2} title="লিংক কপি করুন" onClick={onCopy} />
             <Row Icon={Share2} title="শেয়ার করুন" onClick={onShare} />
             {own && <Row Icon={Trash2} danger title="পোস্ট মুছুন" onClick={() => setConfirm(true)} />}
