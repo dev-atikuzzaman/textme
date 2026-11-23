@@ -1,7 +1,9 @@
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
 import ErrorBoundary from './ErrorBoundary'
 import PageLoader from './PageLoader'
+import { useAuth } from '../context/Auth'
+import { registerDevice } from '../lib/devices'
 import { Home, Clapperboard, Users, MessageCircle, User, PlaySquare, Youtube, Bell, Search, UsersRound } from '../lib/icons'
 import { NotifProvider, useNotifs } from '../context/Notifications'
 import { APP_NAME } from '../lib/brand'
@@ -38,6 +40,15 @@ function Shell() {
   const { pathname } = useLocation()
   const { unread } = useNotifs()
   const { unread: unreadMsgs } = useInbox()
+  const { user } = useAuth()
+  const total = unread + unreadMsgs
+  // অ্যাপ আইকনে (ইনস্টল করা অ্যাপে) অপঠিত সংখ্যার ব্যাজ
+  useEffect(() => {
+    try {
+      if ('setAppBadge' in navigator) (total > 0 ? navigator.setAppBadge(total) : navigator.clearAppBadge()).catch(() => {})
+    } catch { /* ignore */ }
+  }, [total])
+  useEffect(() => { registerDevice(user.id) }, [user.id]) // লগইন করা ডিভাইসের তালিকার জন্য
   const inGroup = /^\/groups\/[^/]+/.test(pathname)          // গ্রুপ খুললে ওপর-নিচের বার থাকে না
   const inPage = /^\/pages\/[^/]+/.test(pathname)
   const inChat = pathname.startsWith('/chat') || inGroup

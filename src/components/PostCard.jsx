@@ -23,6 +23,7 @@ import AutoVideo from './post/AutoVideo'
 import NoteCard from './post/NoteCard'
 import NoteReader from './post/NoteReader'
 import SmartImg from './SmartImg'
+import ReportSheet from './ReportSheet'
 
 export default function PostCard({ post, onChange, onHide }) {
   const { user } = useAuth()
@@ -170,10 +171,11 @@ export default function PostCard({ post, onChange, onHide }) {
       {sheet === 'note' && <NoteReader post={post} onClose={() => setSheet(null)} />}
       {sheet === 'zoom' && <Lightbox src={post.media_url} onClose={() => setSheet(null)} />}
       {sheet === 'who' && <ReactionsSheet table="likes" col="post_id" id={post.id} onClose={() => setSheet(null)} />}
+      {sheet === 'report' && <ReportSheet type="post" targetId={post.id} userId={post.user_id} title="পোস্ট রিপোর্ট করুন" onClose={() => setSheet(null)} />}
       {sheet === 'edit' && <EditPostSheet post={post} onClose={() => setSheet(null)} onSaved={onChange} />}
       {sheet === 'menu' && (
         <PostMenu own={own} canPin={post.kind === 'post'} pinned={!!post.pinned_at} saved={saved} onSave={doSave} onHide={onHide ? doHide : undefined}
-          onClose={() => setSheet(null)} onPin={pin} onEdit={() => setSheet('edit')} onCopy={copy} onShare={share} onDelete={del} />
+          onReport={() => setSheet('report')} onClose={() => setSheet(null)} onPin={pin} onEdit={() => setSheet('edit')} onCopy={copy} onShare={share} onDelete={del} />
       )}
     </article>
   )
