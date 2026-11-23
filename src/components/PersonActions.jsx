@@ -5,6 +5,24 @@ import { useRelation } from '../lib/useRelation'
 import { useChatPrefs } from '../context/ChatPrefs'
 import { confirmDialog } from '../lib/ui'
 import ReportSheet from './ReportSheet'
+import RelationPicker from './family/RelationPicker'
+import { useRelations } from '../lib/useRelations'
+import { relLabel } from '../lib/family'
+import { Tag } from 'lucide-react'
+
+// মেনু খুললে তবেই লোড হয় (তালিকার প্রতিটি কার্ডে বাড়তি কোয়েরি হয় না)
+function RelationItem({ person, onDone }) {
+  const rels = useRelations()
+  const [open, setOpen] = useState(false)
+  const cur = rels.map[person.id]
+  if (rels.missing) return null
+  return (
+    <>
+      <button onClick={() => setOpen(true)} className="flex w-full items-center gap-4 rounded-2xl bg-surface2 p-4 font-semibold"><Tag size={20} />{cur ? `সম্পর্ক: ${relLabel(cur)} (বদলান)` : 'সম্পর্ক ঠিক করুন (মামা, খালা…)'}</button>
+      {open && <RelationPicker person={person} current={cur} onClose={() => setOpen(false)} onPick={async (id) => { if (await rels.set(person.id, id)) { setOpen(false); onDone() } }} />}
+    </>
+  )
+}
 
 // ফেসবুকের মতো আনফ্রেন্ড কনফার্ম পপ-আপ
 export function UnfriendDialog({ name, onClose, onConfirm }) {
@@ -65,6 +83,7 @@ export default function PersonActions({ p, size = 'sm', onChange }) {
             {r.state !== 'blocked' && <Item icon={Hand} label="পোক করুন 👉" onClick={r.poke} />}
             <Item icon={cp.isArchived(key) ? ArchiveRestore : Archive} label={cp.isArchived(key) ? 'আর্কাইভ থেকে বের করুন' : 'আর্কাইভ করুন (চ্যাট লুকান)'} onClick={() => cp.setPref(key, { archived: !cp.isArchived(key) })} />
             {r.state === 'friends' && <Item icon={UserX} label="বন্ধুত্ব শেষ করুন" onClick={() => setUnf(true)} danger />}
+            {r.state === 'friends' && <RelationItem person={p} onDone={() => setMenu(false)} />}
             <Item icon={Flag} label="রিপোর্ট করুন" onClick={() => setRep(true)} />
             {r.state === 'blocked'
               ? <Item icon={ShieldOff} label="আনব্লক করুন" onClick={after(r.unblock)} />

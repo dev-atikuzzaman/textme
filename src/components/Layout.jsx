@@ -1,5 +1,7 @@
 import { Suspense, useEffect } from 'react'
-import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { HeartHandshake } from 'lucide-react'
+import { PENDING_INVITE } from '../lib/family'
 import ErrorBoundary from './ErrorBoundary'
 import PageLoader from './PageLoader'
 import { useAuth } from '../context/Auth'
@@ -26,6 +28,7 @@ const tabs = [
   { to: '/profile', Icon: User, label: 'প্রোফাইল' },
 ]
 const extra = [
+  { to: '/family', Icon: HeartHandshake, label: 'পরিবার' },
   { to: '/groups', Icon: UsersRound, label: 'গ্রুপ ও পেজ' },
   { to: '/videos', Icon: PlaySquare, label: 'ভিডিও' },
   { to: '/youtube', Icon: Youtube, label: 'ইউটিউব' },
@@ -49,6 +52,11 @@ function Shell() {
     } catch { /* ignore */ }
   }, [total])
   useEffect(() => { registerDevice(user.id) }, [user.id]) // লগইন করা ডিভাইসের তালিকার জন্য
+  // আমন্ত্রণ-লিংক খুলে লগইন করলে আবার ওই আমন্ত্রণ-পেজে নিয়ে যাই (সেখানে "যোগ দিন" চাপলেই বন্ধু হয়)
+  const nav = useNavigate()
+  useEffect(() => {
+    try { const c = localStorage.getItem(PENDING_INVITE); if (c && !pathname.startsWith('/join')) nav(`/join/${c}`, { replace: true }) } catch { /* ignore */ }
+  }, [pathname, nav])
   const inGroup = /^\/groups\/[^/]+/.test(pathname)          // গ্রুপ খুললে ওপর-নিচের বার থাকে না
   const inPage = /^\/pages\/[^/]+/.test(pathname)
   const inChat = pathname.startsWith('/chat') || inGroup
@@ -84,6 +92,7 @@ function Shell() {
                 <Bell size={22} />
                 <Badge n={unread} className="-right-1 -top-1" />
               </Link>
+              <Link to="/family" aria-label="পরিবার" className="grid h-11 w-11 place-items-center rounded-2xl bg-surface text-coral shadow-soft lg:hidden"><HeartHandshake size={22} /></Link>
               <Link to="/videos" aria-label="ভিডিও" className="grid h-11 w-11 place-items-center rounded-2xl bg-surface shadow-soft lg:hidden"><PlaySquare size={22} /></Link>
             </div>
           </header>
