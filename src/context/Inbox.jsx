@@ -28,7 +28,8 @@ export function InboxProvider({ children }) {
   const reload = useCallback(() => { clearTimeout(timer.current); timer.current = setTimeout(load, 250) }, [load])
 
   useEffect(() => {
-    load()
+    // মেয়াদ শেষ (অদৃশ্য হওয়া) মেসেজ আগে সাফ করে তারপর ইনবক্স লোড (ফাংশন না থাকলে সরাসরি লোড)
+    supabase.rpc('purge_expired_messages').then(() => load(), () => load())
     const ch = supabase.channel(`inbox-${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` }, reload)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `sender_id=eq.${user.id}` }, reload)

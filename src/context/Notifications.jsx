@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { syncPush } from '../lib/push'
 import { playDing } from '../lib/sound'
+import { loadPrefs, TYPE_CAT, quietNow } from '../lib/notifPrefs'
 
 const Ctx = createContext(null)
 export const useNotifs = () => useContext(Ctx)
@@ -51,30 +52,38 @@ export function NotifProvider({ children }) {
   useEffect(() => {
     load()
     syncPush()
+    // নোটিফিকেশন সেটিংস: বন্ধ করা ধরনের ব্যানার/সাউন্ড আসে না; "চুপ থাকার সময়"-এ সাউন্ড বন্ধ
+    let prefs = null
+    const refreshPrefs = () => loadPrefs().then((p) => { prefs = p })
+    refreshPrefs(); window.addEventListener('apon-prefs', refreshPrefs)
+    const on = (cat) => !cat || prefs?.[cat] !== false
+    const ding = (v) => { if (!quietNow(prefs)) playDing(v) }
     const nameOf = async (id) => (await supabase.from('profiles').select('full_name').eq('id', id).single()).data?.full_name || 'কেউ'
     const ch = supabase.channel(`notif-${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
         async (p) => {
           load()
+          if (!on(TYPE_CAT[p.new.type])) return // এই ধরনের অ্যালার্ট ব্যবহারকারী বন্ধ রেখেছেন
           // গ্রুপ কলের রিং GroupCall নিজেই বাজায়, তাই আলাদা ডিং নয়
-          if (p.new.type !== 'group_call') playDing()
+          if (p.new.type !== 'group_call') ding()
           announce(await nameOf(p.new.actor_id), NOTIF_TEXT[p.new.type], p.new.link || '/notifications')
         })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` },
         async (p) => {
           if (p.new.type === 'call') return // কলের রিংটোন Call context বাজায়
+          if (!on('n_messages')) return
           // চ্যাট খোলা থাকলেও নতুন মেসেজে হালকা সাউন্ড (WhatsApp-এর মতো), কিন্তু পপ-আপ নয়
-          if (path.current === `/chat/${p.new.sender_id}`) { playDing(0.5); return }
-          playDing()
+          if (path.current === `/chat/${p.new.sender_id}`) { ding(0.5); return }
+          ding()
           announce(await nameOf(p.new.sender_id), p.new.content, `/chat/${p.new.sender_id}`)
         })
       // গ্রুপ মেসেজ: RLS অনুযায়ী শুধু আপনার গ্রুপগুলোর মেসেজই আসে
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages' },
         async (p) => {
-          if (p.new.sender_id === user.id) return
+          if (p.new.sender_id === user.id || !on('n_messages')) return
           const to = `/groups/${p.new.group_id}?tab=chat`
-          if (path.current.startsWith(`/groups/${p.new.group_id}`)) { playDing(0.5); return }
-          playDing()
+          if (path.current.startsWith(`/groups/${p.new.group_id}`)) { ding(0.5); return }
+          ding()
           const [{ data: g }, who] = await Promise.all([
             supabase.from('groups').select('name').eq('id', p.new.group_id).maybeSingle(),
             nameOf(p.new.sender_id),
@@ -82,7 +91,7 @@ export function NotifProvider({ children }) {
           announce(g?.name || 'গ্রুপ', `${who}: ${p.new.content ? String(p.new.content).slice(0, 100) : '📷 ছবি/ফাইল'}`, to)
         })
       .subscribe()
-    return () => { supabase.removeChannel(ch) }
+    return () => { supabase.removeChannel(ch); window.removeEventListener('apon-prefs', refreshPrefs) }
   }, [user.id, load, announce])
 
   return (
