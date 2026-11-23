@@ -35,6 +35,9 @@ const Groups = lazyPage(() => import('./pages/Groups'))
 const Group = lazyPage(() => import('./pages/Group'))
 const PageView = lazyPage(() => import('./pages/PageView'))
 const ResetPassword = lazyPage(() => import('./pages/ResetPassword'))
+const Family = lazyPage(() => import('./pages/Family'))
+const AlbumView = lazyPage(() => import('./pages/AlbumView'))
+const Join = lazyPage(() => import('./pages/Join'))
 
 // অ্যাপ খোলা বা পেছনে থাকা অবস্থায় Service Worker থেকে মেসেজ এলে সাউন্ড বাজায়
 function NotificationSound() {
@@ -65,6 +68,7 @@ export default function App() {
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset" element={<ResetPassword />} />
+        <Route path="/join/:code" element={<Join />} />
         <Route element={<Guard><Layout /></Guard>}>
           <Route index element={<Feed />} />
           <Route path="reels" element={<Reels />} />
@@ -80,6 +84,8 @@ export default function App() {
           <Route path="groups" element={<Groups />} />
           <Route path="groups/:id" element={<LockGate prefix="g"><Group /></LockGate>} />
           <Route path="pages/:id" element={<PageView />} />
+          <Route path="family" element={<Family />} />
+          <Route path="albums/:id" element={<AlbumView />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
