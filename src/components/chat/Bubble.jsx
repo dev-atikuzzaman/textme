@@ -1,9 +1,10 @@
-import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck, Clock, AlertCircle } from '../../lib/icons'
+import { Phone, Video, FileText, Download, PhoneMissed, UserRound, PhoneOff, Check, CheckCheck, Clock, AlertCircle, Pin } from '../../lib/icons'
 import { linkify } from '../../lib/linkify'
 import { findYt } from '../../lib/yt'
 import YouTubeEmbed from '../YouTubeEmbed'
 import { fmtSize, mmss, downloadVcf } from '../../lib/media'
 import SmartImg from '../SmartImg'
+import VoicePlayer from './VoicePlayer'
 
 const time = (d) => new Date(d).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
 
@@ -34,7 +35,7 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
       body = (<div className="space-y-1"><p className="max-w-[14rem] truncate text-sm font-semibold">🎵 {m.file_name}</p>{url && <audio src={url} controls preload="none" className="h-10 w-56" />}</div>)
       break
     case 'voice':
-      body = (<div className="space-y-1"><p className="text-sm font-semibold">🎤 ভয়েস মেসেজ • {mmss(m.meta?.duration)}</p>{url && <audio src={url} controls preload="metadata" className="h-10 w-56" />}</div>)
+      body = <VoicePlayer url={url} duration={m.meta?.duration} peaks={m.meta?.peaks} mine={mine} seed={m.id} />
       break
     case 'file':
       body = (
@@ -92,7 +93,7 @@ export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenI
     <div className={`flex ${mine ? 'justify-end' : ''}`}>
       <div className={`max-w-[82%] rounded-2xl px-3.5 py-2 ${mine ? 'rounded-tr-sm bg-bubble text-white' : 'rounded-tl-sm bg-surface2'}`}>
         {body}
-        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${sub}`}>{time(m.created_at)}{mine && (m._st === 'sending' ? <Clock size={13} aria-label="পাঠানো হচ্ছে" /> : m._st === 'failed' ? <AlertCircle size={14} aria-label="পাঠানো যায়নি" className="text-red-300" /> : m.read_at ? <CheckCheck size={14} className="text-sky-300" /> : <Check size={14} />)}</p>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${sub}`}>{m.pinned_at && <Pin size={11} aria-label="পিন করা" />}{time(m.created_at)}{mine && (m._st === 'sending' ? <Clock size={13} aria-label="পাঠানো হচ্ছে" /> : m._st === 'failed' ? <AlertCircle size={14} aria-label="পাঠানো যায়নি" className="text-red-300" /> : m.read_at ? <CheckCheck size={14} className="text-sky-300" /> : <Check size={14} />)}</p>
       </div>
     </div>
   )
