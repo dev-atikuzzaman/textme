@@ -9,6 +9,7 @@ import PostCard from '../components/PostCard'
 import PostSkeleton from '../components/PostSkeleton'
 import UploadSheet from '../components/UploadSheet'
 import StoriesBar from '../components/home/StoriesBar'
+import FamilyCard from '../components/family/FamilyCard'
 import ActiveFriends from '../components/home/ActiveFriends'
 import Avatar from '../components/Avatar'
 import NoteSheet from '../components/NoteSheet'
@@ -124,6 +125,7 @@ export default function Feed() {
   return (
     <div className="space-y-4">
       <StoriesBar />
+      <FamilyCard />
       <ActiveFriends />
 
       <div className="rounded-[28px] bg-surface p-4 shadow-soft">

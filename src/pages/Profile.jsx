@@ -12,6 +12,8 @@ import AppearanceSheet from '../components/AppearanceSheet'
 import { Palette, Smartphone } from 'lucide-react'
 import DevicesSheet from '../components/DevicesSheet'
 import { exportMyData } from '../lib/exportData'
+import { useRelations } from '../lib/useRelations'
+import { relLabel } from '../lib/family'
 import AvatarViewer from '../components/AvatarViewer'
 import ProfileEditSheet from '../components/ProfileEditSheet'
 import PersonActions from '../components/PersonActions'
@@ -25,6 +27,7 @@ export default function Profile() {
   const { user, profile: me, refreshProfile } = useAuth()
   const uid = id || user.id
   const own = uid === user.id
+  const rels = useRelations() // আমি একে কী বলে ডাকি (মামা, খালা…)
   const [p, setP] = useState(own ? me : null)
   const [posts, setPosts] = useState([])
   const [sheet, setSheet] = useState(null) // view | edit | password | appearance | account | blocked | delete
@@ -120,6 +123,7 @@ export default function Profile() {
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={changeAvatar} />
         <h2 className="mt-3 text-2xl font-extrabold">{p.full_name}</h2>
         <p className="text-inverse/80">@{p.username}</p>
+        {!own && rels.map[p.id] && <p className="mt-1.5 inline-block rounded-full bg-white/20 px-3 py-0.5 text-sm font-semibold">আপনার {relLabel(rels.map[p.id])}</p>}
         {canSee && p.bio && <p className="mt-2 text-inverse/90">{p.bio}</p>}
       </div>
 

@@ -54,6 +54,7 @@ export default function Auth() {
         <BrandMark size={84} className="mb-4 drop-shadow-lg" />
         <h1 className="text-3xl font-extrabold leading-tight">{mode === 'forgot' ? 'পাসওয়ার্ড ভুলে গেছেন?' : <>{APP_NAME}<span className="block text-lg font-semibold text-fg/60">{APP_TAGLINE}</span></>}</h1>
         <p className="mt-2 text-fg/60">{mode === 'forgot' ? 'একাউন্টের ইমেইল দিন, আমরা পাসওয়ার্ড বদলানোর লিংক পাঠাব।' : 'পরিবার ও আত্মীয়দের জন্য ছোট্ট একটি সোশ্যাল স্পেস।'}</p>
+          {mode !== 'forgot' && (() => { try { return !!localStorage.getItem('apon-invite') } catch { return false } })() && <p className="mt-3 rounded-2xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand">🎉 পরিবারের আমন্ত্রণ পেয়েছেন — লগইন বা একাউন্ট খুলুন, তারপর যোগ দেওয়া যাবে।</p>}
       </div>
 
       {mode !== 'forgot' && (<>
