@@ -22,6 +22,20 @@ webpush.setVapidDetails(
 )
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
+// ── নোটিফিকেশন সেটিংস (notification_prefs): ক্যাটেগরি বন্ধ বা "চুপ থাকার সময়" হলে ওই ইউজারকে পুশ যায় না (কল ছাড়া) ──
+const CAT: Record<string, string> = {
+  like: 'n_likes', comment: 'n_comments', reply: 'n_comments',
+  friend_request: 'n_friends', friend_accept: 'n_friends', poke: 'n_friends',
+  post: 'n_posts', group_post: 'n_posts', page_post: 'n_posts', group_add: 'n_posts', group_call: 'n_messages',
+}
+function inQuiet(p: any, now = new Date()): boolean {
+  if (!p?.quiet_on) return false
+  const mins = (now.getUTCHours() * 60 + now.getUTCMinutes() + (p.tz_offset ?? 360) + 1440) % 1440
+  const a = p.quiet_from ?? 1320, b = p.quiet_to ?? 420
+  if (a === b) return false
+  return a < b ? mins >= a && mins < b : mins >= a || mins < b
+}
+
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret' }
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } })
 
@@ -102,6 +116,19 @@ Deno.serve(async (req) => {
     return new Response('ignored')
   }
   if (!targets.length) return new Response('no targets')
+
+  // সেটিংস অনুযায়ী ছেঁকে নিই (টেবিল না থাকলে বা সেটিং না থাকলে আগের মতোই সবাইকে পাঠানো হয়)
+  const cat = table === 'notifications' ? CAT[record.type] : (type === 'call' ? null : 'n_messages')
+  const { data: prefs } = await db.from('notification_prefs').select('*').in('user_id', targets)
+  const pm = new Map<string, any>((prefs ?? []).map((p: any) => [p.user_id, p] as [string, any]))
+  targets = targets.filter((uid) => {
+    const p = pm.get(uid)
+    if (!p) return true
+    if (cat && p[cat] === false) return false
+    if (type !== 'call' && inQuiet(p)) return false
+    return true
+  })
+  if (!targets.length) return new Response('muted by user settings')
 
   const [{ data: actor }, { data: subs }] = await Promise.all([
     db.from('profiles').select('full_name').eq('id', actorId).single(),
