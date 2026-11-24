@@ -46,7 +46,7 @@ export default function InvitePanel() {
     <div className="space-y-4 rounded-3xl bg-surface p-5 shadow-soft">
       <div className="text-center">
         <h3 className="text-lg font-extrabold">আপনজনদের আমন্ত্রণ জানান</h3>
-        <p className="mt-1 text-sm text-fg/60">লিংক বা QR পাঠান। যিনি ঢুকবেন তিনি এক ট্যাপে আপনার বন্ধু হয়ে যাবেন।</p>
+        <p className="mt-1 text-sm text-fg/65">লিংক বা QR পাঠান। যিনি ঢুকবেন তিনি এক ট্যাপে আপনার বন্ধু হয়ে যাবেন।</p>
       </div>
       <div className="mx-auto grid h-56 w-56 place-items-center rounded-3xl bg-white p-3 ring-1 ring-fg/10">
         {qr ? <img src={qr} alt="আমন্ত্রণের QR কোড" className="h-full w-full" /> : <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand/20 border-t-brand" aria-label="লোড হচ্ছে" />}
@@ -57,8 +57,8 @@ export default function InvitePanel() {
         <button onClick={share} disabled={!url} className="btn-primary"><Share2 size={18} />শেয়ার করুন</button>
       </div>
       {qr && <a href={qr} download="apon-invite-qr.png" className="btn-soft w-full">QR ছবি সেভ করুন</a>}
-      <p className="text-xs text-fg/55">লিংকটি ৩০ দিন চলবে এবং সর্বোচ্চ ২৫ জন ব্যবহার করতে পারবেন। শুধু বিশ্বস্ত আপনজনদের পাঠান। লিংক ভুল হাতে গেলে নতুন বানিয়ে নিন।</p>
-      <button onClick={renew} className="mx-auto flex items-center gap-1.5 text-sm font-semibold text-fg/60"><RefreshCw size={15} />নতুন লিংক বানান</button>
+      <p className="text-xs text-fg/65">লিংকটি ৩০ দিন চলবে এবং সর্বোচ্চ ২৫ জন ব্যবহার করতে পারবেন। শুধু বিশ্বস্ত আপনজনদের পাঠান। লিংক ভুল হাতে গেলে নতুন বানিয়ে নিন।</p>
+      <button onClick={renew} className="mx-auto flex items-center gap-1.5 text-sm font-semibold text-fg/65"><RefreshCw size={15} />নতুন লিংক বানান</button>
     </div>
   )
 }

@@ -38,14 +38,14 @@ export default function FamilyTree({ onInvite }) {
     <div className="space-y-3 rounded-3xl bg-surface p-6 text-center shadow-soft">
       <p className="text-4xl">🌳</p>
       <p className="font-bold">আপনার ফ্যামিলি ট্রি এখনও খালি</p>
-      <p className="text-sm text-fg/60">আপনজনদের আমন্ত্রণ জানান, তারপর প্রত্যেককে সম্পর্কের ট্যাগ (মামা, খালা, দাদু…) দিন।</p>
+      <p className="text-sm text-fg/65">আপনজনদের আমন্ত্রণ জানান, তারপর প্রত্যেককে সম্পর্কের ট্যাগ (মামা, খালা, দাদু…) দিন।</p>
       <button onClick={onInvite} className="btn-primary">আপনজনদের আমন্ত্রণ জানান</button>
     </div>
   )
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-fg/60">প্রতিটি নামের নিচের ট্যাগে চাপ দিয়ে সম্পর্ক বদলাতে পারেন।</p>
+      <p className="text-sm text-fg/65">প্রতিটি নামের নিচের ট্যাগে চাপ দিয়ে সম্পর্ক বদলাতে পারেন।</p>
       {GENERATIONS.map((g) => {
         const items = tagged(g.gen)
         if (!items.length && g.gen !== 0) return null
@@ -53,7 +53,7 @@ export default function FamilyTree({ onInvite }) {
           <div key={g.gen}>
             <Line />
             <section className="rounded-3xl bg-surface p-4 shadow-soft">
-              <p className="mb-3 text-center text-xs font-bold tracking-wide text-fg/50">{g.title}</p>
+              <p className="mb-3 text-center text-xs font-bold tracking-wide text-fg/65">{g.title}</p>
               <div className="flex flex-wrap justify-center gap-x-3 gap-y-4">
                 {g.gen === 0 && (
                   <div className="flex w-20 flex-col items-center gap-1 text-center">
@@ -71,7 +71,7 @@ export default function FamilyTree({ onInvite }) {
 
       {others.length > 0 && (
         <section className="rounded-3xl bg-surface p-4 shadow-soft">
-          <p className="mb-3 text-center text-xs font-bold tracking-wide text-fg/50">বন্ধু ও অন্যান্য আত্মীয়</p>
+          <p className="mb-3 text-center text-xs font-bold tracking-wide text-fg/65">বন্ধু ও অন্যান্য আত্মীয়</p>
           <div className="flex flex-wrap justify-center gap-x-3 gap-y-4">{others.map((p) => <Person key={p.id} p={p} rel={rels.map[p.id]} onTag={() => setPick(p)} />)}</div>
         </section>
       )}

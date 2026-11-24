@@ -14,13 +14,13 @@ export default function RelationPicker({ person, current, onPick, onClose }) {
           <Avatar p={person} size={44} />
           <div className="min-w-0 flex-1">
             <h2 className="truncate text-lg font-bold">{person?.full_name}</h2>
-            <p className="text-sm text-fg/60">আপনি ওকে কী বলে ডাকেন?</p>
+            <p className="text-sm text-fg/65">আপনি ওকে কী বলে ডাকেন?</p>
           </div>
           <button onClick={onClose} aria-label="বন্ধ করুন" className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
         </div>
         {groups.map((g) => (
           <section key={g.title}>
-            <p className="mb-1.5 text-sm font-bold text-fg/60">{g.title}</p>
+            <p className="mb-1.5 text-sm font-bold text-fg/65">{g.title}</p>
             <div className="flex flex-wrap gap-2">
               {g.items.map((r) => (
                 <button key={r.id} onClick={() => onPick(r.id)} aria-pressed={current === r.id}
@@ -30,7 +30,7 @@ export default function RelationPicker({ person, current, onPick, onClose }) {
           </section>
         ))}
         {current && <button onClick={() => onPick(null)} className="btn-soft w-full !text-danger">সম্পর্কের ট্যাগ সরান</button>}
-        <p className="text-xs text-fg/55">এই ট্যাগ শুধু আপনিই দেখতে পাবেন। ফ্যামিলি ট্রি এর ওপর ভিত্তি করে সাজানো হয়।</p>
+        <p className="text-xs text-fg/65">এই ট্যাগ শুধু আপনিই দেখতে পাবেন। ফ্যামিলি ট্রি এর ওপর ভিত্তি করে সাজানো হয়।</p>
       </div>
     </div>
   )

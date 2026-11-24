@@ -39,9 +39,9 @@ function CreateAlbumSheet({ onClose, onCreated }) {
         </div>
         <input className="input" placeholder="অ্যালবামের নাম (যেমন: ঈদ ২০২৬)" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} />
         <input className="input" placeholder="ছোট বর্ণনা (ঐচ্ছিক)" maxLength={200} value={desc} onChange={(e) => setDesc(e.target.value)} />
-        <p className="font-bold">কাদের সাথে শেয়ার করবেন? <span className="text-sm font-normal text-fg/55">({bn(sel.length)} জন)</span></p>
+        <p className="font-bold">কাদের সাথে শেয়ার করবেন? <span className="text-sm font-normal text-fg/65">({bn(sel.length)} জন)</span></p>
         <div className="max-h-56 space-y-1.5 overflow-y-auto">
-          {list.length === 0 && <p className="text-sm text-fg/55">আগে আপনজনদের বন্ধু বানান বা আমন্ত্রণ জানান।</p>}
+          {list.length === 0 && <p className="text-sm text-fg/65">আগে আপনজনদের বন্ধু বানান বা আমন্ত্রণ জানান।</p>}
           {list.map((p) => (
             <button key={p.id} onClick={() => toggle(p.id)} aria-pressed={sel.includes(p.id)}
               className={`flex w-full items-center gap-3 rounded-2xl p-2.5 text-left ${sel.includes(p.id) ? 'bg-brand/15 ring-2 ring-brand' : 'bg-surface2'}`}>
@@ -71,7 +71,7 @@ export default function Albums() {
   useEffect(() => { load() }, [load])
 
   if (missing) return <p className="rounded-3xl bg-danger/10 p-4 text-sm text-danger">অ্যালবাম চালু করতে Supabase-এ update-23.sql একবার চালাতে হবে।</p>
-  if (list === null) return <p className="py-10 text-center text-fg/55">লোড হচ্ছে…</p>
+  if (list === null) return <p className="py-10 text-center text-fg/65">লোড হচ্ছে…</p>
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -82,18 +82,18 @@ export default function Albums() {
         <div className="space-y-2 rounded-3xl bg-surface p-6 text-center shadow-soft">
           <Images size={36} className="mx-auto text-brand" />
           <p className="font-bold">এখনও কোনো অ্যালবাম নেই</p>
-          <p className="text-sm text-fg/60">আপনজনদের নিয়ে একটি অ্যালবাম বানান। সবাই মিলে ছবি যোগ করতে পারবে।</p>
+          <p className="text-sm text-fg/65">আপনজনদের নিয়ে একটি অ্যালবাম বানান। সবাই মিলে ছবি যোগ করতে পারবে।</p>
         </div>
       )}
       <div className="grid grid-cols-2 gap-3">
         {list.map((a) => (
           <Link key={a.id} to={`/albums/${a.id}`} className="overflow-hidden rounded-3xl bg-surface shadow-soft active:scale-[0.98]">
             <div className="grid aspect-square place-items-center bg-surface2">
-              {a.cover_url ? <SmartImg src={a.cover_url} alt="" className="h-full w-full object-cover" /> : <Images size={34} className="text-fg/30" />}
+              {a.cover_url ? <SmartImg src={a.cover_url} alt="অ্যালবামের কভার" className="h-full w-full object-cover" /> : <Images size={34} className="text-fg/65" />}
             </div>
             <div className="p-3">
               <b className="block truncate">{a.title}</b>
-              <span className="text-xs text-fg/55">{bn(a.photo_count)}টি ছবি • {bn(a.member_count)} জন</span>
+              <span className="text-xs text-fg/65">{bn(a.photo_count)}টি ছবি • {bn(a.member_count)} জন</span>
             </div>
           </Link>
         ))}

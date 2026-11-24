@@ -61,7 +61,7 @@ function BirthdaySheet({ current, onClose, onSaved }) {
       <label className="block text-sm font-semibold">সাল (ঐচ্ছিক — দিলে বয়স দেখানো যাবে)
         <input className="input mt-1" inputMode="numeric" maxLength={4} placeholder="যেমন 1990" value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, ''))} />
       </label>
-      <p className="text-xs text-fg/55">শুধু আপনার বন্ধুরা এটি দেখতে পাবে। জন্মদিনে তাদের কাছে রিমাইন্ডার যাবে।</p>
+      <p className="text-xs text-fg/65">শুধু আপনার বন্ধুরা এটি দেখতে পাবে। জন্মদিনে তাদের কাছে রিমাইন্ডার যাবে।</p>
       <div className="flex gap-3">
         {current && <button onClick={remove} className="btn-soft !text-danger">সরান</button>}
         <button onClick={save} disabled={busy} className="btn-primary flex-1">{busy ? 'সেভ হচ্ছে…' : 'সেভ করুন'}</button>
@@ -117,7 +117,7 @@ function EventSheet({ onClose, onSaved }) {
           {groups.map((g) => <option key={g.id} value={g.id}>গ্রুপ: {g.name}</option>)}
         </select>
       </label>
-      <p className="text-xs text-fg/55">ঈদের তারিখ চাঁদ দেখার ওপর নির্ভর করে, তাই নিশ্চিত হয়ে তারিখ বসান। আগের দিন ও সেদিন সবার কাছে রিমাইন্ডার যাবে।</p>
+      <p className="text-xs text-fg/65">ঈদের তারিখ চাঁদ দেখার ওপর নির্ভর করে, তাই নিশ্চিত হয়ে তারিখ বসান। আগের দিন ও সেদিন সবার কাছে রিমাইন্ডার যাবে।</p>
       <button onClick={save} disabled={busy} className="btn-primary w-full">{busy ? 'যোগ হচ্ছে…' : 'অনুষ্ঠান যোগ করুন'}</button>
     </Sheet>
   )
@@ -139,7 +139,7 @@ export default function Events() {
     const since = new Date(); since.setHours(0, 0, 0, 0)
     const [b, e] = await Promise.all([
       supabase.from('birthdays').select('*, profiles(id, full_name, avatar_url)'),
-      supabase.from('family_events').select('*, profiles(id, full_name, avatar_url)').gte('starts_at', since.toISOString()).order('starts_at'),
+      supabase.from('family_events').select('*, profiles(id, full_name, avatar_url)').gte('starts_at', since.toISOString()).order('starts_at').limit(100),
     ])
     if (tableMissing(b.error) || tableMissing(e.error)) { setMissing(true); setBds([]); setEvs([]); return }
     setBds(b.data || [])
@@ -172,7 +172,7 @@ export default function Events() {
   }
 
   if (missing) return <p className="rounded-3xl bg-danger/10 p-4 text-sm text-danger">জন্মদিন ও অনুষ্ঠান চালু করতে Supabase-এ update-23.sql একবার চালাতে হবে।</p>
-  if (evs === null) return <p className="py-10 text-center text-fg/55">লোড হচ্ছে…</p>
+  if (evs === null) return <p className="py-10 text-center text-fg/65">লোড হচ্ছে…</p>
 
   return (
     <div className="space-y-5">
@@ -182,17 +182,17 @@ export default function Events() {
           <span className="grid h-11 w-11 place-items-center rounded-full bg-coral/15 text-xl">🎂</span>
           <span className="min-w-0 flex-1">
             <b className="block">আমার জন্মদিন</b>
-            <span className="text-sm text-fg/60">{mine ? `${bn(mine.day)} ${MONTHS[mine.month - 1]}${mine.year ? ` ${bn(mine.year)}` : ''}` : 'এখনও দেওয়া হয়নি — দিলে আপনজনেরা শুভেচ্ছা জানাতে পারবে'}</span>
+            <span className="text-sm text-fg/65">{mine ? `${bn(mine.day)} ${MONTHS[mine.month - 1]}${mine.year ? ` ${bn(mine.year)}` : ''}` : 'এখনও দেওয়া হয়নি — দিলে আপনজনেরা শুভেচ্ছা জানাতে পারবে'}</span>
           </span>
-          <Pencil size={18} className="text-fg/50" aria-hidden="true" />
+          <Pencil size={18} className="text-fg/65" aria-hidden="true" />
         </button>
-        {upcoming.length === 0 && <p className="px-1 text-sm text-fg/55">বন্ধুদের কেউ এখনও জন্মদিন দেননি।</p>}
+        {upcoming.length === 0 && <p className="px-1 text-sm text-fg/65">বন্ধুদের কেউ এখনও জন্মদিন দেননি।</p>}
         {(allB ? upcoming : upcoming.slice(0, 5)).map((b) => (
           <div key={b.user_id} className={`flex items-center gap-3 rounded-3xl p-3 ${b.days === 0 ? 'bg-coral/15 ring-1 ring-coral/40' : 'bg-surface'} shadow-soft`}>
             <Link to={`/profile/${b.user_id}`}><Avatar p={b.profiles} size={46} /></Link>
             <div className="min-w-0 flex-1">
               <b className="block truncate">{b.profiles.full_name}</b>
-              <span className="text-sm text-fg/60">{bn(b.date.getDate())} {MONTHS[b.date.getMonth()]} • {dayWord(b.days)}{b.turning ? ` • ${bn(b.turning)} বছর হবে` : ''}</span>
+              <span className="text-sm text-fg/65">{bn(b.date.getDate())} {MONTHS[b.date.getMonth()]} • {dayWord(b.days)}{b.turning ? ` • ${bn(b.turning)} বছর হবে` : ''}</span>
             </div>
             {b.days === 0 && <Link to={`/chat/${b.user_id}`} className="btn-primary !px-3.5 !py-2 text-sm">শুভেচ্ছা 🎉</Link>}
           </div>
@@ -205,7 +205,7 @@ export default function Events() {
           <h3 className="text-lg font-extrabold">📅 অনুষ্ঠান</h3>
           <button onClick={() => setSheet('event')} className="btn-primary !px-3.5 !py-2 text-sm"><Plus size={16} />নতুন</button>
         </div>
-        {evs.length === 0 && <p className="rounded-3xl bg-surface p-5 text-center text-sm text-fg/60 shadow-soft">আসন্ন কোনো অনুষ্ঠান নেই। ঈদ, বিয়ে, মিলাদ বা পারিবারিক আড্ডার আয়োজন করুন।</p>}
+        {evs.length === 0 && <p className="rounded-3xl bg-surface p-5 text-center text-sm text-fg/65 shadow-soft">আসন্ন কোনো অনুষ্ঠান নেই। ঈদ, বিয়ে, মিলাদ বা পারিবারিক আড্ডার আয়োজন করুন।</p>}
         {evs.map((ev) => {
           const list = rsvps[ev.id] || [], my = list.find((x) => x.user_id === user.id)?.status
           const going = list.filter((x) => x.status === 'going'), days = eventDays(ev.starts_at)
@@ -217,7 +217,7 @@ export default function Events() {
                   <h4 className="text-lg font-extrabold leading-snug">{ev.title}</h4>
                   <p className="text-sm font-semibold text-brand">{fmtDate(ev.starts_at)}, {fmtTime(ev.starts_at)} • {dayWord(days)}</p>
                   {ev.place && <p className="mt-0.5 flex items-center gap-1 text-sm text-fg/65"><MapPin size={14} />{ev.place}</p>}
-                  <p className="text-xs text-fg/50">আয়োজক: {ev.created_by === user.id ? 'আপনি' : ev.profiles?.full_name}</p>
+                  <p className="text-xs text-fg/65">আয়োজক: {ev.created_by === user.id ? 'আপনি' : ev.profiles?.full_name}</p>
                 </div>
                 {ev.created_by === user.id && <button onClick={() => del(ev)} aria-label="অনুষ্ঠান মুছুন" className="grid h-9 w-9 place-items-center rounded-full bg-surface2 text-danger"><Trash2 size={16} /></button>}
               </div>
@@ -228,7 +228,7 @@ export default function Events() {
                     className={`rounded-2xl px-1 py-2.5 text-sm font-semibold transition active:scale-95 ${my === r.id ? 'bg-brand text-inverse' : 'bg-surface2'}`}>{r.label}</button>
                 ))}
               </div>
-              <p className="text-xs text-fg/60">
+              <p className="text-xs text-fg/65">
                 {going.length ? `✅ যাচ্ছেন (${bn(going.length)}): ${going.slice(0, 4).map((x) => x.user_id === user.id ? 'আপনি' : x.profiles?.full_name).join(', ')}${going.length > 4 ? ` ও আরও ${bn(going.length - 4)} জন` : ''}` : 'এখনও কেউ "যাচ্ছি" বলেননি'}
                 {list.filter((x) => x.status === 'maybe').length > 0 && ` • হয়তো: ${bn(list.filter((x) => x.status === 'maybe').length)}`}
               </p>
