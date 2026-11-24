@@ -88,7 +88,7 @@ export default function StoryViewer({ groups, start, startIndex = 0, meId, onClo
     <div className="fixed inset-0 z-[100] bg-black">
       <div className="relative mx-auto h-full max-w-md select-none overflow-hidden bg-black">
         <div className="absolute inset-0" style={!s.media_url ? { background: STORY_BG[s.bg] || STORY_BG[0] } : undefined}>
-          {s.media_type === 'image' && <img src={s.media_url} alt="" className="h-full w-full object-contain" draggable={false} />}
+          {s.media_type === 'image' && <img src={s.media_url} alt="স্টোরির ছবি" className="h-full w-full object-contain" draggable={false} />}
           {isVideo && (
             <video key={s.id} ref={vid} src={s.media_url} playsInline muted={muted} autoPlay className="h-full w-full object-contain"
               onTimeUpdate={(e) => setP(e.target.currentTime / (e.target.duration || 1))} onEnded={() => setP(1)} />
@@ -112,7 +112,7 @@ export default function StoryViewer({ groups, start, startIndex = 0, meId, onClo
             <Avatar p={g.profile} size={38} />
             <div className="min-w-0 flex-1 leading-tight">
               <p className="truncate font-bold">{own ? 'আপনার স্টোরি' : g.profile?.full_name}</p>
-              <p className="text-xs text-white/70">{ago(s.created_at)}</p>
+              <p className="text-xs text-white/85">{ago(s.created_at)}</p>
             </div>
             {isVideo && <button onPointerDown={stop} onPointerUp={stop} onClick={() => { setMuted(!muted); if (vid.current) vid.current.muted = !muted }} className="grid h-10 w-10 place-items-center rounded-full bg-white/15">{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>}
             {own && <button onPointerDown={stop} onPointerUp={stop} onClick={remove} aria-label="মুছুন" className="grid h-10 w-10 place-items-center rounded-full bg-white/15"><Trash2 size={18} /></button>}

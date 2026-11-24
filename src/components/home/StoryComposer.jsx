@@ -63,7 +63,7 @@ export default function StoryComposer({ onClose, onDone }) {
       <div className="max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">নতুন স্টোরি</h2>
-          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
+          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button>
         </div>
         <div className="flex gap-2">{tab('text', Type, 'লেখা')}{tab('media', ImagePlus, 'ছবি/ভিডিও')}</div>
 
@@ -71,7 +71,7 @@ export default function StoryComposer({ onClose, onDone }) {
           <>
             <div className="grid h-60 place-items-center rounded-3xl p-5" style={{ background: STORY_BG[bg] }}>
               <textarea value={text} onChange={(e) => setText(e.target.value)} maxLength={200} placeholder="কী ভাবছেন?" rows={4}
-                className="w-full resize-none bg-transparent text-center text-2xl font-bold text-white outline-none placeholder:text-white/60" />
+                className="w-full resize-none bg-transparent text-center text-2xl font-bold text-white outline-none placeholder:text-white/85" />
             </div>
             <div className="flex justify-center gap-3">
               {STORY_BG.map((b, i) => <button key={i} aria-label={`রং ${i + 1}`} onClick={() => setBg(i)} style={{ background: b }} className={`h-8 w-8 rounded-full ${bg === i ? 'ring-2 ring-fg ring-offset-2 ring-offset-surface' : ''}`} />)}
@@ -97,7 +97,7 @@ export default function StoryComposer({ onClose, onDone }) {
             <button key={id} onClick={() => setPrivacy(id)} className={`flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-semibold ${privacy === id ? 'bg-ink text-white' : 'bg-surface2'}`}><Icon size={16} />{label}</button>
           ))}
         </div>
-        <p className="text-center text-xs text-fg/50">স্টোরি ২৪ ঘণ্টা পর আর দেখা যাবে না</p>
+        <p className="text-center text-xs text-fg/65">স্টোরি ২৪ ঘণ্টা পর আর দেখা যাবে না</p>
 
         {busy && mode === 'media' && <div className="h-2 overflow-hidden rounded-full bg-surface2"><div className="h-full rounded-full bg-gradient-to-r from-brand to-coral transition-all" style={{ width: `${pct}%` }} /></div>}
         {err && <p className="rounded-xl bg-danger/15 p-3 text-sm text-danger">{err}</p>}

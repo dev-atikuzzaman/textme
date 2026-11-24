@@ -30,7 +30,7 @@ export default function StoriesBar() {
 
   const load = useCallback(async () => {
     const since = new Date(Date.now() - 864e5).toISOString()
-    const { data: st, error } = await supabase.from('stories').select('*').gte('created_at', since).order('created_at', { ascending: true })
+    const { data: st, error } = await supabase.from('stories').select('id,user_id,content,bg,media_url,media_type,created_at').gte('created_at', since).order('created_at', { ascending: true }).limit(300)
     if (error || !st?.length) return setGroups([])
     const uids = [...new Set(st.map((s) => s.user_id))]
     const [{ data: ps }, { data: vs }] = await Promise.all([
