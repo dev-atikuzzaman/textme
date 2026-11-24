@@ -5,7 +5,7 @@ function Row({ Icon, title, sub, onClick, danger }) {
   return (
     <button onClick={onClick} className="flex w-full items-center gap-4 rounded-2xl p-2.5 text-left transition active:bg-surface2">
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${danger ? 'bg-danger/15 text-danger' : 'bg-surface2 text-brand'}`}><Icon size={20} /></span>
-      <span className="min-w-0"><b className={`block ${danger ? 'text-danger' : ''}`}>{title}</b>{sub && <span className="text-sm text-fg/55">{sub}</span>}</span>
+      <span className="min-w-0"><b className={`block ${danger ? 'text-danger' : ''}`}>{title}</b>{sub && <span className="text-sm text-fg/65">{sub}</span>}</span>
     </button>
   )
 }
@@ -20,7 +20,7 @@ export default function PostMenu({ own, canPin, pinned, saved, onSave, onHide, o
           <div className="space-y-3 p-2 text-center">
             <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger/15 text-danger"><Trash2 size={26} /></div>
             <h3 className="text-lg font-bold">পোস্টটি মুছে ফেলবেন?</h3>
-            <p className="text-sm text-fg/60">এটি আর ফেরত আনা যাবে না। ছবি/ভিডিও থাকলে সেটিও মুছে যাবে।</p>
+            <p className="text-sm text-fg/65">এটি আর ফেরত আনা যাবে না। ছবি/ভিডিও থাকলে সেটিও মুছে যাবে।</p>
             <div className="flex gap-3 pt-1">
               <button onClick={() => setConfirm(false)} className="btn-soft flex-1 !bg-surface2">না</button>
               <button onClick={onDelete} className="btn flex-1 bg-red-500 text-white">মুছে ফেলুন</button>

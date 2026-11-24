@@ -55,8 +55,8 @@ export default function ReactionBar({ mine, onReact, compact = false }) {
         onPointerDown={down} onPointerUp={up} onPointerCancel={() => clearTimeout(timer.current)}
         onContextMenu={(e) => e.preventDefault()}
         className={compact
-          ? `select-none text-xs font-bold transition active:scale-95 [-webkit-touch-callout:none] ${cur ? cur.color : 'text-fg/60'}`
-          : `flex w-full select-none items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold transition active:scale-95 [-webkit-touch-callout:none] ${cur ? cur.color : 'text-fg/60'}`}>
+          ? `select-none text-xs font-bold transition active:scale-95 [-webkit-touch-callout:none] ${cur ? cur.color : 'text-fg/65'}`
+          : `flex w-full select-none items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold transition active:scale-95 [-webkit-touch-callout:none] ${cur ? cur.color : 'text-fg/65'}`}>
         {!compact && (cur ? <span className="text-xl leading-none">{cur.emoji}</span> : <ThumbsUp size={20} />)}
         {cur ? cur.label : 'লাইক'}
       </button>

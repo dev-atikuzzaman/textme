@@ -39,8 +39,8 @@ export default function ShareSheet({ url, text = '', onClose, onCopy, onNative }
           <button onClick={onCopy} className="btn-soft flex-1 !bg-surface2 !px-3 text-sm"><Link2 size={18} />লিংক কপি</button>
           {navigator.share && <button onClick={onNative} className="btn-soft flex-1 !bg-surface2 !px-3 text-sm"><Share2 size={18} />অন্য অ্যাপে</button>}
         </div>
-        <p className="mb-2 px-1 text-sm font-bold text-fg/60">বন্ধুকে মেসেজে পাঠান</p>
-        {list.length === 0 && <p className="py-6 text-center text-sm text-fg/50">এখনও কোনো বন্ধু নেই।</p>}
+        <p className="mb-2 px-1 text-sm font-bold text-fg/65">বন্ধুকে মেসেজে পাঠান</p>
+        {list.length === 0 && <p className="py-6 text-center text-sm text-fg/65">এখনও কোনো বন্ধু নেই।</p>}
         <div className="space-y-1">
           {list.map((p) => (
             <div key={p.id} className="flex items-center gap-3 rounded-2xl p-2">

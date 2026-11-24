@@ -60,7 +60,7 @@ export default function CommentItem({ c, isReply = false, postOwnerId, parentAut
               {showMention && <span className="mr-1 font-bold text-brand">@{nameOf(c.reply_to)}</span>}{c.content}
             </p>
           )}
-          {c.media_url && c.media_type === 'image' && <SmartImg src={c.media_url} alt="" reserve="min-h-[6rem]" onClick={() => onOpenImage(c.media_url)} className="mt-2 max-h-64 rounded-2xl object-cover" />}
+          {c.media_url && c.media_type === 'image' && <SmartImg src={c.media_url} alt="মন্তব্যের ছবি" reserve="min-h-[6rem]" onClick={() => onOpenImage(c.media_url)} className="mt-2 max-h-64 rounded-2xl object-cover" />}
           {c.media_url && c.media_type === 'video' && <video src={c.media_url} controls playsInline preload="metadata" className="mt-2 max-h-64 rounded-2xl bg-black" />}
           {c.media_url && c.media_type === 'file' && <FileCard url={c.media_url} name={c.media_name} size={c.media_size} className="mt-2 !bg-surface" />}
           {top.length > 0 && (
@@ -69,9 +69,9 @@ export default function CommentItem({ c, isReply = false, postOwnerId, parentAut
             </button>
           )}
         </div>
-        <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 px-2 text-xs text-fg/55 ${top.length ? 'mt-4' : 'mt-1.5'}`}>
+        <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 px-2 text-xs text-fg/65 ${top.length ? 'mt-4' : 'mt-1.5'}`}>
           <ReactionBar compact mine={mine} onReact={react} />
-          <button onClick={onReply} className="font-bold text-fg/60 transition active:scale-95 active:text-brand">উত্তর দিন</button>
+          <button onClick={onReply} className="font-bold text-fg/65 transition active:scale-95 active:text-brand">উত্তর দিন</button>
           <span>{ago(c.created_at)}</span>
           {canDelete && <button onClick={onDelete} className="flex items-center gap-1 font-bold text-danger/80"><Trash2 size={12} />মুছুন</button>}
         </div>

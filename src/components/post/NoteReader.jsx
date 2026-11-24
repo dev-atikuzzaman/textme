@@ -22,12 +22,12 @@ export default function NoteReader({ post, onClose }) {
         <div className="sticky top-0 z-10 flex justify-end bg-gradient-to-b from-forest to-transparent p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <button onClick={onClose} aria-label="বন্ধ করুন" className="grid h-11 w-11 place-items-center rounded-full bg-surface shadow-soft"><X size={22} /></button>
         </div>
-        {post.media_url && <img src={post.media_url} alt="" className="mb-5 max-h-[50vh] w-full object-cover sm:rounded-3xl" />}
+        {post.media_url && <img src={post.media_url} alt="নোটের কভার ছবি" className="mb-5 max-h-[50vh] w-full object-cover sm:rounded-3xl" />}
         <article className="px-5">
           <h1 className="text-3xl font-extrabold leading-tight">{post.title}</h1>
           <div className="mt-4 flex items-center gap-3">
             <Avatar p={who} size={40} />
-            <div className="text-sm leading-tight"><p className="font-bold">{who?.full_name}</p><p className="text-fg/50">{fmt(post.created_at)} • {readMins(post.content).toLocaleString('bn-BD')} মিনিটের পড়া</p></div>
+            <div className="text-sm leading-tight"><p className="font-bold">{who?.full_name}</p><p className="text-fg/65">{fmt(post.created_at)} • {readMins(post.content).toLocaleString('bn-BD')} মিনিটের পড়া</p></div>
           </div>
           <div className="mt-6 whitespace-pre-wrap break-words text-lg leading-[1.85]">{linkify(post.content || '')}</div>
         </article>
