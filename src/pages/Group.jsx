@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Lock, Globe, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X, Phone, Video, MoreVertical, Info, Users, Pin, PinOff, Archive, ArchiveRestore, LockOpen, ImagePlus } from '../lib/icons'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Lock, Camera, UserPlus, LogOut, Crown, Pencil, Trash2, FileText, ImageIcon, X, Phone, Video, MoreVertical, Info, Users, Pin, PinOff, Archive, ArchiveRestore, LockOpen, ImagePlus } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { SELECT_POST } from '../lib/constants'
@@ -13,11 +13,12 @@ import UploadSheet from '../components/UploadSheet'
 import NoteSheet from '../components/NoteSheet'
 import GroupChat from '../components/groups/GroupChat'
 import AddMembersSheet from '../components/groups/AddMembersSheet'
+import GroupInfoSheet from '../components/groups/GroupInfoSheet'
 import AvatarViewer from '../components/AvatarViewer'
 import CameraSheet from '../components/CameraSheet'
 import UserCard from '../components/UserCard'
 import PinPad from '../components/chat/PinPad'
-import { useGroupCall, useGroupLive, MAX_GROUP_CALL } from '../context/GroupCall'
+import { useGroupCall, useGroupLive } from '../context/GroupCall'
 import { useChatPrefs } from '../context/ChatPrefs'
 import { toast, confirmDialog, errMsg } from '../lib/ui'
 
@@ -69,7 +70,7 @@ export default function Group() {
     setPosts(await withContext(data))
   }, [id])
   useEffect(() => { loadMeta() }, [loadMeta])
-  useEffect(() => { if (g) loadPosts() }, [me?.user_id, g?.id, loadPosts]) // eslint-disable-line  — সদস্য না হলেও, দেখার অনুমতি থাকলে (সদস্যের বন্ধু) ডাটাবেস পোস্ট দেয়
+  useEffect(() => { if (g) loadPosts() }, [me?.user_id, g?.id, loadPosts]) // eslint-disable-line -- সদস্য না হলেও, দেখার অনুমতি থাকলে (সদস্যের বন্ধু) ডাটাবেস পোস্ট দেয়
 
   const rpc = async (fn, args, after) => {
     setBusy(true)
@@ -123,10 +124,10 @@ export default function Group() {
   }
   const removeCover = async () => { await supabase.from('groups').update({ cover_url: null }).eq('id', id); loadMeta() }
 
-  if (g === undefined) return <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>
+  if (g === undefined) return <p className="py-10 text-center text-fg/65">লোড হচ্ছে…</p>
   if (g === null) return (
-    <div className="space-y-4 pt-2"><button onClick={() => nav('/groups')} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
-      <p className="py-10 text-center text-fg/60">গ্রুপটি পাওয়া যায়নি। এটি মুছে ফেলা হয়েছে, প্রাইভেট, অথবা এই গ্রুপের কোনো সদস্যের সাথে আপনার বন্ধুত্ব নেই — বন্ধু হলে গ্রুপের পোস্ট ও তথ্য দেখতে পাবেন।</p></div>
+    <div className="space-y-4 pt-2"><button onClick={() => nav('/groups')} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface" aria-label="পেছনে যান"><ArrowLeft size={20} /></button>
+      <p className="py-10 text-center text-fg/65">গ্রুপটি পাওয়া যায়নি। এটি মুছে ফেলা হয়েছে, প্রাইভেট, অথবা এই গ্রুপের কোনো সদস্যের সাথে আপনার বন্ধুত্ব নেই — বন্ধু হলে গ্রুপের পোস্ট ও তথ্য দেখতে পাবেন।</p></div>
   )
   const gp = { id: g.id, full_name: g.name, avatar_url: g.avatar_url }
   const key = 'g:' + id
@@ -156,7 +157,7 @@ export default function Group() {
         <button onClick={() => setSheet('photo')} aria-label="গ্রুপের ছবি" className="shrink-0 rounded-full transition active:scale-95"><Avatar p={gp} size={36} /></button>
         <button onClick={() => setSheet('info')} className="min-w-0 flex-1 text-left leading-tight">
           <b className="flex items-center gap-1.5 truncate text-[0.95rem]">{cp.isLocked(key) && <Lock size={13} className="text-brand" />}<span className="truncate">{g.name}</span></b>
-          <span className={`block truncate text-xs ${live.length ? 'font-semibold text-brand' : 'text-fg/55'}`}>{me ? sub : g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'}</span>
+          <span className={`block truncate text-xs ${live.length ? 'font-semibold text-brand' : 'text-fg/65'}`}>{me ? sub : g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'}</span>
         </button>
         {me && (<>
           <button onClick={() => startCall('video')} disabled={inCall} aria-label="গ্রুপ ভিডিও কল" className="grid h-10 w-10 place-items-center rounded-full text-brand hover:bg-surface2 disabled:opacity-40"><Video size={21} /></button>
@@ -179,7 +180,7 @@ export default function Group() {
         <div className="rounded-[28px] bg-surface p-6 text-center shadow-soft">
           {g.about && <p className="mb-3 text-sm text-fg/75">{g.about}</p>}
           {g.privacy === 'public' ? <button disabled={busy} onClick={join} className="btn-primary w-full">গ্রুপে যোগ দিন</button> : <p className="text-fg/65">এটি একটি প্রাইভেট গ্রুপ।</p>}
-          <p className="mt-3 text-sm text-fg/55">{members.length.toLocaleString('bn-BD')} জন সদস্য • চ্যাটে অংশ নিতে গ্রুপে যোগ দিন।</p>
+          <p className="mt-3 text-sm text-fg/65">{members.length.toLocaleString('bn-BD')} জন সদস্য • চ্যাটে অংশ নিতে গ্রুপে যোগ দিন।</p>
         </div>
       )}
       {!me && posts?.map((p) => <PostCard key={p.id} post={p} onChange={loadPosts} />)}
@@ -195,16 +196,16 @@ export default function Group() {
         {!panel && <GroupChat groupId={id} who={who} onUser={setCard} />}
 
         {panel === 'posts' && (<>
-          {g.cover_url && <img src={g.cover_url} alt="" className="h-36 w-full rounded-[28px] object-cover shadow-soft sm:h-48" />}
+          {g.cover_url && <img src={g.cover_url} alt="গ্রুপের কভার ছবি" className="h-36 w-full rounded-[28px] object-cover shadow-soft sm:h-48" />}
           <div className="rounded-[28px] bg-surface p-4 shadow-soft">
-            <button onClick={() => setSheet('upload')} className="flex w-full items-center gap-3 text-left"><Avatar p={who[user.id]} /><span className="flex-1 text-fg/50">গ্রুপে কিছু লিখুন…</span></button>
+            <button onClick={() => setSheet('upload')} className="flex w-full items-center gap-3 text-left"><Avatar p={who[user.id]} /><span className="flex-1 text-fg/65">গ্রুপে কিছু লিখুন…</span></button>
             <div className="mt-3 flex border-t border-fg/5 pt-2">
               <button onClick={() => setSheet('upload')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2 text-sm font-bold text-fg/70"><ImageIcon size={19} className="text-brand" />ছবি/ভিডিও</button>
               <button onClick={() => setSheet('note')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2 text-sm font-bold text-fg/70"><FileText size={19} className="text-violet-400" />নোট</button>
             </div>
           </div>
           {posts === null && <PostSkeleton />}
-          {posts?.length === 0 && <p className="py-8 text-center text-fg/55">গ্রুপে এখনও কোনো পোস্ট নেই।</p>}
+          {posts?.length === 0 && <p className="py-8 text-center text-fg/65">গ্রুপে এখনও কোনো পোস্ট নেই।</p>}
           {posts?.map((p) => <PostCard key={p.id} post={p} onChange={loadPosts} />)}
         </>)}
 
@@ -243,7 +244,7 @@ export default function Group() {
               <button disabled={busy} onClick={() => { setSheet(null); fileRef.current.click() }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold"><ImageIcon size={20} className="text-brand" />গ্যালারি থেকে ছবি বাছুন</button>
               <button disabled={busy} onClick={() => { setSheet(null); setCamAv(true) }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold"><Camera size={20} className="text-brand" />ক্যামেরায় ছবি তুলুন</button>
               {g.avatar_url && <button disabled={busy} onClick={() => { setSheet(null); removeAvatar() }} className="flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 font-semibold text-danger"><Trash2 size={20} />ছবি মুছুন</button>}
-            </>) : <p className="text-center text-sm text-fg/60">শুধু গ্রুপ অ্যাডমিন গ্রুপের ছবি বদলাতে পারেন।</p>}
+            </>) : <p className="text-center text-sm text-fg/65">শুধু গ্রুপ অ্যাডমিন গ্রুপের ছবি বদলাতে পারেন।</p>}
             <button onClick={() => setSheet('info')} className="btn-soft w-full">গ্রুপ ইনফো</button>
           </div>
         </div>
@@ -270,48 +271,10 @@ export default function Group() {
         </div>
       )}
 
-      {/* গ্রুপ ইনফো: কভার + ছবি + তথ্য */}
       {sheet === 'info' && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center" onClick={() => setSheet(null)}>
-          <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-[32px] bg-surface pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-[32px]" onClick={(e) => e.stopPropagation()}>
-            <div className="relative h-36 bg-gradient-to-br from-brand to-coral" onClick={() => (g.cover_url ? (setSheet(null), setCoverView(true)) : isAdmin && coverRef.current.click())}>
-              {g.cover_url && <img src={g.cover_url} alt="" className="h-full w-full cursor-pointer object-cover" />}
-              <button onClick={(e) => { e.stopPropagation(); setSheet(null) }} aria-label="বন্ধ" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/35 text-white"><X size={18} /></button>
-              {isAdmin && (
-                <div className="absolute bottom-2 right-3 flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  {g.cover_url && <button onClick={removeCover} className="rounded-full bg-black/45 px-3 py-1.5 text-xs font-bold text-white">কভার মুছুন</button>}
-                  <button onClick={() => coverRef.current.click()} disabled={busy} className="flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5 text-xs font-bold text-white"><Camera size={14} />কভার ফটো</button>
-                </div>
-              )}
-            </div>
-            <div className="-mt-12 px-5 text-center">
-              <button onClick={() => setSheet('photo')} className="relative mx-auto block rounded-full ring-4 ring-surface">
-                <Avatar p={gp} size={96} />
-                {isAdmin && <span onClick={(e) => { e.stopPropagation(); fileRef.current.click() }} className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full bg-brand text-inverse"><Camera size={15} /></span>}
-              </button>
-              <h2 className="mt-2 text-2xl font-bold">{g.name}</h2>
-              <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm text-fg/60">{g.privacy === 'public' ? <Globe size={14} /> : <Lock size={14} />}{g.privacy === 'public' ? 'পাবলিক গ্রুপ' : 'প্রাইভেট গ্রুপ'} • {members.length.toLocaleString('bn-BD')} জন সদস্য</p>
-              {g.about && <p className="mx-auto mt-3 max-w-sm text-sm text-fg/80">{g.about}</p>}
-              {me && (
-                <div className="mt-4 grid grid-cols-4 items-start gap-1">
-                  {[[Phone, 'অডিও কল', () => startCall('audio')], [Video, 'ভিডিও কল', () => startCall('video')], ...(isAdmin ? [[UserPlus, 'যোগ করুন', () => setSheet('add')], [Pencil, 'এডিট', () => setSheet('edit')]] : [])].map(([I, l, fn]) => (
-                    <button key={l} onClick={() => { setSheet(null); fn() }} className="flex w-full flex-col items-center gap-1.5"><span className="grid h-12 w-12 place-items-center rounded-full bg-brand/10 text-brand"><I size={21} /></span><span className="text-xs font-semibold">{l}</span></button>
-                  ))}
-                </div>
-              )}
-              <p className="mt-3 text-xs text-fg/45">গ্রুপ কলে সর্বোচ্চ {MAX_GROUP_CALL} জন একসাথে থাকতে পারেন</p>
-            </div>
-            <div className="mt-4 space-y-1 px-4">
-              <p className="px-1 text-sm font-bold text-fg/60">সদস্য ({members.length.toLocaleString('bn-BD')})</p>
-              {members.slice(0, 8).map((m) => { const p = who[m.user_id]; return (
-                <button key={m.user_id} onClick={() => { setSheet(null); setCard(m.user_id) }} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left hover:bg-surface2"><Avatar p={p} size={40} /><span className="flex-1 truncate font-semibold">{p?.full_name}{m.user_id === user.id && ' (আপনি)'}</span>{m.role === 'admin' && <span className="text-xs font-bold text-brand">অ্যাডমিন</span>}</button>
-              ) })}
-              {members.length > 8 && <button onClick={() => { setSheet(null); openPanel('members') }} className="w-full py-2 text-sm font-bold text-brand">সবাইকে দেখুন</button>}
-              {me && <button onClick={() => { setSheet(null); leave() }} className="btn-soft mt-2 w-full !text-danger"><LogOut size={17} />গ্রুপ ছাড়ুন</button>}
-              {isAdmin && <button onClick={() => { setSheet(null); del() }} className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 py-3 font-bold text-white active:scale-95"><Trash2 size={17} />গ্রুপ মুছে ফেলুন</button>}
-            </div>
-          </div>
-        </div>
+        <GroupInfoSheet g={g} gp={gp} me={me} isAdmin={isAdmin} busy={busy} members={members} who={who} fileRef={fileRef} coverRef={coverRef}
+          setSheet={setSheet} setCoverView={setCoverView} setCard={setCard} openPanel={openPanel}
+          onRemoveCover={removeCover} onCall={startCall} onLeave={leave} onDelete={del} />
       )}
 
       {sheet === 'upload' && <UploadSheet kind="post" groupId={id} onClose={() => setSheet(null)} onDone={loadPosts} />}
@@ -320,7 +283,7 @@ export default function Group() {
       {sheet === 'edit' && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={() => setSheet(null)}>
           <div className="w-full max-w-md space-y-3 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between"><h2 className="text-xl font-bold">গ্রুপ এডিট</h2><button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button></div>
+            <div className="flex items-center justify-between"><h2 className="text-xl font-bold">গ্রুপ এডিট</h2><button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button></div>
             <input className="input" maxLength={80} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             <textarea className="input min-h-[90px]" placeholder="গ্রুপ সম্পর্কে" value={form.about} onChange={(e) => setForm({ ...form, about: e.target.value })} />
             <button onClick={saveInfo} className="btn-primary w-full">সেভ করুন</button>

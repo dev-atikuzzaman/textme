@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Send, Plus, Mic, Phone, Video, Trash2, MoreVertical } from '../lib/icons'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/Auth'
 import { useCall } from '../context/Call'
 import { useInbox } from '../context/Inbox'
 import { usePresence } from '../context/Presence'
-import { safeName, mmss, compressImage } from '../lib/media'
+import { safeName, compressImage } from '../lib/media'
 import { playSend } from '../lib/sound'
 import { toast, errMsg } from '../lib/ui'
-import Avatar from '../components/Avatar'
-import Bubble from '../components/chat/Bubble'
+import ChatHeader from '../components/chat/ChatHeader'
+import MessageList from '../components/chat/MessageList'
+import Composer from '../components/chat/Composer'
+import { useVoiceRecorder } from '../lib/useVoiceRecorder'
 import AttachMenu from '../components/chat/AttachMenu'
 import CameraSheet from '../components/CameraSheet'
 import UserCard from '../components/UserCard'
@@ -23,20 +24,8 @@ import ChatToolsSheet, { ttlLabel } from '../components/chat/ChatToolsSheet'
 import { useLongPress } from '../lib/useLongPress'
 
 const MAX = 50 * 1024 * 1024
+const PAGE = 60 // একবারে এতগুলো মেসেজ আনা হয়; পুরনো মেসেজ "আগের মেসেজ" বাটনে
 const LABEL = { image: '📷 ছবি', video: '🎬 ভিডিও', audio: '🎵 অডিও', voice: '🎤 ভয়েস মেসেজ' }
-
-// রেকর্ডিংয়ের সময় নেওয়া আওয়াজের মাপ থেকে ৪০টি তরঙ্গ-দণ্ড (০–১) বানানো
-const toBars = (arr, n = 40) => {
-  if (!arr.length) return null
-  const out = []
-  for (let i = 0; i < n; i++) {
-    const a = Math.floor((i * arr.length) / n), b = Math.max(a + 1, Math.floor(((i + 1) * arr.length) / n))
-    let m = 0
-    for (let j = a; j < b && j < arr.length; j++) m = Math.max(m, arr[j])
-    out.push(Math.round(m * 100) / 100)
-  }
-  return out
-}
 
 export default function Chat() {
   const { id } = useParams()
@@ -57,16 +46,15 @@ export default function Chat() {
   const [sheet, setSheet] = useState(null) // menu | poll | contact
   const [card, setCard] = useState(false)
   const [viewer, setViewer] = useState(null)
-  const [rec, setRec] = useState(null)
   const [ttl, setTtl] = useState(0)            // অদৃশ্য হওয়া মেসেজের সময় (সেকেন্ড, ০ = বন্ধ)
   const [searching, setSearching] = useState(false)
   const [menuMsg, setMenuMsg] = useState(null)
   const [hl, setHl] = useState(null)
   const [now, setNow] = useState(() => Date.now())
   const hlT = useRef()
-  const end = useRef(), msgsRef = useRef([])
-  const mr = useRef(), chunks = useRef([]), recTimer = useRef(), recStart = useRef()
-  const peakBuf = useRef([]), peakTimer = useRef(), peakCtx = useRef()
+  const end = useRef(), msgsRef = useRef([]), scroller = useRef()
+  const [hasOlder, setHasOlder] = useState(false), [loadingOlder, setLoadingOlder] = useState(false)
+  const olderRef = useRef(false), prepend = useRef(null)
   const refs = { image: useRef(), video: useRef(), audio: useRef(), file: useRef() }
   msgsRef.current = msgs
 
@@ -80,20 +68,25 @@ export default function Chat() {
   const loadVotes = useCallback(async (list) => {
     const ids = list.filter((m) => m.type === 'poll').map((m) => m.id)
     if (!ids.length) return
-    const { data } = await supabase.from('poll_votes').select('*').in('message_id', ids)
+    const { data } = await supabase.from('poll_votes').select('message_id,user_id,option_idx').in('message_id', ids)
     const g = Object.fromEntries(ids.map((i) => [i, []]))
     ;(data || []).forEach((v) => g[v.message_id].push(v))
     setVotes((p) => ({ ...p, ...g }))
   }, [])
 
   useEffect(() => {
-    setMsgs([])
+    setMsgs([]); setHasOlder(false); olderRef.current = false
     const markRead = () => supabase.rpc('mark_chat_read', { p_other: id }).then(({ error }) => { if (!error) reloadInbox() })
     markRead()
     supabase.from('profiles').select('*').eq('id', id).single().then(({ data }) => setOther(data))
     supabase.from('messages').select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${user.id})`)
-      .order('created_at').then(({ data }) => { const l = data || []; setMsgs(l); sign(l); loadVotes(l) })
+      .order('created_at', { ascending: false }).limit(PAGE)
+      .then(({ data, error }) => {
+        if (error) return toast.error('মেসেজ লোড হয়নি: ' + errMsg(error))
+        const l = (data || []).reverse(); setMsgs(l); sign(l); loadVotes(l)
+        olderRef.current = (data || []).length === PAGE; setHasOlder(olderRef.current)
+      })
     const onChange = (p) => {
       const n = p.new
       if (!n?.id) return
@@ -146,7 +139,29 @@ export default function Chat() {
   const shown = useMemo(() => msgs.filter((m) => !m.expires_at || new Date(m.expires_at).getTime() > now), [msgs, now])
   const pinned = useMemo(() => shown.filter((m) => m.pinned_at).sort((a, b) => new Date(b.pinned_at) - new Date(a.pinned_at)), [shown])
 
-  useEffect(() => { end.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs.length])
+  // পুরনো মেসেজ ওপরে যোগ হলে স্ক্রল-জায়গা ধরে রাখা; নতুন মেসেজে নিচে নামা
+  useLayoutEffect(() => {
+    const el = scroller.current, p = prepend.current
+    if (p && el) { el.scrollTop = el.scrollHeight - p; prepend.current = null; return }
+    end.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [msgs.length])
+  const loadOlder = useCallback(async () => {
+    const first = msgsRef.current.find((m) => !m._st)
+    if (!first || !olderRef.current) return 0
+    setLoadingOlder(true)
+    const { data, error } = await supabase.from('messages').select('*')
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${user.id})`)
+      .lt('created_at', first.created_at).order('created_at', { ascending: false }).limit(PAGE)
+    setLoadingOlder(false)
+    if (error) { toast.error('পুরনো মেসেজ আনা যায়নি: ' + errMsg(error)); return 0 }
+    const l = (data || []).reverse()
+    olderRef.current = l.length === PAGE; setHasOlder(olderRef.current)
+    if (!l.length) return 0
+    prepend.current = scroller.current?.scrollHeight ?? null
+    setMsgs((m) => { const have = new Set(m.map((x) => x.id)); return [...l.filter((x) => !have.has(x.id)), ...m] })
+    sign(l); loadVotes(l)
+    return l.length
+  }, [id, user.id, sign, loadVotes])
 
   const sendMsg = async (fields) => {
     const { data, error } = await supabase.from('messages').insert({ sender_id: user.id, receiver_id: id, ...fields }).select().single()
@@ -207,7 +222,12 @@ export default function Chat() {
   }
 
   // ---------- মেসেজ চেপে ধরলে মেনু: কপি / পিন; খোঁজা থেকে লাফ ----------
-  const jump = (mid) => {
+  const jump = async (mid) => {
+    // মেসেজটি এখনো লোড না হয়ে থাকলে (পুরনো) পাওয়া পর্যন্ত পেছনের পাতা আনা
+    for (let i = 0; i < 30 && !document.getElementById('m-' + mid) && olderRef.current; i++) {
+      if (!(await loadOlder())) break
+      await new Promise((r) => setTimeout(r, 0))
+    }
     document.getElementById('m-' + mid)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
     setHl(mid); clearTimeout(hlT.current); hlT.current = setTimeout(() => setHl(null), 1600)
   }
@@ -221,105 +241,31 @@ export default function Chat() {
   }
   const lp = useLongPress((m) => { if (!String(m.id).startsWith('tmp-') && m.type !== 'call') setMenuMsg(m) })
 
-  // ---------- ভয়েস রেকর্ডিং ----------
-  const startRec = async () => {
-    setErr('')
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      // আওয়াজের ওঠানামা মেপে রাখি, যাতে প্লেয়ারে আসল তরঙ্গ দেখানো যায়
-      peakBuf.current = []
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext
-        const actx = new AC(); peakCtx.current = actx
-        const an = actx.createAnalyser(); an.fftSize = 256
-        actx.createMediaStreamSource(stream).connect(an)
-        const data = new Uint8Array(an.fftSize)
-        clearInterval(peakTimer.current)
-        peakTimer.current = setInterval(() => {
-          an.getByteTimeDomainData(data)
-          let mx = 0; for (let i = 0; i < data.length; i++) mx = Math.max(mx, Math.abs(data[i] - 128))
-          peakBuf.current.push(Math.min(1, mx / 90))
-        }, 100)
-      } catch { /* তরঙ্গ ছাড়াই রেকর্ড হবে */ }
-      const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((t) => window.MediaRecorder?.isTypeSupported(t)) || ''
-      const r = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
-      chunks.current = []
-      r.ondataavailable = (e) => e.data.size && chunks.current.push(e.data)
-      r.start(); mr.current = r; recStart.current = Date.now(); setRec({ secs: 0 })
-      recTimer.current = setInterval(() => setRec({ secs: Math.round((Date.now() - recStart.current) / 1000) }), 500)
-    } catch { setErr('মাইক্রোফোন ব্যবহারের অনুমতি দিন') }
-  }
-  const stopRec = (shouldSend) => {
-    const r = mr.current; if (!r) return
-    clearInterval(recTimer.current); clearInterval(peakTimer.current)
-    try { peakCtx.current?.close() } catch { /* ignore */ }
-    const peaks = toBars(peakBuf.current)
-    const duration = Math.round((Date.now() - recStart.current) / 1000)
-    r.onstop = () => {
-      r.stream.getTracks().forEach((t) => t.stop())
-      if (shouldSend && duration >= 1) {
-        const base = (r.mimeType || 'audio/webm').split(';')[0]
-        const ext = base.includes('mp4') ? 'm4a' : base.includes('ogg') ? 'ogg' : 'webm'
-        sendFile(new File([new Blob(chunks.current, { type: base })], `voice-${Date.now()}.${ext}`, { type: base }), 'voice', { duration, peaks })
-      }
-    }
-    r.stop(); mr.current = null; setRec(null)
-  }
-  useEffect(() => () => { clearInterval(recTimer.current); clearInterval(peakTimer.current); try { peakCtx.current?.close() } catch { /* ignore */ } mr.current?.stream.getTracks().forEach((t) => t.stop()) }, [])
+  // ---------- ভয়েস রেকর্ডিং (লজিক: lib/useVoiceRecorder) ----------
+  const { rec, start: startRec, stop: stopRec } = useVoiceRecorder({
+    onError: setErr,
+    onFinish: (file, meta) => sendFile(file, 'voice', meta),
+  })
+  useEffect(() => { if (rec) setErr('') }, [rec])
 
   return (
     <div className="fixed inset-0 z-40 mx-auto flex max-w-md flex-col bg-forest sm:max-w-xl lg:left-64 lg:max-w-3xl">
-      <header className="flex items-center gap-3 bg-surface p-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm">
-        <button onClick={() => nav(-1)} aria-label="পেছনে যান" className="grid h-10 w-10 place-items-center rounded-full bg-surface2"><ArrowLeft size={20} /></button>
-        <button onClick={() => setCard(true)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-          <Avatar p={other} size={40} online={isOnline(id)} />
-          <div className="min-w-0 flex-1 leading-tight"><b className="block truncate">{other?.full_name}</b><span className="text-xs text-brand">{typing ? 'লিখছে…' : isOnline(id) ? 'অনলাইন' : ''}</span></div>
-        </button>
-        <button disabled={inCall || !other} onClick={() => startCall(other, 'audio')} aria-label="অডিও কল" className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Phone size={19} /></button>
-        <button disabled={inCall || !other} onClick={() => startCall(other, 'video')} aria-label="ভিডিও কল" className="grid h-10 w-10 place-items-center rounded-full bg-surface2 text-brand disabled:opacity-40"><Video size={19} /></button>
-        <button onClick={() => setSheet('tools')} aria-label="চ্যাট টুলস" className="grid h-10 w-10 place-items-center rounded-full bg-surface2"><MoreVertical size={19} /></button>
-      </header>
+      <ChatHeader other={other} online={isOnline(id)} typing={typing} inCall={inCall} onBack={() => nav(-1)} onCard={() => setCard(true)}
+        onCall={(kind) => startCall(other, kind)} onTools={() => setSheet('tools')} />
 
       {searching && <ChatSearchBar msgs={shown} onJump={jump} onClose={() => setSearching(false)} />}
       {ttl > 0 && <p className="bg-surface2 px-4 py-1.5 text-center text-xs font-semibold text-fg/70">⏱ এই চ্যাটে নতুন মেসেজ {ttlLabel(ttl)} পর মুছে যায়</p>}
       <PinnedBanner pinned={pinned} onJump={jump} />
 
-      <div className="flex-1 space-y-2 overflow-y-auto p-4">
-        {shown.map((m) => (
-          <div key={m.id} id={`m-${m.id}`} {...lp(m)} className={`select-none rounded-2xl transition ${hl === m.id ? 'ring-2 ring-coral/60' : ''}`}>
-            <Bubble m={m} mine={m.sender_id === user.id} myId={user.id} url={urls[m.media_path]}
-              votes={votes[m.id]} onVote={vote} onOpenImage={setViewer} />
-            {m._st === 'failed' && (
-              <div className="mt-1 flex items-center justify-end gap-3 pr-1 text-xs font-semibold">
-                <span className="text-danger">পাঠানো যায়নি</span>
-                <button onClick={() => sendOptimistic(m.content, m.id)} className="text-brand">আবার পাঠান</button>
-                <button onClick={() => setMsgs((l) => l.filter((x) => x.id !== m.id))} className="text-fg/60">মুছুন</button>
-              </div>
-            )}
-          </div>
-        ))}
-        <div ref={end} />
-      </div>
+      <MessageList scrollerRef={scroller} endRef={end} shown={shown} myId={user.id} urls={urls} votes={votes} hl={hl} lp={lp}
+        hasOlder={hasOlder} loadingOlder={loadingOlder} onLoadOlder={loadOlder} onVote={vote} onOpenImage={setViewer}
+        onRetry={(m) => sendOptimistic(m.content, m.id)} onDiscard={(m) => setMsgs((l) => l.filter((x) => x.id !== m.id))} />
 
       {busy && <p className="px-4 pb-1 text-sm text-brand">আপলোড হচ্ছে…</p>}
       {err && <p className="px-4 pb-1 text-sm text-danger">{err}</p>}
 
-      {rec ? (
-        <div className="flex items-center gap-3 bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <button onClick={() => stopRec(false)} className="grid h-11 w-11 place-items-center rounded-full bg-surface2 text-danger"><Trash2 size={20} /></button>
-          <span className="h-3 w-3 animate-pulse rounded-full bg-danger/150" />
-          <span className="flex-1 font-semibold tabular-nums">রেকর্ড হচ্ছে… {mmss(rec.secs)}</span>
-          <button onClick={() => stopRec(true)} className="btn-primary !px-4"><Send size={20} /></button>
-        </div>
-      ) : (
-        <form onSubmit={sendText} className="flex items-center gap-2 bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <button type="button" onClick={() => setSheet('menu')} aria-label="যুক্ত করুন" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface2 text-brand"><Plus size={22} /></button>
-          <input className="input" placeholder="মেসেজ লিখুন…" value={text} onChange={(e) => { setText(e.target.value); sendTyping() }} />
-          {text.trim()
-            ? <button aria-label="পাঠান" className="btn-primary !px-4"><Send size={20} /></button>
-            : <button type="button" onClick={startRec} aria-label="ভয়েস মেসেজ রেকর্ড করুন" className="btn-primary !px-4"><Mic size={20} /></button>}
-        </form>
-      )}
+      <Composer rec={rec} text={text} onText={(v) => { setText(v); sendTyping() }} onSubmit={sendText}
+        onAttach={() => setSheet('menu')} onStartRec={startRec} onStopRec={stopRec} />
 
       <input ref={refs.image} type="file" accept="image/*" multiple hidden onChange={onFiles('image')} />
       <input ref={refs.video} type="file" accept="video/*" hidden onChange={onFiles('video')} />
@@ -334,7 +280,7 @@ export default function Chat() {
       {sheet === 'contact' && <ContactSheet onClose={() => setSheet(null)} onSend={async (meta) => { setSheet(null); await sendMsg({ type: 'contact', content: `👤 ${meta.name}`, meta }) }} />}
       {menuMsg && <MessageMenu m={menuMsg} onClose={() => setMenuMsg(null)} onCopy={copyText} onPin={pinMsg} />}
       {sheet === 'tools' && <ChatToolsSheet otherId={id} ttl={ttl} onTtl={setTtl} onSearch={() => setSearching(true)} onClose={() => setSheet(null)} />}
-      {viewer && <div className="fixed inset-0 z-[80] grid place-items-center bg-black/90" onClick={() => setViewer(null)}><img src={viewer} alt="" className="max-h-full max-w-full" /></div>}
+      {viewer && <div className="fixed inset-0 z-[80] grid place-items-center bg-black/90" onClick={() => setViewer(null)}><img src={viewer} alt="বড় করে দেখা ছবি" className="max-h-full max-w-full" /></div>}
     </div>
   )
 }

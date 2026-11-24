@@ -25,7 +25,7 @@ export default function Family() {
       <div role="tablist" className="grid grid-cols-4 gap-2 rounded-3xl bg-surface p-1.5 shadow-soft">
         {TABS.map(({ id, label, Icon }) => (
           <button key={id} role="tab" aria-selected={tab === id} onClick={() => setParams({ tab: id }, { replace: true })}
-            className={`flex flex-col items-center gap-0.5 rounded-2xl py-2 text-xs font-bold transition ${tab === id ? 'bg-gradient-to-br from-brand to-coral text-inverse' : 'text-fg/60'}`}>
+            className={`flex flex-col items-center gap-0.5 rounded-2xl py-2 text-xs font-bold transition ${tab === id ? 'bg-gradient-to-br from-brand to-coral text-inverse' : 'text-fg/65'}`}>
             <Icon size={20} />{label}
           </button>
         ))}

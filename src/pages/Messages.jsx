@@ -102,11 +102,11 @@ export default function Messages() {
     const unread = r.unread
     const Right = ({ time }) => (
       <div className="flex flex-col items-end gap-1">
-        {time && <span className={`text-xs ${unread ? 'font-bold text-brand' : 'text-fg/45'}`}>{short(time)}</span>}
-        <div className="flex items-center gap-1.5">{pinned && <Pin size={14} className="rotate-45 text-fg/45" />}<Badge n={unread} /></div>
+        {time && <span className={`text-xs ${unread ? 'font-bold text-brand' : 'text-fg/65'}`}>{short(time)}</span>}
+        <div className="flex items-center gap-1.5">{pinned && <Pin size={14} className="rotate-45 text-fg/65" />}<Badge n={unread} /></div>
       </div>
     )
-    const More = () => <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenu(r) }} aria-label="অপশন" className="hidden h-8 w-8 shrink-0 place-items-center rounded-full text-fg/40 hover:bg-surface2 lg:grid"><MoreVertical size={17} /></button>
+    const More = () => <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenu(r) }} aria-label="অপশন" className="hidden h-8 w-8 shrink-0 place-items-center rounded-full text-fg/65 hover:bg-surface2 lg:grid"><MoreVertical size={17} /></button>
     if (r.kind === 'group') {
       const { g, last, name } = r.x
       return (
@@ -114,7 +114,7 @@ export default function Messages() {
           <Avatar p={{ full_name: g.name, avatar_url: g.avatar_url }} size={52} />
           <div className="min-w-0 flex-1">
             <p className={`flex items-center gap-1.5 truncate ${unread ? 'font-extrabold' : 'font-bold'}`}>{lk && <Lock size={13} className="shrink-0 text-brand" />}<span className="truncate">{g.name}</span></p>
-            <p className={`truncate text-sm ${unread ? 'font-semibold text-fg' : 'text-fg/50'}`}>{lk ? '🔒 লক করা চ্যাট' : last ? `${name}: ${last.content ? last.content.split('\n')[0] : ({ video: '🎬 ভিডিও', audio: '🎵 অডিও', file: '📄 ফাইল' }[last.media_type] || '📷 ছবি')}` : 'গ্রুপ চ্যাট শুরু করুন'}</p>
+            <p className={`truncate text-sm ${unread ? 'font-semibold text-fg' : 'text-fg/65'}`}>{lk ? '🔒 লক করা চ্যাট' : last ? `${name}: ${last.content ? last.content.split('\n')[0] : ({ video: '🎬 ভিডিও', audio: '🎵 অডিও', file: '📄 ফাইল' }[last.media_type] || '📷 ছবি')}` : 'গ্রুপ চ্যাট শুরু করুন'}</p>
           </div>
           <Right time={last?.created_at} /><More />
         </Link>
@@ -127,8 +127,8 @@ export default function Messages() {
         <div className="min-w-0 flex-1">
           <p className={`flex items-center gap-1.5 truncate ${unread ? 'font-extrabold' : 'font-bold'}`}>{lk && <Lock size={13} className="shrink-0 text-brand" />}<span className="truncate">{p.full_name}</span></p>
           <div className="flex items-center gap-1.5">
-            {!lk && mine && (m.read_at ? <CheckCheck size={15} className="shrink-0 text-sky-400" /> : <Check size={15} className="shrink-0 text-fg/40" />)}
-            <p className={`truncate text-sm ${unread ? 'font-semibold text-fg' : 'text-fg/50'}`}>{lk ? '🔒 লক করা চ্যাট' : m ? `${mine ? 'আপনি: ' : ''}${(m.content || '').split('\n')[0] || '📎 মিডিয়া'}` : 'মেসেজ পাঠাতে ট্যাপ করুন'}</p>
+            {!lk && mine && (m.read_at ? <CheckCheck size={15} className="shrink-0 text-sky-400" /> : <Check size={15} className="shrink-0 text-fg/65" />)}
+            <p className={`truncate text-sm ${unread ? 'font-semibold text-fg' : 'text-fg/65'}`}>{lk ? '🔒 লক করা চ্যাট' : m ? `${mine ? 'আপনি: ' : ''}${(m.content || '').split('\n')[0] || '📎 মিডিয়া'}` : 'মেসেজ পাঠাতে ট্যাপ করুন'}</p>
           </div>
         </div>
         <Right time={m?.created_at} /><More />
@@ -137,8 +137,8 @@ export default function Messages() {
   }
   const FolderRow = ({ icon: I, label, n, onClick, sub }) => (
     <button onClick={onClick} className="flex w-full items-center gap-4 rounded-3xl px-4 py-3 text-left transition active:scale-[0.99]">
-      <span className="grid h-10 w-10 place-items-center text-fg/60"><I size={22} /></span>
-      <span className="flex-1"><span className="font-bold">{label}</span>{sub && <span className="block text-xs text-fg/45">{sub}</span>}</span>
+      <span className="grid h-10 w-10 place-items-center text-fg/65"><I size={22} /></span>
+      <span className="flex-1"><span className="font-bold">{label}</span>{sub && <span className="block text-xs text-fg/65">{sub}</span>}</span>
       {n > 0 && <span className="text-sm font-bold text-brand">{n.toLocaleString('bn-BD')}</span>}
     </button>
   )
@@ -154,7 +154,7 @@ export default function Messages() {
       </div>
       {!empty && (
         <div className="relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-fg/40" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-fg/65" />
           <input className="input !pl-11" placeholder="বন্ধু বা গ্রুপ খুঁজুন" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
       )}
@@ -167,10 +167,10 @@ export default function Messages() {
         {archived.length > 0 && <FolderRow icon={Archive} label="আর্কাইভ করা" n={archUnread} onClick={() => setFolder('archived')} />}
         <FolderRow icon={Lock} label="লক করা চ্যাট" n={0} sub={locked.length ? `${locked.length.toLocaleString('bn-BD')}টি চ্যাট` : 'চ্যাটে চেপে ধরে "লক করুন" দিন'} onClick={openLocked} />
       </>)}
-      {empty && <p className="py-10 text-center text-fg/60">মেসেজ পাঠাতে আগে বন্ধু যোগ করুন (বন্ধু ট্যাব), অথবা একটি গ্রুপ খুলুন।</p>}
-      {!empty && rows.length === 0 && <p className="py-8 text-center text-fg/50">{filter === 'unread' && !folder ? 'কোনো অপঠিত চ্যাট নেই।' : 'কিছু পাওয়া যায়নি।'}</p>}
+      {empty && <p className="py-10 text-center text-fg/65">মেসেজ পাঠাতে আগে বন্ধু যোগ করুন (বন্ধু ট্যাব), অথবা একটি গ্রুপ খুলুন।</p>}
+      {!empty && rows.length === 0 && <p className="py-8 text-center text-fg/65">{filter === 'unread' && !folder ? 'কোনো অপঠিত চ্যাট নেই।' : 'কিছু পাওয়া যায়নি।'}</p>}
       {rows.map((r) => <Row key={r.key} r={r} />)}
-      {!empty && !folder && <p className="flex items-center justify-center gap-1.5 pt-2 text-xs text-fg/40"><Lock size={12} />চ্যাটে চেপে ধরলে (পিসিতে ডান-ক্লিক) পিন, আর্কাইভ ও লক অপশন আসবে</p>}
+      {!empty && !folder && <p className="flex items-center justify-center gap-1.5 pt-2 text-xs text-fg/65"><Lock size={12} />চ্যাটে চেপে ধরলে (পিসিতে ডান-ক্লিক) পিন, আর্কাইভ ও লক অপশন আসবে</p>}
 
       {menu && (
         <div className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/60 backdrop-blur-sm" onClick={() => setMenu(null)}>

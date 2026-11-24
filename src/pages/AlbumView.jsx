@@ -21,12 +21,12 @@ function Viewer({ photos, index, setIndex, canDelete, onDelete, onClose }) {
   }, [go, onClose])
   if (!ph) return null
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 text-white" role="dialog" aria-modal="true"
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 text-white" data-own-esc role="dialog" aria-modal="true"
       onTouchStart={(e) => { x0.current = e.touches[0].clientX }}
       onTouchEnd={(e) => { if (x0.current == null) return; const dx = e.changedTouches[0].clientX - x0.current; x0.current = null; if (Math.abs(dx) > 60) go(dx < 0 ? 1 : -1) }}>
       <div className="flex items-center gap-3 px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
         <Avatar p={ph.profiles} size={36} />
-        <div className="min-w-0 flex-1"><b className="block truncate text-sm">{ph.profiles?.full_name}</b><span className="text-xs text-white/60">{fmtDate(ph.created_at)} • {bn(index + 1)}/{bn(photos.length)}</span></div>
+        <div className="min-w-0 flex-1"><b className="block truncate text-sm">{ph.profiles?.full_name}</b><span className="text-xs text-white/85">{fmtDate(ph.created_at)} • {bn(index + 1)}/{bn(photos.length)}</span></div>
         {canDelete(ph) && <button onClick={() => onDelete(ph)} aria-label="ছবি মুছুন" className="grid h-10 w-10 place-items-center rounded-full bg-white/15"><Trash2 size={18} /></button>}
         <button onClick={onClose} aria-label="বন্ধ করুন" className="grid h-10 w-10 place-items-center rounded-full bg-white/15"><X size={20} /></button>
       </div>
@@ -150,7 +150,7 @@ export default function AlbumView() {
     toast.success('অ্যালবাম মুছে ফেলা হয়েছে'); nav('/family?tab=albums', { replace: true })
   }
 
-  if (album === undefined) return <p className="py-16 text-center text-fg/55">লোড হচ্ছে…</p>
+  if (album === undefined) return <p className="py-16 text-center text-fg/65">লোড হচ্ছে…</p>
   if (album === null) return (
     <div className="space-y-3 py-16 text-center"><p className="text-4xl">🔒</p><p className="font-bold">অ্যালবামটি পাওয়া যায়নি বা আপনি এর সদস্য নন</p><Link to="/family?tab=albums" className="btn-primary inline-flex">অ্যালবামে ফিরুন</Link></div>
   )
@@ -158,7 +158,7 @@ export default function AlbumView() {
     <div className="space-y-3 pt-2">
       <div className="flex items-center gap-3">
         <button onClick={() => nav('/family?tab=albums')} aria-label="পেছনে যান" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface shadow-soft"><ArrowLeft size={20} /></button>
-        <div className="min-w-0 flex-1"><h2 className="truncate text-xl font-extrabold">{album.title}</h2>{album.description && <p className="truncate text-sm text-fg/60">{album.description}</p>}</div>
+        <div className="min-w-0 flex-1"><h2 className="truncate text-xl font-extrabold">{album.title}</h2>{album.description && <p className="truncate text-sm text-fg/65">{album.description}</p>}</div>
         <button onClick={() => setSheet(true)} aria-label="সদস্য" className="flex h-10 items-center gap-1.5 rounded-full bg-surface px-3 text-sm font-bold shadow-soft"><Users size={17} />{bn(members.length)}</button>
       </div>
 
@@ -168,17 +168,17 @@ export default function AlbumView() {
       </button>
 
       {photos.length === 0 ? (
-        <div className="space-y-2 rounded-3xl bg-surface p-8 text-center shadow-soft"><Images size={36} className="mx-auto text-brand" /><p className="font-bold">এখনও কোনো ছবি নেই</p><p className="text-sm text-fg/60">প্রথম ছবিটি আপনিই যোগ করুন।</p></div>
+        <div className="space-y-2 rounded-3xl bg-surface p-8 text-center shadow-soft"><Images size={36} className="mx-auto text-brand" /><p className="font-bold">এখনও কোনো ছবি নেই</p><p className="text-sm text-fg/65">প্রথম ছবিটি আপনিই যোগ করুন।</p></div>
       ) : (
         <div className="grid grid-cols-3 gap-1.5">
           {photos.map((ph, i) => (
             <button key={ph.id} onClick={() => setViewer(i)} aria-label={`ছবি ${bn(i + 1)}`} className="aspect-square overflow-hidden rounded-xl bg-surface2 active:scale-95">
-              <SmartImg src={ph.media_url} alt="" className="h-full w-full object-cover" />
+              <SmartImg src={ph.media_url} alt={ph.caption || 'অ্যালবামের ছবি'} className="h-full w-full object-cover" />
             </button>
           ))}
         </div>
       )}
-      <p className="text-center text-xs text-fg/50">অ্যালবামের সব সদস্য ছবি যোগ করতে পারে। নিজের ছবি নিজে মুছতে পারবেন।</p>
+      <p className="text-center text-xs text-fg/65">অ্যালবামের সব সদস্য ছবি যোগ করতে পারে। নিজের ছবি নিজে মুছতে পারবেন।</p>
       {isOwner && <button onClick={delAlbum} className="btn-soft w-full !text-danger">অ্যালবাম মুছে ফেলুন</button>}
 
       {viewer !== null && <Viewer photos={photos} index={viewer} setIndex={setViewer} canDelete={canDelete} onDelete={delPhoto} onClose={() => setViewer(null)} />}

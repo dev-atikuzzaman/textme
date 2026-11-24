@@ -22,6 +22,8 @@ import { useRelation } from '../lib/useRelation'
 import { Lock } from '../lib/icons'
 import { toast, confirmDialog, errMsg } from '../lib/ui'
 
+const POSTS_PAGE = 20
+
 export default function Profile() {
   const { id } = useParams()
   const { user, profile: me, refreshProfile } = useAuth()
@@ -30,6 +32,8 @@ export default function Profile() {
   const rels = useRelations() // আমি একে কী বলে ডাকি (মামা, খালা…)
   const [p, setP] = useState(own ? me : null)
   const [posts, setPosts] = useState([])
+  const [more, setMore] = useState(false), [moreBusy, setMoreBusy] = useState(false)
+  const countRef = useRef(0)
   const [sheet, setSheet] = useState(null) // view | edit | password | appearance | account | blocked | delete
   const [blocked, setBlocked] = useState([])
   const [confirmTxt, setConfirmTxt] = useState('')
@@ -41,10 +45,26 @@ export default function Profile() {
   const load = useCallback(async () => {
     const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).single()
     setP(prof)
-    if (!own && !canSee) { setPosts([]); return }
-    const { data } = await supabase.from('posts').select(SELECT_POST).eq('user_id', uid).order('pinned_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
-    setPosts(await withContext(data))
+    if (!own && !canSee) { setPosts([]); setMore(false); return }
+    // এখন যতগুলো দেখাচ্ছে ততগুলোই রিফ্রেশ (কমপক্ষে একটি পাতা)
+    const size = Math.max(POSTS_PAGE, countRef.current)
+    const { data, error } = await supabase.from('posts').select(SELECT_POST).eq('user_id', uid).order('pinned_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).range(0, size - 1)
+    if (error) toast.error('পোস্ট লোড হয়নি: ' + errMsg(error))
+    const rows = await withContext(data)
+    countRef.current = rows.length
+    setPosts(rows); setMore(rows.length === size)
   }, [uid, own, canSee]) // eslint-disable-line
+  const loadMore = async () => {
+    setMoreBusy(true)
+    const from = posts.length
+    const { data, error } = await supabase.from('posts').select(SELECT_POST).eq('user_id', uid).order('pinned_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }).range(from, from + POSTS_PAGE - 1)
+    setMoreBusy(false)
+    if (error) return toast.error('আরও পোস্ট আনা যায়নি: ' + errMsg(error))
+    const rows = await withContext(data)
+    setPosts((p) => { const ids = new Set(p.map((x) => x.id)); const n = [...p, ...rows.filter((x) => !ids.has(x.id))]; countRef.current = n.length; return n })
+    setMore(rows.length === POSTS_PAGE)
+  }
+  useEffect(() => { countRef.current = 0 }, [uid])
   useEffect(() => { load() }, [load])
 
   const loadBlocked = async () => {
@@ -54,7 +74,11 @@ export default function Profile() {
     const { data } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id', ids)
     setBlocked(data || [])
   }
-  const unblock = async (bid) => { await supabase.rpc('unblock_user', { p_user: bid }); loadBlocked() }
+  const unblock = async (bid) => {
+    const { error } = await supabase.rpc('unblock_user', { p_user: bid })
+    if (error) return toast.error(errMsg(error))
+    loadBlocked()
+  }
   const deactivate = async () => {
     if (!(await confirmDialog('কেউ আপনাকে খুঁজে পাবে না, পোস্ট লুকানো থাকবে। আবার লগ-ইন করলে চালু করতে পারবেন।', { title: 'একাউন্ট ডিঅ্যাক্টিভ করবেন?', danger: true, confirmText: 'ডিঅ্যাক্টিভ করুন' }))) return
     setBusy(true)
@@ -107,7 +131,7 @@ export default function Profile() {
     setBusy(false)
   }
 
-  if (!p) return <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>
+  if (!p) return <p className="py-10 text-center text-fg/65">লোড হচ্ছে…</p>
   const Row = ({ onClick, Icon, children, danger }) => (
     <button onClick={onClick} disabled={busy} className={`flex w-full items-center gap-3 rounded-2xl bg-surface2 p-4 text-left font-semibold disabled:opacity-50 ${danger ? 'text-danger' : ''}`}><Icon size={20} />{children}</button>
   )
@@ -145,12 +169,13 @@ export default function Profile() {
         <div className="rounded-3xl bg-surface p-8 text-center shadow-soft">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand/10 text-brand"><Lock size={24} /></span>
           <p className="mt-3 font-bold">এই প্রোফাইল প্রাইভেট</p>
-          <p className="mt-1 text-sm text-fg/60">{p.full_name}-এর তথ্য, পোস্ট ও ভিডিও দেখতে আগে বন্ধু হতে হবে।</p>
+          <p className="mt-1 text-sm text-fg/65">{p.full_name}-এর তথ্য, পোস্ট ও ভিডিও দেখতে আগে বন্ধু হতে হবে।</p>
         </div>
       ) : (<>
       <h3 className="px-1 font-bold">পোস্ট ও ভিডিও</h3>
-      {posts.length === 0 && <p className="py-6 text-center text-fg/60">দেখানোর মতো কিছু নেই।</p>}
+      {posts.length === 0 && <p className="py-6 text-center text-fg/65">দেখানোর মতো কিছু নেই।</p>}
       {posts.map((x) => <PostCard key={x.id} post={x} onChange={load} />)}
+      {more && <button onClick={loadMore} disabled={moreBusy} className="mx-auto mt-3 block rounded-full bg-surface2 px-5 py-2 text-sm font-semibold text-brand disabled:opacity-60">{moreBusy ? 'আনা হচ্ছে…' : 'আরও পোস্ট দেখুন'}</button>}
       </>)}
 
       {sheet === 'view' && p.avatar_url && <AvatarViewer p={p} own={own} busy={busy} onClose={() => setSheet(null)} onChange={() => fileRef.current.click()} onRemove={removeAvatar} />}
@@ -164,7 +189,7 @@ export default function Profile() {
           <div className="max-h-[90dvh] w-full max-w-md space-y-2 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-[32px]" onClick={(e) => e.stopPropagation()}>
             <div className="mb-1 flex items-center justify-between">
               <h2 className="text-lg font-bold">{sheet === 'blocked' ? 'ব্লক করা ব্যবহারকারী' : sheet === 'delete' ? 'একাউন্ট স্থায়ীভাবে ডিলিট' : 'একাউন্ট সেটিংস'}</h2>
-              <button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
+              <button onClick={() => setSheet(null)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button>
             </div>
             {sheet === 'account' && (<>
               <Row Icon={Smartphone} onClick={() => setSheet('devices')}>লগইন করা ডিভাইস ও সেশন</Row>
@@ -172,12 +197,12 @@ export default function Profile() {
               <Row Icon={ShieldOff} onClick={() => { loadBlocked(); setSheet('blocked') }}>ব্লক করা ব্যবহারকারী</Row>
               <Row Icon={PowerOff} onClick={deactivate}>একাউন্ট ডিঅ্যাক্টিভ করুন (সাময়িক)</Row>
               <Row Icon={Trash2} danger onClick={() => { setConfirmTxt(''); setSheet('delete') }}>একাউন্ট ডিলিট করুন (স্থায়ী)</Row>
-              <p className="px-1 pt-1 text-xs text-fg/55">ডিঅ্যাক্টিভ: আবার লগ-ইন করলেই চালু হয়। ডিলিট: পোস্ট, মেসেজ, বন্ধুত্ব সব চিরতরে মুছে যায়, ফেরানো যায় না।</p>
+              <p className="px-1 pt-1 text-xs text-fg/65">ডিঅ্যাক্টিভ: আবার লগ-ইন করলেই চালু হয়। ডিলিট: পোস্ট, মেসেজ, বন্ধুত্ব সব চিরতরে মুছে যায়, ফেরানো যায় না।</p>
             </>)}
             {sheet === 'blocked' && (<>
-              {blocked.length === 0 && <p className="py-6 text-center text-fg/55">কাউকে ব্লক করা নেই।</p>}
+              {blocked.length === 0 && <p className="py-6 text-center text-fg/65">কাউকে ব্লক করা নেই।</p>}
               {blocked.map((b) => (
-                <div key={b.id} className="flex items-center gap-3 rounded-2xl bg-surface2 p-3"><Avatar p={b} /><div className="min-w-0 flex-1"><p className="truncate font-bold">{b.full_name}</p><p className="truncate text-xs text-fg/50">@{b.username}</p></div>
+                <div key={b.id} className="flex items-center gap-3 rounded-2xl bg-surface2 p-3"><Avatar p={b} /><div className="min-w-0 flex-1"><p className="truncate font-bold">{b.full_name}</p><p className="truncate text-xs text-fg/65">@{b.username}</p></div>
                   <button onClick={() => unblock(b.id)} className="btn-soft bg-surface !px-3 !py-1.5 text-sm">আনব্লক</button></div>
               ))}
             </>)}

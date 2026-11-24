@@ -37,7 +37,7 @@ export default function Videos() {
   return (
     <div className="space-y-4 pt-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
+        <button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface" aria-label="পেছনে যান"><ArrowLeft size={20} /></button>
         <h2 className="flex-1 text-2xl font-extrabold">ভিডিও</h2>
         <button onClick={() => nav('/youtube')} aria-label="ইউটিউব" className="grid h-11 w-11 place-items-center rounded-2xl bg-red-600 text-white"><Youtube size={21} /></button>
         <button onClick={() => setOpen(true)} className="btn-primary !px-4 !py-2.5"><Plus size={18} />আপলোড</button>
@@ -48,7 +48,7 @@ export default function Videos() {
         ))}
       </div>
       {loadErr && <p className="rounded-2xl bg-surface p-4 text-sm text-danger">ভিডিও লোড করা যায়নি: {loadErr}</p>}
-      {items?.length === 0 && <p className="py-10 text-center text-fg/60">এই বিভাগে এখনও কোনো ভিডিও নেই।</p>}
+      {items?.length === 0 && <p className="py-10 text-center text-fg/65">এই বিভাগে এখনও কোনো ভিডিও নেই।</p>}
       <div className="space-y-5">
         {items?.map((v) => (
           <button key={v.id} onClick={() => setPlaying(v)} className="block w-full text-left">
@@ -57,7 +57,7 @@ export default function Videos() {
               <Avatar p={v.profiles} size={38} />
               <div className="min-w-0">
                 <p className="truncate font-bold">{v.title}</p>
-                <p className="text-xs text-fg/55">{v.profiles?.full_name} • {v.category} • {fmt(v.created_at)}</p>
+                <p className="text-xs text-fg/65">{v.profiles?.full_name} • {v.category} • {fmt(v.created_at)}</p>
               </div>
             </div>
           </button>
@@ -66,7 +66,7 @@ export default function Videos() {
       {playing && (
         <div className="fixed inset-0 z-[55] overflow-y-auto bg-ink">
           <div className="mx-auto max-w-md">
-            <button onClick={() => setPlaying(null)} className="m-4 grid h-10 w-10 place-items-center rounded-full bg-white/15 text-white"><X size={20} /></button>
+            <button onClick={() => setPlaying(null)} className="m-4 grid h-10 w-10 place-items-center rounded-full bg-white/15 text-white" aria-label="বন্ধ করুন"><X size={20} /></button>
             <video src={playing.media_url} controls autoPlay playsInline className="w-full bg-black" />
             <div className="space-y-3 p-4 text-white">
               <h3 className="text-xl font-bold">{playing.title}</h3>

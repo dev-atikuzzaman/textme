@@ -92,13 +92,13 @@ export default function Notifications() {
       {err && <p className="text-sm text-danger">{err}</p>}
       {cfg && <NotifSettingsSheet onClose={() => setCfg(false)} />}
 
-      {items.length === 0 && <p className="py-10 text-center text-fg/60">এখনও কোনো নোটিফিকেশন নেই।</p>}
+      {items.length === 0 && <p className="py-10 text-center text-fg/65">এখনও কোনো নোটিফিকেশন নেই।</p>}
       {items.map((n) => (
         <Link key={n.id} to={target(n)} className={`flex items-center gap-3 rounded-3xl bg-surface p-3 shadow-soft ${n.read ? '' : 'ring-2 ring-brand/40'}`}>
           <Avatar p={n.actor} size={48} />
           <div className="min-w-0 flex-1">
             <p className="leading-snug"><b>{n.actor?.full_name}</b> {NOTIF_TEXT[n.type]}</p>
-            <p className="text-xs text-fg/50">{fmt(n.created_at)}</p>
+            <p className="text-xs text-fg/65">{fmt(n.created_at)}</p>
           </div>
           {!n.read && <span className="h-2.5 w-2.5 rounded-full bg-coral" />}
         </Link>

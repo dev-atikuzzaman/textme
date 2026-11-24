@@ -52,8 +52,8 @@ export default function Auth() {
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-8">
       <div className="mb-7">
         <BrandMark size={84} className="mb-4 drop-shadow-lg" />
-        <h1 className="text-3xl font-extrabold leading-tight">{mode === 'forgot' ? 'পাসওয়ার্ড ভুলে গেছেন?' : <>{APP_NAME}<span className="block text-lg font-semibold text-fg/60">{APP_TAGLINE}</span></>}</h1>
-        <p className="mt-2 text-fg/60">{mode === 'forgot' ? 'একাউন্টের ইমেইল দিন, আমরা পাসওয়ার্ড বদলানোর লিংক পাঠাব।' : 'পরিবার ও আত্মীয়দের জন্য ছোট্ট একটি সোশ্যাল স্পেস।'}</p>
+        <h1 className="text-3xl font-extrabold leading-tight">{mode === 'forgot' ? 'পাসওয়ার্ড ভুলে গেছেন?' : <>{APP_NAME}<span className="block text-lg font-semibold text-fg/65">{APP_TAGLINE}</span></>}</h1>
+        <p className="mt-2 text-fg/65">{mode === 'forgot' ? 'একাউন্টের ইমেইল দিন, আমরা পাসওয়ার্ড বদলানোর লিংক পাঠাব।' : 'পরিবার ও আত্মীয়দের জন্য ছোট্ট একটি সোশ্যাল স্পেস।'}</p>
           {mode !== 'forgot' && (() => { try { return !!localStorage.getItem('apon-invite') } catch { return false } })() && <p className="mt-3 rounded-2xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand">🎉 পরিবারের আমন্ত্রণ পেয়েছেন — লগইন বা একাউন্ট খুলুন, তারপর যোগ দেওয়া যাবে।</p>}
       </div>
 
@@ -67,7 +67,7 @@ export default function Auth() {
           </svg>
           Google দিয়ে চালিয়ে যান
         </button>
-        <div className="my-4 flex items-center gap-3 text-sm text-fg/40"><span className="h-px flex-1 bg-fg/15" />অথবা<span className="h-px flex-1 bg-fg/15" /></div>
+        <div className="my-4 flex items-center gap-3 text-sm text-fg/65"><span className="h-px flex-1 bg-fg/15" />অথবা<span className="h-px flex-1 bg-fg/15" /></div>
       </>)}
 
       <form onSubmit={submit} className="space-y-3">

@@ -104,7 +104,7 @@ export default function Reels() {
             ))}
           </div>
           {canAdd && (
-            <button onClick={() => setOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-coral text-inverse"><Plus /></button>
+            <button onClick={() => setOpen(true)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-coral text-inverse" aria-label="যোগ করুন"><Plus /></button>
           )}
         </div>
         {showCats && (
@@ -119,7 +119,7 @@ export default function Reels() {
       {tab === 'own' ? (
         <div className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll">
           {loadErr && <p className="grid h-full place-items-center px-8 text-center text-sm text-danger">রিল লোড করা যায়নি: {loadErr}</p>}
-          {!loadErr && items?.length === 0 && <p className="grid h-full place-items-center px-10 text-center text-white/70">এই বিষয়ে এখনও কোনো রিল নেই। + চেপে প্রথম রিলটি আপলোড করুন।</p>}
+          {!loadErr && items?.length === 0 && <p className="grid h-full place-items-center px-10 text-center text-white/85">এই বিষয়ে এখনও কোনো রিল নেই। + চেপে প্রথম রিলটি আপলোড করুন।</p>}
           {items?.map((p) => <Reel key={p.id} post={p} muted={muted} setMuted={setMuted} onChange={load} />)}
         </div>
       ) : tab === 'saved' ? (

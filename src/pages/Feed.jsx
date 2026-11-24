@@ -131,7 +131,7 @@ export default function Feed() {
       <div className="rounded-[28px] bg-surface p-4 shadow-soft">
         <button onClick={() => setOpen({})} className="flex w-full items-center gap-3 text-left">
           <Avatar p={profile} />
-          <span className="flex-1 text-fg/50">মনে কী আছে{first ? `, ${first}` : ''}?</span>
+          <span className="flex-1 text-fg/65">মনে কী আছে{first ? `, ${first}` : ''}?</span>
         </button>
         <div className="mt-3 flex border-t border-fg/5 pt-2">
           {[[ImageIcon, 'ছবি', 'image/*', 'text-brand'], [Video, 'ভিডিও', 'video/*', 'text-coral'], [Paperclip, 'ফাইল', undefined, 'text-sky-400']].map(([Icon, label, accept, color]) => (
@@ -159,14 +159,14 @@ export default function Feed() {
           <ArrowUp size={16} />{newCount.toLocaleString('bn-BD')}টি নতুন পোস্ট
         </button>
       )}
-      {spin && <p className="flex items-center justify-center gap-2 text-sm text-fg/60"><RefreshCw size={15} className="animate-spin" />রিফ্রেশ হচ্ছে…</p>}
+      {spin && <p className="flex items-center justify-center gap-2 text-sm text-fg/65"><RefreshCw size={15} className="animate-spin" />রিফ্রেশ হচ্ছে…</p>}
 
       {loadErr && <p className="rounded-2xl bg-surface p-4 text-sm text-danger">পোস্ট লোড করা যায়নি: {loadErr}</p>}
       {posts === null && <><PostSkeleton /><PostSkeleton /></>}
-      {posts && shown.length === 0 && !loadErr && <p className="py-10 text-center text-fg/60">{EMPTY[filter]}</p>}
+      {posts && shown.length === 0 && !loadErr && <p className="py-10 text-center text-fg/65">{EMPTY[filter]}</p>}
       {shown.map((p) => <PostCard key={p.id} post={p} onChange={reload} onHide={hide} />)}
       {hasMore && <div ref={sentinel}><PostSkeleton /></div>}
-      {posts && !hasMore && shown.length > 5 && <p className="py-4 text-center text-sm text-fg/40">আপনি সব পোস্ট দেখে ফেলেছেন ✓</p>}
+      {posts && !hasMore && shown.length > 5 && <p className="py-4 text-center text-sm text-fg/65">আপনি সব পোস্ট দেখে ফেলেছেন ✓</p>}
 
       {noteOpen && <NoteSheet onClose={() => setNoteOpen(false)} onDone={() => load()} />}
       {open && <UploadSheet kind="post" accept={open.accept} autoPick={open.autoPick} onClose={() => setOpen(null)} onDone={() => load()} />}

@@ -9,7 +9,7 @@ export default function Setup() {
         <li>Vercel → Project → Settings → Environment Variables-এ দুটো যোগ করুন</li>
         <li>Deployments → Redeploy দিন</li>
       </ol>
-      <p className="text-sm text-fg/60">লোকালে চালাতে প্রজেক্টের রুটে .env ফাইলে একই দুটি লাইন দিন।</p>
+      <p className="text-sm text-fg/65">লোকালে চালাতে প্রজেক্টের রুটে .env ফাইলে একই দুটি লাইন দিন।</p>
     </div>
   )
 }

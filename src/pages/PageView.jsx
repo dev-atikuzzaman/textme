@@ -70,10 +70,10 @@ export default function PageView() {
     nav('/groups?tab=pages')
   }
 
-  if (pg === undefined) return <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p>
+  if (pg === undefined) return <p className="py-10 text-center text-fg/65">লোড হচ্ছে…</p>
   if (pg === null) return (
-    <div className="space-y-4 pt-2"><button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface"><ArrowLeft size={20} /></button>
-      <p className="py-10 text-center text-fg/60">পেজটি পাওয়া যায়নি বা মুছে ফেলা হয়েছে।</p></div>
+    <div className="space-y-4 pt-2"><button onClick={() => nav(-1)} className="grid h-11 w-11 place-items-center rounded-2xl bg-surface" aria-label="পেছনে যান"><ArrowLeft size={20} /></button>
+      <p className="py-10 text-center text-fg/65">পেজটি পাওয়া যায়নি বা মুছে ফেলা হয়েছে।</p></div>
   )
   const pp = { full_name: pg.name, avatar_url: pg.avatar_url }
 
@@ -83,7 +83,7 @@ export default function PageView() {
 
       <div className="overflow-hidden rounded-[32px] bg-surface shadow-soft">
         <div className="relative h-36 bg-gradient-to-br from-brand to-coral sm:h-44">
-          {pg.cover_url && <img src={pg.cover_url} alt="" className="h-full w-full object-cover" />}
+          {pg.cover_url && <img src={pg.cover_url} alt="পেজের কভার ছবি" className="h-full w-full object-cover" />}
           {own && <button disabled={busy} onClick={() => cv.current.click()} className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-bold text-white"><ImagePlus size={14} />কভার</button>}
           <input ref={cv} type="file" accept="image/*" hidden onChange={upload('cover_url', false)} />
         </div>
@@ -96,7 +96,7 @@ export default function PageView() {
             <input ref={av} type="file" accept="image/*" hidden onChange={upload('avatar_url', true)} />
           </div>
           <h2 className="mt-3 text-2xl font-extrabold">{pg.name}</h2>
-          <p className="text-sm text-fg/60">{pg.category} • {followers.toLocaleString('bn-BD')} জন ফলোয়ার</p>
+          <p className="text-sm text-fg/65">{pg.category} • {followers.toLocaleString('bn-BD')} জন ফলোয়ার</p>
           {pg.about && <p className="mt-2 whitespace-pre-wrap text-fg/80">{pg.about}</p>}
           <div className="mt-4 flex gap-2">
             {!own && (
@@ -112,7 +112,7 @@ export default function PageView() {
 
       {own && (
         <div className="rounded-[28px] bg-surface p-4 shadow-soft">
-          <p className="mb-2 text-sm font-bold text-fg/60">পেজ হিসেবে পোস্ট করুন</p>
+          <p className="mb-2 text-sm font-bold text-fg/65">পেজ হিসেবে পোস্ট করুন</p>
           <div className="flex">
             <button onClick={() => setSheet('upload')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2 text-sm font-bold text-fg/70"><ImageIcon size={19} className="text-brand" />পোস্ট/ছবি/ভিডিও</button>
             <button onClick={() => setSheet('note')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2 text-sm font-bold text-fg/70"><FileText size={19} className="text-violet-400" />নোট</button>
@@ -121,7 +121,7 @@ export default function PageView() {
       )}
 
       {posts === null && <PostSkeleton />}
-      {posts?.length === 0 && <p className="py-8 text-center text-fg/55">পেজে এখনও কোনো পোস্ট নেই।</p>}
+      {posts?.length === 0 && <p className="py-8 text-center text-fg/65">পেজে এখনও কোনো পোস্ট নেই।</p>}
       {posts?.map((p) => <PostCard key={p.id} post={p} onChange={loadPosts} />)}
 
       {sheet === 'upload' && <UploadSheet kind="post" pageId={id} onClose={() => setSheet(null)} onDone={loadPosts} />}

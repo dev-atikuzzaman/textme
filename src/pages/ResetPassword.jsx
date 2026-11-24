@@ -27,7 +27,7 @@ export default function ResetPassword() {
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
       <div className="mb-6 grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-brand to-coral text-inverse shadow-soft"><KeyRound size={30} /></div>
       <h1 className="text-3xl font-extrabold">নতুন পাসওয়ার্ড দিন</h1>
-      {loading ? <p className="mt-6 text-fg/60">যাচাই হচ্ছে…</p> : !user ? (
+      {loading ? <p className="mt-6 text-fg/65">যাচাই হচ্ছে…</p> : !user ? (
         <div className="mt-4 space-y-4">
           <p className="rounded-2xl bg-danger/10 p-4 text-danger">লিংকটির মেয়াদ শেষ বা আগেই ব্যবহার হয়ে গেছে। আবার "পাসওয়ার্ড ভুলে গেছেন?" থেকে নতুন লিংক নিন।</p>
           <Link to="/auth" className="btn-primary w-full">লগ-ইন পেজে যান</Link>

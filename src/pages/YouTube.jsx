@@ -58,7 +58,7 @@ export default function YouTube() {
             <iframe key={cur.id} src={ytEmbed(cur.id)} title="YouTube" className="h-full w-full" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen />
           </div>
           <div className="flex items-start gap-2 px-1.5 pb-1">
-            <div className="min-w-0 flex-1"><p className="line-clamp-2 font-bold leading-snug">{cur.title || 'লোড হচ্ছে…'}</p>{cur.channel && <p className="text-sm text-fg/60">{cur.channel}</p>}</div>
+            <div className="min-w-0 flex-1"><p className="line-clamp-2 font-bold leading-snug">{cur.title || 'লোড হচ্ছে…'}</p>{cur.channel && <p className="text-sm text-fg/65">{cur.channel}</p>}</div>
             <button onClick={doSave} aria-label="সেভ" className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2 ${ids.has(cur.id) ? 'text-coral' : ''}`}><Bookmark size={17} fill={ids.has(cur.id) ? 'currentColor' : 'none'} /></button>
             <button onClick={() => setShare(true)} aria-label="শেয়ার" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2"><Share2 size={17} /></button>
             <a href={`https://www.youtube.com/watch?v=${cur.id}`} target="_blank" rel="noreferrer" aria-label="ইউটিউবে খুলুন" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2"><ExternalLink size={17} /></a>
@@ -71,18 +71,18 @@ export default function YouTube() {
       {share && cur && <ShareSheet url={link} text={cur.title || ''} onClose={() => setShare(false)} onCopy={copy} onNative={native} />}
 
       <form onSubmit={(e) => { e.preventDefault(); if (q.trim()) run(q) }} className="relative">
-        <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-fg/45" />
+        <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-fg/65" />
         <input className="input !pl-11" placeholder={ytKey ? 'ইউটিউবে খুঁজুন বা লিংক পেস্ট করুন' : 'ইউটিউব ভিডিওর লিংক পেস্ট করুন'} value={q} onChange={(e) => setQ(e.target.value)} />
       </form>
       {err && <p className="rounded-2xl bg-amber-50 p-3 text-sm text-amber-800">{err}</p>}
-      {busy && <p className="py-6 text-center text-fg/50">খোঁজা হচ্ছে…</p>}
+      {busy && <p className="py-6 text-center text-fg/65">খোঁজা হচ্ছে…</p>}
 
       {list.length > 0 && (
         <div className="space-y-3">
           {list.map((v) => (
             <button key={v.id} onClick={() => play(v)} className="block w-full overflow-hidden rounded-3xl bg-surface text-left shadow-soft active:scale-[0.99]">
               <img src={ytThumb(v.id)} alt="" loading="lazy" className="aspect-video w-full object-cover" />
-              <div className="p-3"><p className="line-clamp-2 font-bold leading-snug">{v.title}</p><p className="text-sm text-fg/60">{v.channel}</p></div>
+              <div className="p-3"><p className="line-clamp-2 font-bold leading-snug">{v.title}</p><p className="text-sm text-fg/65">{v.channel}</p></div>
             </button>
           ))}
         </div>
@@ -95,9 +95,9 @@ export default function YouTube() {
             <div key={v.id} className="flex items-center gap-2 rounded-2xl bg-surface p-2 shadow-soft">
               <button onClick={() => play(v)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                 <img src={ytThumb(v.id)} alt="" loading="lazy" className="h-14 w-24 shrink-0 rounded-xl object-cover" />
-                <span className="min-w-0 flex-1"><span className="line-clamp-2 text-sm font-semibold leading-snug">{v.title || 'ইউটিউব ভিডিও'}</span><span className="block truncate text-xs text-fg/55">{v.channel}</span></span>
+                <span className="min-w-0 flex-1"><span className="line-clamp-2 text-sm font-semibold leading-snug">{v.title || 'ইউটিউব ভিডিও'}</span><span className="block truncate text-xs text-fg/65">{v.channel}</span></span>
               </button>
-              <button onClick={() => toggle(v)} aria-label="সেভ থেকে সরান" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2 text-fg/60"><X size={16} /></button>
+              <button onClick={() => toggle(v)} aria-label="সেভ থেকে সরান" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface2 text-fg/65"><X size={16} /></button>
             </div>
           ))}
         </section>
@@ -105,11 +105,11 @@ export default function YouTube() {
 
       {hist.length > 0 && (
         <section className="space-y-2">
-          <div className="flex items-center justify-between px-1"><h2 className="flex items-center gap-1.5 font-bold"><Clock size={16} />সাম্প্রতিক</h2><button onClick={() => { setHist([]); try { localStorage.removeItem(HKEY) } catch { /* ignore */ } }} className="text-xs text-fg/50">মুছুন</button></div>
+          <div className="flex items-center justify-between px-1"><h2 className="flex items-center gap-1.5 font-bold"><Clock size={16} />সাম্প্রতিক</h2><button onClick={() => { setHist([]); try { localStorage.removeItem(HKEY) } catch { /* ignore */ } }} className="text-xs text-fg/65">মুছুন</button></div>
           {hist.map((v) => (
             <button key={v.id} onClick={() => play(v)} className="flex w-full items-center gap-3 rounded-2xl bg-surface p-2 text-left shadow-soft">
               <img src={ytThumb(v.id)} alt="" loading="lazy" className="h-14 w-24 shrink-0 rounded-xl object-cover" />
-              <span className="min-w-0 flex-1"><span className="line-clamp-2 text-sm font-semibold leading-snug">{v.title}</span><span className="block truncate text-xs text-fg/55">{v.channel}</span></span>
+              <span className="min-w-0 flex-1"><span className="line-clamp-2 text-sm font-semibold leading-snug">{v.title}</span><span className="block truncate text-xs text-fg/65">{v.channel}</span></span>
             </button>
           ))}
         </section>
