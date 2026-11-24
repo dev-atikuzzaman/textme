@@ -79,7 +79,7 @@ export default function PersonActions({ p, size = 'sm', onChange }) {
       {menu && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={() => setMenu(false)}>
           <div className="w-full max-w-md space-y-2 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-1 flex items-center justify-between"><h2 className="truncate text-lg font-bold">{p.full_name}</h2><button onClick={() => setMenu(false)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button></div>
+            <div className="mb-1 flex items-center justify-between"><h2 className="truncate text-lg font-bold">{p.full_name}</h2><button onClick={() => setMenu(false)} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button></div>
             {r.state !== 'blocked' && <Item icon={Hand} label="পোক করুন 👉" onClick={r.poke} />}
             <Item icon={cp.isArchived(key) ? ArchiveRestore : Archive} label={cp.isArchived(key) ? 'আর্কাইভ থেকে বের করুন' : 'আর্কাইভ করুন (চ্যাট লুকান)'} onClick={() => cp.setPref(key, { archived: !cp.isArchived(key) })} />
             {r.state === 'friends' && <Item icon={UserX} label="বন্ধুত্ব শেষ করুন" onClick={() => setUnf(true)} danger />}

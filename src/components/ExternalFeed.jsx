@@ -161,7 +161,7 @@ export default function ExternalFeed({ note = '' }) {
         <div>
           <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-gradient-to-br from-brand to-coral text-inverse"><Play size={30} /></div>
           <p className="font-bold">ইউটিউব কানেক্ট করুন</p>
-          <p className="mt-2 text-sm text-white/70">আপনার সাবস্ক্রাইব করা চ্যানেলগুলোর শর্টস এখানে দেখতে পাবেন। শুধু পড়ার অনুমতি নেওয়া হয়, কিছু পোস্ট বা মোছা হয় না।</p>
+          <p className="mt-2 text-sm text-white/85">আপনার সাবস্ক্রাইব করা চ্যানেলগুলোর শর্টস এখানে দেখতে পাবেন। শুধু পড়ার অনুমতি নেওয়া হয়, কিছু পোস্ট বা মোছা হয় না।</p>
           {note && <p className="mt-3 text-sm text-danger">{note}</p>}
           {msg && <p className="mt-3 text-sm text-danger">{msg}</p>}
           <button className="btn-primary mt-5" disabled={busy} onClick={connect}>{busy ? 'অপেক্ষা করুন…' : 'ইউটিউব কানেক্ট করুন'}</button>

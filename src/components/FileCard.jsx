@@ -18,7 +18,7 @@ export default function FileCard({ url, name, size, className = '' }) {
       <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${tone}`}><Icon size={24} /></span>
       <span className="min-w-0 flex-1">
         <b className="block truncate">{name || 'ফাইল'}</b>
-        <span className="text-xs text-fg/55">{ext ? ext.toUpperCase() : 'FILE'}{size ? ` • ${fmtSize(size)}` : ''}</span>
+        <span className="text-xs text-fg/65">{ext ? ext.toUpperCase() : 'FILE'}{size ? ` • ${fmtSize(size)}` : ''}</span>
       </span>
       <Download size={20} className="shrink-0 text-brand" />
     </a>

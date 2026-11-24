@@ -45,14 +45,14 @@ export default function UIHost() {
             <div key={t.id} className="pop-in pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-3xl bg-surface p-3.5 pr-3 text-fg shadow-2xl ring-1 ring-fg/10">
               <I size={22} className={`mt-0.5 shrink-0 ${TONE[t.type] || TONE.info}`} />
               <p className="min-w-0 flex-1 whitespace-pre-line break-words text-[15px] leading-snug">{t.message}</p>
-              <button onClick={() => dismiss(t.id)} aria-label="বন্ধ করুন" className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-fg/50 hover:bg-fg/10"><X size={16} /></button>
+              <button onClick={() => dismiss(t.id)} aria-label="বন্ধ করুন" className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-fg/65 hover:bg-fg/10"><X size={16} /></button>
             </div>
           )
         })}
       </div>
 
       {d && (
-        <div className="fixed inset-0 z-[210] grid place-items-end bg-black/60 p-3 sm:place-items-center" onClick={() => answer(false)}>
+        <div data-own-esc className="fixed inset-0 z-[210] grid place-items-end bg-black/60 p-3 sm:place-items-center" onClick={() => answer(false)}>
           <div role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}
             className="pop-in mb-[env(safe-area-inset-bottom)] w-full max-w-sm rounded-[28px] bg-surface p-5 shadow-2xl ring-1 ring-fg/10">
             {d.title && <h3 className="text-lg font-extrabold">{d.title}</h3>}

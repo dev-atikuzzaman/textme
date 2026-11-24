@@ -37,7 +37,7 @@ export default function PasswordSheet({ onClose }) {
       <form onSubmit={submit} className="w-full max-w-md space-y-3 rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-fg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">পাসওয়ার্ড পরিবর্তন</h2>
-          <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button>
         </div>
         {!hasPw && <p className="rounded-2xl bg-surface2 p-3 text-sm text-fg/70">আপনি Google দিয়ে ঢুকেছেন। এখানে পাসওয়ার্ড সেট করলে ইমেইল ও পাসওয়ার্ড দিয়েও লগ-ইন করা যাবে।</p>}
         {hasPw && <input className="input" type={type} placeholder="বর্তমান পাসওয়ার্ড" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} />}

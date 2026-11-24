@@ -44,16 +44,16 @@ export default function NotifSettingsSheet({ onClose }) {
           <p className="font-bold">কোন অ্যালার্ট আসবে</p>
           {CATS.map((c) => (
             <div key={c.key} className="flex items-center gap-3 rounded-2xl bg-surface2 p-3">
-              <div className="min-w-0 flex-1"><b className="block">{c.label}</b><span className="text-xs text-fg/55">{c.sub}</span></div>
+              <div className="min-w-0 flex-1"><b className="block">{c.label}</b><span className="text-xs text-fg/65">{c.sub}</span></div>
               <Switch on={p[c.key] !== false} label={c.label} onChange={(v) => change({ [c.key]: v })} />
             </div>
           ))}
-          <p className="px-1 pt-1 text-xs text-fg/55">বন্ধ করা ধরনের পুশ নোটিফিকেশন, অ্যাপের ব্যানার ও সাউন্ড আর আসবে না। ভেতরের নোটিফিকেশন তালিকায় সবই থাকবে।</p>
+          <p className="px-1 pt-1 text-xs text-fg/65">বন্ধ করা ধরনের পুশ নোটিফিকেশন, অ্যাপের ব্যানার ও সাউন্ড আর আসবে না। ভেতরের নোটিফিকেশন তালিকায় সবই থাকবে।</p>
         </section>
 
         <section className={`space-y-2 ${ready ? '' : 'opacity-50'}`}>
           <div className="flex items-center gap-3 rounded-2xl bg-surface2 p-3">
-            <div className="min-w-0 flex-1"><b className="block">চুপ থাকার সময়</b><span className="text-xs text-fg/55">এই সময়ে পুশ ও সাউন্ড বন্ধ (কল ছাড়া)</span></div>
+            <div className="min-w-0 flex-1"><b className="block">চুপ থাকার সময়</b><span className="text-xs text-fg/65">এই সময়ে পুশ ও সাউন্ড বন্ধ (কল ছাড়া)</span></div>
             <Switch on={!!p.quiet_on} label="চুপ থাকার সময়" onChange={(v) => change({ quiet_on: v })} />
           </div>
           {p.quiet_on && (

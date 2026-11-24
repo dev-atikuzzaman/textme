@@ -121,13 +121,13 @@ export default function CommentsSheet({ post, onClose, onChange }) {
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/60 backdrop-blur-sm" onClick={busy ? undefined : onClose}>
       <div className="flex max-h-[88vh] w-full max-w-md flex-col rounded-t-[32px] bg-surface ring-1 ring-fg/10" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 pb-2">
-          <h2 className="text-lg font-bold">কমেন্ট{items?.length ? <span className="ml-2 text-sm font-semibold text-fg/50">{bn(items.length)}</span> : null}</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
+          <h2 className="text-lg font-bold">কমেন্ট{items?.length ? <span className="ml-2 text-sm font-semibold text-fg/65">{bn(items.length)}</span> : null}</h2>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button>
         </div>
 
         <div ref={box} className="min-h-[140px] flex-1 space-y-5 overflow-y-auto px-5 py-3">
-          {items === null && <p className="text-center text-fg/50">লোড হচ্ছে…</p>}
-          {items?.length === 0 && <p className="py-6 text-center text-fg/60">এখনও কোনো কমেন্ট নেই। প্রথম কমেন্টটি আপনি করুন।</p>}
+          {items === null && <p className="text-center text-fg/65">লোড হচ্ছে…</p>}
+          {items?.length === 0 && <p className="py-6 text-center text-fg/65">এখনও কোনো কমেন্ট নেই। প্রথম কমেন্টটি আপনি করুন।</p>}
           {tops.map((c) => {
             const replies = kids[c.id] || []
             const isOpen = open.has(c.id)
@@ -140,7 +140,7 @@ export default function CommentsSheet({ post, onClose, onChange }) {
                     {isOpen ? (
                       <div className="pop-in space-y-4">
                         {replies.map((r) => row(r, true, c))}
-                        <button onClick={() => toggle(c.id)} className="flex items-center gap-1.5 text-xs font-bold text-fg/55"><ChevronUp size={14} />উত্তর লুকান</button>
+                        <button onClick={() => toggle(c.id)} className="flex items-center gap-1.5 text-xs font-bold text-fg/65"><ChevronUp size={14} />উত্তর লুকান</button>
                       </div>
                     ) : (
                       <button onClick={() => toggle(c.id)} className="flex items-center gap-2 rounded-full bg-surface2 py-1.5 pl-2 pr-3 text-xs font-bold text-brand transition active:scale-95">
@@ -159,14 +159,14 @@ export default function CommentsSheet({ post, onClose, onChange }) {
           <div className="pop-in mx-4 mb-1 flex items-center gap-2 rounded-2xl bg-brand/10 px-3 py-2 text-sm">
             <CornerDownRight size={16} className="shrink-0 text-brand" />
             <span className="min-w-0 flex-1 truncate"><b className="text-brand">{replyTo.name}</b> কে উত্তর দিচ্ছেন</span>
-            <button onClick={() => setReplyTo(null)} className="grid h-6 w-6 place-items-center rounded-full bg-surface2"><X size={14} /></button>
+            <button onClick={() => setReplyTo(null)} className="grid h-6 w-6 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={14} /></button>
           </div>
         )}
         {file && (
           <div className="mx-4 mb-1 flex items-center gap-3 rounded-2xl bg-surface2 p-2.5">
             {preview ? <img src={preview} alt="" className="h-12 w-12 rounded-xl object-cover" /> : <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand/15 text-brand"><Paperclip size={20} /></span>}
-            <span className="min-w-0 flex-1"><b className="block truncate text-sm">{file.name}</b><span className="text-xs text-fg/55">{fmtSize(file.size)}</span></span>
-            <button disabled={busy} onClick={clearFile} className="grid h-8 w-8 place-items-center rounded-full bg-surface text-fg/60"><X size={16} /></button>
+            <span className="min-w-0 flex-1"><b className="block truncate text-sm">{file.name}</b><span className="text-xs text-fg/65">{fmtSize(file.size)}</span></span>
+            <button disabled={busy} onClick={clearFile} className="grid h-8 w-8 place-items-center rounded-full bg-surface text-fg/65" aria-label="ফাইল সরান"><X size={16} /></button>
           </div>
         )}
         {busy && file && <div className="mx-4 mb-1 h-1.5 overflow-hidden rounded-full bg-surface2"><div className="h-full rounded-full bg-gradient-to-r from-brand to-coral transition-all" style={{ width: `${pct}%` }} /></div>}
@@ -176,10 +176,10 @@ export default function CommentsSheet({ post, onClose, onChange }) {
           <input ref={picker} type="file" hidden onChange={pickFile} />
           <button type="button" disabled={busy} onClick={() => picker.current.click()} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface2 text-brand"><Paperclip size={20} /></button>
           <input ref={input} className="input" placeholder={replyTo ? 'উত্তর লিখুন…' : 'কমেন্ট লিখুন…'} value={text} onChange={(e) => setText(e.target.value)} />
-          <button disabled={busy} className="btn-primary !px-4"><Send size={20} /></button>
+          <button disabled={busy} aria-label="পাঠান" className="btn-primary !px-4"><Send size={20} /></button>
         </form>
       </div>
-      {viewer && <div className="fixed inset-0 z-[90] grid place-items-center bg-black/90 p-4" onClick={(e) => { e.stopPropagation(); setViewer(null) }}><img src={viewer} alt="" className="max-h-full max-w-full" /></div>}
+      {viewer && <div className="fixed inset-0 z-[90] grid place-items-center bg-black/90 p-4" onClick={(e) => { e.stopPropagation(); setViewer(null) }}><img src={viewer} alt="বড় করে দেখা ছবি" className="max-h-full max-w-full" /></div>}
     </div>
   )
 }

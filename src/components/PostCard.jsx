@@ -116,13 +116,13 @@ export default function PostCard({ post, onChange, onHide }) {
         <Link to={pg ? `/pages/${pg.id}` : `/profile/${post.user_id}`}><Avatar p={pg || post.profiles} /></Link>
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 font-bold"><span className="truncate">{pg ? pg.name : post.profiles?.full_name}</span>{pg && <span className="shrink-0 rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold text-brand">পেজ</span>}</p>
-          <p className="flex flex-wrap items-center gap-x-1 text-xs text-fg/50">
+          <p className="flex flex-wrap items-center gap-x-1 text-xs text-fg/65">
             {post.group && <Link to={`/groups/${post.group.id}`} className="inline-flex items-center gap-1 font-semibold text-brand"><Users size={12} />{post.group.name}</Link>}
             {post.group && <span>•</span>}
             {!post.group && !pg && P && <P.Icon size={12} />}{fmt(post.created_at)}{post.edited_at && ' • সম্পাদিত'}
           </p>
         </div>
-        <button onClick={() => setSheet('menu')} aria-label="অপশন" className="grid h-9 w-9 place-items-center rounded-full text-fg/50 transition active:bg-surface2"><MoreHorizontal size={22} /></button>
+        <button onClick={() => setSheet('menu')} aria-label="অপশন" className="grid h-9 w-9 place-items-center rounded-full text-fg/65 transition active:bg-surface2"><MoreHorizontal size={22} /></button>
       </div>
 
       {isNote && <NoteCard post={post} onOpen={() => setSheet('note')} />}
@@ -141,13 +141,13 @@ export default function PostCard({ post, onChange, onHide }) {
             ? <FileCard url={post.media_url} name={post.media_name} size={post.media_size} />
             : post.media_type === 'video'
             ? <AutoVideo src={post.media_url} />
-            : <SmartImg src={post.media_url} alt="" reserve="min-h-[14rem]" className="w-full cursor-zoom-in rounded-2xl object-cover" />}
+            : <SmartImg src={post.media_url} alt="পোস্টের ছবি" reserve="min-h-[14rem]" className="w-full cursor-zoom-in rounded-2xl object-cover" />}
           {burst && <span className="heart-burst pointer-events-none absolute inset-0 grid place-items-center text-7xl">❤️</span>}
         </div>
       )}
 
       {(likes.length > 0 || commentCount > 0) && (
-        <div className="mt-3 flex items-center justify-between text-sm text-fg/60">
+        <div className="mt-3 flex items-center justify-between text-sm text-fg/65">
           {likes.length > 0 ? (
             <button onClick={() => setSheet('who')} className="flex items-center gap-1.5">
               <span className="flex -space-x-1.5">{top.map((r) => <span key={r.id} className="grid h-6 w-6 place-items-center rounded-full bg-surface2 text-sm ring-2 ring-surface">{r.emoji}</span>)}</span>
@@ -160,9 +160,9 @@ export default function PostCard({ post, onChange, onHide }) {
 
       <div className="mt-2 flex border-t border-fg/5 pt-1.5">
         <ReactionBar mine={mine} onReact={react} />
-        <button onClick={() => setSheet('comments')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/60 transition active:scale-95"><MessageCircle size={20} />কমেন্ট</button>
-        <button onClick={share} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/60 transition active:scale-95"><Share2 size={19} />শেয়ার</button>
-        <button onClick={doSave} aria-label={saved ? 'সেভ থেকে সরান' : 'সেভ করুন'} className={`grid w-12 shrink-0 place-items-center rounded-2xl transition active:scale-90 ${saved ? 'text-coral' : 'text-fg/60'}`}><Bookmark size={20} fill={saved ? 'currentColor' : 'none'} /></button>
+        <button onClick={() => setSheet('comments')} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/65 transition active:scale-95"><MessageCircle size={20} />কমেন্ট</button>
+        <button onClick={share} className="flex flex-1 items-center justify-center gap-2 rounded-2xl py-2.5 text-sm font-bold text-fg/65 transition active:scale-95"><Share2 size={19} />শেয়ার</button>
+        <button onClick={doSave} aria-label={saved ? 'সেভ থেকে সরান' : 'সেভ করুন'} className={`grid w-12 shrink-0 place-items-center rounded-2xl transition active:scale-90 ${saved ? 'text-coral' : 'text-fg/65'}`}><Bookmark size={20} fill={saved ? 'currentColor' : 'none'} /></button>
       </div>
       {note && <p className="mt-2 rounded-xl bg-surface2 p-2.5 text-center text-sm font-semibold text-fg/70">{note}</p>}
 

@@ -54,10 +54,10 @@ export default function AppearanceSheet({ onClose }) {
             ))}
           </div>
           <div className="mt-3 rounded-2xl bg-surface2 p-3">
-            <p className="text-fg/55 text-xs">নমুনা</p>
+            <p className="text-fg/65 text-xs">নমুনা</p>
             <p className="mt-1">পরিবারের সবার সাথে আপন ঠিকানায় — আজ কেমন আছেন সবাই?</p>
           </div>
-          <p className="mt-2 text-xs text-fg/55">বড়দের জন্য "বড়" বা "অনেক বড়" বেছে নিলে সব লেখা সহজে পড়া যাবে।</p>
+          <p className="mt-2 text-xs text-fg/65">বড়দের জন্য "বড়" বা "অনেক বড়" বেছে নিলে সব লেখা সহজে পড়া যাবে।</p>
         </section>
       </div>
     </div>

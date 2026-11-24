@@ -77,7 +77,7 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
       <div className="max-h-[92vh] w-full max-w-md space-y-4 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{TITLES[kind]}</h2>
-          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2 disabled:opacity-40"><X size={18} /></button>
+          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2 disabled:opacity-40" aria-label="বন্ধ করুন"><X size={18} /></button>
         </div>
         {kind === 'video' && <input className="input" placeholder="শিরোনাম" value={title} onChange={(e) => setTitle(e.target.value)} />}
         <textarea className="input min-h-[96px]" placeholder={kind === 'post' ? 'মনে কী আছে?' : 'বিবরণ (ঐচ্ছিক)'} value={content} onChange={(e) => setContent(e.target.value)} />
@@ -102,7 +102,7 @@ export default function UploadSheet({ kind = 'post', accept, autoPick, groupId, 
         {busy && file && (
           <div>
             <div className="h-2 overflow-hidden rounded-full bg-surface2"><div className="h-full rounded-full bg-gradient-to-r from-brand to-coral text-inverse transition-all" style={{ width: `${pct}%` }} /></div>
-            <p className="mt-1 text-center text-xs text-fg/60">আপলোড হচ্ছে… {pct}% — পেজ বন্ধ করবেন না</p>
+            <p className="mt-1 text-center text-xs text-fg/65">আপলোড হচ্ছে… {pct}% — পেজ বন্ধ করবেন না</p>
           </div>
         )}
         {err && <p className="rounded-xl bg-danger/15 p-3 text-sm text-danger">{err}</p>}

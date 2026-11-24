@@ -26,7 +26,7 @@ export default function PushBanner() {
           <p className="text-fg/65">অ্যাপ বন্ধ থাকলেও কল, মেসেজ ও নতুন পোস্টের সাউন্ড-সহ পপ-আপ পাবেন।</p>
         </div>
         <button disabled={busy} onClick={on} className="rounded-2xl bg-gradient-to-r from-brand to-coral px-4 py-2 text-sm font-bold text-inverse disabled:opacity-60">চালু</button>
-        <button onClick={close} aria-label="বন্ধ করুন" className="text-fg/40"><X size={18} /></button>
+        <button onClick={close} aria-label="বন্ধ করুন" className="text-fg/65"><X size={18} /></button>
       </div>
       {err && <p className="mt-2 text-sm text-danger">{err}</p>}
     </div>

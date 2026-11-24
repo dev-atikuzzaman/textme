@@ -107,7 +107,7 @@ function Shell() {
         <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-md items-center justify-around rounded-t-[26px] border-t border-fg/10 bg-surface/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] backdrop-blur-xl sm:max-w-xl lg:hidden">
           {tabs.map((t) => (
             <NavLink key={t.to} to={t.to} end={t.end} aria-label={t.label} onClick={homeTap(t.to)}
-              className={({ isActive }) => `relative grid h-12 w-14 place-items-center rounded-2xl transition ${isActive ? 'bg-gradient-to-br from-brand to-coral text-inverse' : 'text-fg/50'}`}>
+              className={({ isActive }) => `relative grid h-12 w-14 place-items-center rounded-2xl transition ${isActive ? 'bg-gradient-to-br from-brand to-coral text-inverse' : 'text-fg/65'}`}>
               <t.Icon size={22} />
               <Badge n={count(t)} className="-right-0.5 -top-0.5" />
             </NavLink>

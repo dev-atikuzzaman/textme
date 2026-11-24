@@ -66,7 +66,7 @@ export default function CameraSheet({ mode = 'both', onCapture, onClose }) {
 
   // portal: নিচের নেভিগেশন বারের ওপরে আসে; stopPropagation: ক্লিক যেন পেছনের শিটের "বাইরে ক্লিক = বন্ধ"-এ না পৌঁছায়
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex flex-col bg-black text-white" onClick={(e) => e.stopPropagation()}>
+    <div data-own-esc className="fixed inset-0 z-[200] flex flex-col bg-black text-white" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between px-4 pb-2 pt-[max(1rem,env(safe-area-inset-top))]">
         <button onClick={() => { stopRec(); stop(); onClose() }} aria-label="বন্ধ" className="grid h-11 w-11 place-items-center rounded-full bg-white/15"><X size={22} /></button>
         {rec && <span className="flex items-center gap-2 rounded-full bg-red-600 px-3 py-1 text-sm font-bold"><span className="h-2 w-2 animate-pulse rounded-full bg-white" />{mmss(secs)}</span>}
@@ -77,7 +77,7 @@ export default function CameraSheet({ mode = 'both', onCapture, onClose }) {
         {shot ? (shot.type === 'image' ? <img src={shot.url} alt="" className="max-h-full max-w-full object-contain" /> : <video src={shot.url} controls autoPlay playsInline className="max-h-full max-w-full" />)
           : <video ref={vid} playsInline muted className={`max-h-full max-w-full object-contain ${facing === 'user' ? '[transform:scaleX(-1)]' : ''}`} />}
         {err && <p className="absolute inset-x-6 rounded-2xl bg-black/70 p-4 text-center text-sm">{err}</p>}
-        {!ready && !err && !shot && <p className="absolute text-white/70">ক্যামেরা চালু হচ্ছে…</p>}
+        {!ready && !err && !shot && <p className="absolute text-white/85">ক্যামেরা চালু হচ্ছে…</p>}
       </div>
 
       <div className="px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4">
@@ -90,7 +90,7 @@ export default function CameraSheet({ mode = 'both', onCapture, onClose }) {
           <div className="space-y-4">
             {mode === 'both' && !rec && (
               <div className="flex justify-center gap-2">
-                {[['photo', 'ছবি'], ['video', 'ভিডিও']].map(([k, l]) => <button key={k} onClick={() => setM(k)} className={`rounded-full px-5 py-1.5 text-sm font-bold ${m === k ? 'bg-white text-black' : 'text-white/70'}`}>{l}</button>)}
+                {[['photo', 'ছবি'], ['video', 'ভিডিও']].map(([k, l]) => <button key={k} onClick={() => setM(k)} className={`rounded-full px-5 py-1.5 text-sm font-bold ${m === k ? 'bg-white text-black' : 'text-white/85'}`}>{l}</button>)}
               </div>
             )}
             <div className="flex items-center justify-center">
@@ -100,7 +100,7 @@ export default function CameraSheet({ mode = 'both', onCapture, onClose }) {
                   ? <button onClick={stopRec} aria-label="রেকর্ড থামান" className="grid h-20 w-20 place-items-center rounded-full border-4 border-white"><Square size={28} className="fill-red-500 text-red-500" /></button>
                   : <button disabled={!ready} onClick={startRec} aria-label="রেকর্ড শুরু" className="grid h-20 w-20 place-items-center rounded-full border-4 border-white disabled:opacity-40"><Circle size={52} className="fill-red-500 text-red-500" /></button>}
             </div>
-            {m === 'video' && <p className="text-center text-xs text-white/60">সর্বোচ্চ {MAX_REC} সেকেন্ড</p>}
+            {m === 'video' && <p className="text-center text-xs text-white/85">সর্বোচ্চ {MAX_REC} সেকেন্ড</p>}
           </div>
         )}
       </div>

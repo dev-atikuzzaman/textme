@@ -36,11 +36,11 @@ export default function UserCard({ userId, onClose }) {
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center" onClick={onClose}>
       <div className="w-full max-w-md rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-[32px]" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-end"><button onClick={onClose} aria-label="বন্ধ" className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button></div>
-        {!p ? <p className="py-10 text-center text-fg/50">লোড হচ্ছে…</p> : (<>
+        {!p ? <p className="py-10 text-center text-fg/65">লোড হচ্ছে…</p> : (<>
           <div className="text-center">
             <button onClick={() => p.avatar_url && setView(true)} className="relative mx-auto block rounded-full transition active:scale-95"><Avatar p={p} size={96} online={online} /></button>
             <h2 className="mt-3 text-xl font-bold">{p.full_name}</h2>
-            <p className="text-sm text-fg/55">@{p.username}{online ? ' • অনলাইন' : ''}</p>
+            <p className="text-sm text-fg/65">@{p.username}{online ? ' • অনলাইন' : ''}</p>
             {p.bio && <p className="mx-auto mt-2 max-w-xs text-sm text-fg/75">{p.bio}</p>}
           </div>
           {!me && (
@@ -51,7 +51,7 @@ export default function UserCard({ userId, onClose }) {
               <Act icon={UserRound} label="প্রোফাইল" to={`/profile/${p.id}`} />
             </div>
           )}
-          {!me && !friends && <p className="mt-3 text-center text-xs text-fg/55">মেসেজ ও কল করতে আগে বন্ধু হতে হবে।</p>}
+          {!me && !friends && <p className="mt-3 text-center text-xs text-fg/65">মেসেজ ও কল করতে আগে বন্ধু হতে হবে।</p>}
           <div className="mt-4 flex justify-center">{me ? <Link to="/profile" onClick={onClose} className="btn-soft">আমার প্রোফাইল</Link> : <PersonActions p={p} onChange={rel.reload} />}</div>
         </>)}
         {view && p?.avatar_url && <AvatarViewer p={p} onClose={() => setView(false)} />}

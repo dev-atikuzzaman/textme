@@ -54,7 +54,7 @@ export default function NoteSheet({ groupId, pageId, onClose, onDone }) {
       <div className="max-h-[94vh] w-full max-w-md space-y-3 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-xl font-bold"><FileText size={22} className="text-brand" />নতুন নোট</h2>
-          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2 disabled:opacity-40"><X size={18} /></button>
+          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2 disabled:opacity-40" aria-label="বন্ধ করুন"><X size={18} /></button>
         </div>
         <input ref={ref} type="file" accept="image/*" hidden onChange={pick} />
         {preview ? (
@@ -65,7 +65,7 @@ export default function NoteSheet({ groupId, pageId, onClose, onDone }) {
         )}
         <input className="input !text-lg !font-bold" placeholder="নোটের শিরোনাম" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} />
         <textarea className="input min-h-[220px] leading-relaxed" placeholder="এখানে লিখুন… খালি লাইন দিলে নতুন অনুচ্ছেদ হবে। লিংক ও #ট্যাগ কাজ করবে।" value={body} onChange={(e) => setBody(e.target.value)} />
-        <p className="text-right text-xs text-fg/45">{body.length.toLocaleString('bn-BD')} অক্ষর</p>
+        <p className="text-right text-xs text-fg/65">{body.length.toLocaleString('bn-BD')} অক্ষর</p>
         {!groupId && !pageId && <PrivacyPicker value={privacy} onChange={setPrivacy} />}
         {err && <p className="rounded-xl bg-danger/15 p-3 text-sm text-danger">{err}</p>}
         <button disabled={busy} onClick={submit} className="btn-primary w-full">{busy ? 'প্রকাশ হচ্ছে…' : 'নোট প্রকাশ করুন'}</button>

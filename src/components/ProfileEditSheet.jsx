@@ -72,7 +72,7 @@ export default function ProfileEditSheet({ profile, onClose, onSaved }) {
 
   const verified = !!user.email_confirmed_at
   const hint = {
-    checking: <span className="flex items-center gap-1 text-fg/50"><Loader2 size={14} className="animate-spin" />যাচাই হচ্ছে…</span>,
+    checking: <span className="flex items-center gap-1 text-fg/65"><Loader2 size={14} className="animate-spin" />যাচাই হচ্ছে…</span>,
     ok: <span className="flex items-center gap-1 text-success"><Check size={14} />ইউজারনেমটি পাওয়া যাবে</span>,
     taken: <span className="flex items-center gap-1 text-danger"><AlertCircle size={14} />এই ইউজারনেম আগে থেকেই আছে</span>,
     bad: <span className="flex items-center gap-1 text-danger"><AlertCircle size={14} />৩–২০ অক্ষর, শুধু a-z, 0-9, _ ও .</span>,
@@ -82,7 +82,7 @@ export default function ProfileEditSheet({ profile, onClose, onSaved }) {
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center" onClick={onClose}>
       <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-[32px]" onClick={(e) => e.stopPropagation()}>
-        <div className="mb-3 flex items-center justify-between"><h2 className="text-xl font-bold">প্রোফাইল এডিট</h2><button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button></div>
+        <div className="mb-3 flex items-center justify-between"><h2 className="text-xl font-bold">প্রোফাইল এডিট</h2><button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button></div>
 
         <div className="space-y-3">
           <label className="block"><span className="mb-1 block text-sm font-semibold text-fg/70">নাম</span>
@@ -107,11 +107,11 @@ export default function ProfileEditSheet({ profile, onClose, onSaved }) {
 
           <label className="block"><span className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-fg/70"><Phone size={15} />মোবাইল নম্বর</span>
             <input className="input" type="tel" inputMode="tel" placeholder="01XXXXXXXXX" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
-            <span className="mt-1 block text-xs text-fg/50">নম্বর কাউকে দেখানো হয় না। ওটিপি দিয়ে যাচাই করা হয় না।</span></label>
+            <span className="mt-1 block text-xs text-fg/65">নম্বর কাউকে দেখানো হয় না। ওটিপি দিয়ে যাচাই করা হয় না।</span></label>
 
           <label className="flex items-start gap-3 rounded-2xl bg-surface2 p-3.5">
             <input type="checkbox" className="mt-1 h-5 w-5 accent-brand" checked={f.discoverable} onChange={(e) => setF({ ...f, discoverable: e.target.checked })} />
-            <span><b className="block text-sm">ইমেইল/ফোন দিয়ে আমাকে খোঁজা যাবে</b><span className="text-xs text-fg/55">বন্ধ করলে কেউ আমার ইমেইল বা নম্বর লিখে আমাকে পাবে না (নাম/ইউজারনেমে পাবে)।</span></span>
+            <span><b className="block text-sm">ইমেইল/ফোন দিয়ে আমাকে খোঁজা যাবে</b><span className="text-xs text-fg/65">বন্ধ করলে কেউ আমার ইমেইল বা নম্বর লিখে আমাকে পাবে না (নাম/ইউজারনেমে পাবে)।</span></span>
           </label>
 
           {err && <p className="rounded-xl bg-danger/10 p-3 text-sm text-danger">{err}</p>}
