@@ -5,7 +5,9 @@ import App from './App'
 import './index.css'
 import ErrorBoundary from './components/ErrorBoundary'
 import { applyPrefs, watchSystemTheme } from './lib/prefs'
+import { installDialogA11y } from './lib/a11yDialogs'
 
+installDialogA11y()
 applyPrefs(); watchSystemTheme() // থিম ও লেখার সাইজ ("অটো" থিমে ফোনের সেটিং বদলালে সাথে সাথে বদলায়)
 
 ReactDOM.createRoot(document.getElementById('root')).render(

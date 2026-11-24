@@ -18,8 +18,9 @@
   --surface: 255 255 255;
   --surface2: 238 244 241;
   --brand: 15 118 96;
+  --brand-text: 15 118 96; /* লেখার জন্য ব্র্যান্ড রং (ডার্কে হালকা, যাতে কনট্রাস্ট থাকে) */
   --coral: 38 156 126;
-  --danger: 220 53 69;
+  --danger: 200 40 56;
   --success: 22 163 74;
   --inverse: 255 255 255;
   --bubble: 15 118 96;
@@ -35,8 +36,9 @@
   --surface: 22 32 28;
   --surface2: 33 46 41;
   --brand: 22 150 122;
+  --brand-text: 70 196 166;
   --coral: 44 176 142;
-  --danger: 236 84 96;
+  --danger: 246 104 114;
   --success: 52 190 110;
   --inverse: 255 255 255;
   --bubble: 17 112 92;
@@ -63,7 +65,7 @@ body {
 .btn { @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition active:scale-95 disabled:opacity-50; }
 .btn-primary { @apply btn text-inverse bg-gradient-to-r from-brand to-coral shadow-soft; }
 .btn-soft { @apply btn bg-surface2 text-fg; }
-.input { @apply w-full rounded-2xl border-0 bg-surface2 px-4 py-3 text-fg outline-none ring-1 ring-fg/10 placeholder:text-fg/40 focus:ring-2 focus:ring-brand; }
+.input { @apply w-full rounded-2xl border-0 bg-surface2 px-4 py-3 text-fg outline-none ring-1 ring-fg/10 placeholder:text-fg/65 focus:ring-2 focus:ring-brand; }
 @keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.85); } to { opacity: 1; transform: none; } }
 .pop-in { animation: pop-in .16s ease-out; }
 @keyframes heart-burst { 0% { opacity: 0; transform: scale(.3); } 30% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.7); } }
