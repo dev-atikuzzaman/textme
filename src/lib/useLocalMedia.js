@@ -39,7 +39,7 @@ export function useLocalMedia(getPCs = () => []) {
     }
     bump()
   }
-  const useRaw = async (nt) => {
+  const swapInTrack = async (nt) => {
     fx.current?.stop(); fx.current = null
     raw.current = nt
     let out = nt
@@ -90,7 +90,7 @@ export function useLocalMedia(getPCs = () => []) {
       }
     }
     if (!s) { toast.error('ক্যামেরা বদলানো যায়নি'); return false }
-    await useRaw(s.getVideoTracks()[0])
+    await swapInTrack(s.getVideoTracks()[0])
     if (ok) setFacing(next); else toast('এই ডিভাইসে আরেকটি ক্যামেরা পাওয়া যায়নি')
     return ok
   }
@@ -99,7 +99,7 @@ export function useLocalMedia(getPCs = () => []) {
     effectRef.current = id; setEffectState(id)
     if (id !== 'none' && fx.current) { fx.current.setId(id); return } // চালু থাকলে শুধু ব্যাকগ্রাউন্ড বদলায়
     if (id === 'none') setFxState('')
-    if (raw.current && raw.current.readyState === 'live') await useRaw(raw.current)
+    if (raw.current && raw.current.readyState === 'live') await swapInTrack(raw.current)
   }
   const toggleMic = () => { stream.current?.getAudioTracks().forEach((t) => (t.enabled = muted)); setMuted(!muted) }
   const toggleCam = () => { camOffRef.current = !camOff; stream.current?.getVideoTracks().forEach((t) => (t.enabled = camOff)); setCamOff(!camOff) }
