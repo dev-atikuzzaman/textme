@@ -38,7 +38,7 @@ export default function ChatToolsSheet({ otherId, ttl, onTtl, onSearch, onClose 
                 className={`rounded-xl px-1 py-2.5 text-sm font-semibold ${ttl === o.s ? 'bg-brand text-inverse' : 'bg-surface'}`}>{o.l}</button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-fg/55">চালু করলে এরপর পাঠানো নতুন মেসেজগুলো নির্দিষ্ট সময় পর দুজনের চ্যাট থেকেই মুছে যাবে। আগের মেসেজ যেমন আছে তেমনই থাকবে।</p>
+          <p className="mt-2 text-xs text-fg/65">চালু করলে এরপর পাঠানো নতুন মেসেজগুলো নির্দিষ্ট সময় পর দুজনের চ্যাট থেকেই মুছে যাবে। আগের মেসেজ যেমন আছে তেমনই থাকবে।</p>
         </div>
       </div>
     </div>

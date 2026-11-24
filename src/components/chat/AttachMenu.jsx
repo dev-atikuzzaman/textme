@@ -17,7 +17,7 @@ export default function AttachMenu({ onPick, onClose, only, note }) {
       <div className="w-full max-w-md rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">যা পাঠাতে চান</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button>
         </div>
         <div className="grid grid-cols-3 gap-4">
           {items.map(({ k, label, Icon, c }) => (
@@ -27,7 +27,7 @@ export default function AttachMenu({ onPick, onClose, only, note }) {
             </button>
           ))}
         </div>
-        <p className="mt-4 text-center text-xs text-fg/50">{note || 'ডকুমেন্ট: PDF, Word, PowerPoint, Excel • সর্বোচ্চ ৫০MB'}</p>
+        <p className="mt-4 text-center text-xs text-fg/65">{note || 'ডকুমেন্ট: PDF, Word, PowerPoint, Excel • সর্বোচ্চ ৫০MB'}</p>
       </div>
     </div>
   )

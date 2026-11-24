@@ -28,7 +28,7 @@ export default function PinPad({ mode = 'verify', title, onSubmit, onClose }) {
         <div className="flex justify-end">{onClose && <button onClick={onClose} aria-label="বন্ধ" className="grid h-8 w-8 place-items-center rounded-full bg-surface2"><X size={16} /></button>}</div>
         <Lock className="mx-auto text-brand" size={30} />
         <h3 className="mt-2 text-lg font-bold">{title || (mode === 'set' ? (first ? 'PIN নিশ্চিত করুন' : 'নতুন PIN সেট করুন') : 'PIN দিন')}</h3>
-        <p className="h-5 text-sm text-fg/60">{msg}</p>
+        <p className="h-5 text-sm text-fg/65">{msg}</p>
         <div className={`my-3 flex justify-center gap-3 ${shake ? 'animate-pulse' : ''}`}>
           {[0, 1, 2, 3].map((i) => <span key={i} className={`h-3.5 w-3.5 rounded-full ${i < pin.length ? 'bg-brand' : 'bg-fg/20'}`} />)}
         </div>

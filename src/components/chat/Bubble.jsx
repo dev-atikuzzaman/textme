@@ -19,14 +19,14 @@ function callText(m, mine) {
 }
 
 export default function Bubble({ m, mine, url, votes = [], myId, onVote, onOpenImage }) {
-  const sub = mine ? 'text-white/60' : 'text-fg/45'
+  const sub = mine ? 'text-white/90' : 'text-fg/65'
   const chip = mine ? 'bg-white/10' : 'bg-surface2'
   const loading = <div className="h-40 w-52 animate-pulse rounded-2xl bg-black/10" />
   let body
 
   switch (m.type) {
     case 'image':
-      body = url ? <SmartImg src={url} alt="" loading="eager" reserve="min-h-[10rem] min-w-[12rem]" onClick={() => onOpenImage(url)} className="max-h-72 rounded-2xl object-cover" /> : loading
+      body = url ? <SmartImg src={url} alt="পাঠানো ছবি" loading="eager" reserve="min-h-[10rem] min-w-[12rem]" onClick={() => onOpenImage(url)} className="max-h-72 rounded-2xl object-cover" /> : loading
       break
     case 'video':
       body = url ? <video src={url} controls playsInline preload="metadata" className="max-h-72 rounded-2xl bg-black" /> : loading
