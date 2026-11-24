@@ -32,7 +32,7 @@ export default function CreateGroupSheet({ onClose }) {
       <div className="max-h-[92vh] w-full max-w-md space-y-3 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">নতুন গ্রুপ</h2>
-          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button>
+          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button>
         </div>
         <input className="input" placeholder="গ্রুপের নাম" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />
         <textarea className="input min-h-[70px]" placeholder="গ্রুপ সম্পর্কে (ঐচ্ছিক)" value={about} onChange={(e) => setAbout(e.target.value)} />
@@ -40,12 +40,12 @@ export default function CreateGroupSheet({ onClose }) {
           {[['private', Lock, 'প্রাইভেট', 'শুধু সদস্যরা দেখে'], ['public', Globe, 'পাবলিক', 'যে কেউ খুঁজে জয়েন করতে পারে']].map(([id, Icon, label, sub]) => (
             <button key={id} onClick={() => setPrivacy(id)} className={`flex-1 rounded-2xl p-3 text-left transition ${privacy === id ? 'bg-brand text-inverse' : 'bg-surface2'}`}>
               <span className="flex items-center gap-1.5 font-bold"><Icon size={16} />{label}</span>
-              <span className={`text-xs ${privacy === id ? 'text-inverse/75' : 'text-fg/55'}`}>{sub}</span>
+              <span className={`text-xs ${privacy === id ? 'text-inverse/75' : 'text-fg/65'}`}>{sub}</span>
             </button>
           ))}
         </div>
-        <p className="pt-1 text-sm font-bold text-fg/60">বন্ধুদের যোগ করুন ({sel.size.toLocaleString('bn-BD')})</p>
-        {list.length === 0 && <p className="py-3 text-center text-sm text-fg/50">বন্ধু ছাড়াও গ্রুপ খোলা যায়, পরে যোগ করতে পারবেন।</p>}
+        <p className="pt-1 text-sm font-bold text-fg/65">বন্ধুদের যোগ করুন ({sel.size.toLocaleString('bn-BD')})</p>
+        {list.length === 0 && <p className="py-3 text-center text-sm text-fg/65">বন্ধু ছাড়াও গ্রুপ খোলা যায়, পরে যোগ করতে পারবেন।</p>}
         <div className="space-y-1">
           {list.map((p) => (
             <button key={p.id} onClick={() => toggle(p.id)} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left active:bg-surface2">

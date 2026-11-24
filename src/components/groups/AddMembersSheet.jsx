@@ -24,12 +24,12 @@ export default function AddMembersSheet({ groupId, memberIds, onClose, onDone })
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={onClose}>
       <div className="max-h-[85vh] w-full max-w-md space-y-3 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between"><h2 className="text-xl font-bold">সদস্য যোগ করুন</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button></div>
+          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button></div>
         <label className="flex cursor-pointer items-center gap-3 rounded-2xl bg-brand/10 p-3">
           <input type="checkbox" checked={asAdmin} onChange={(e) => setAsAdmin(e.target.checked)} className="h-5 w-5 accent-[rgb(var(--brand))]" />
-          <span className="min-w-0 flex-1"><b className="block">অ্যাডমিন হিসেবে যোগ করুন</b><span className="text-xs text-fg/60">তারাও অন্য বন্ধুদের যোগ করতে ও অ্যাডমিন বানাতে পারবেন</span></span>
+          <span className="min-w-0 flex-1"><b className="block">অ্যাডমিন হিসেবে যোগ করুন</b><span className="text-xs text-fg/65">তারাও অন্য বন্ধুদের যোগ করতে ও অ্যাডমিন বানাতে পারবেন</span></span>
         </label>
-        {list.length === 0 && <p className="py-6 text-center text-sm text-fg/55">যোগ করার মতো আর কোনো বন্ধু নেই।</p>}
+        {list.length === 0 && <p className="py-6 text-center text-sm text-fg/65">যোগ করার মতো আর কোনো বন্ধু নেই।</p>}
         {list.map((p) => (
           <button key={p.id} onClick={() => toggle(p.id)} className="flex w-full items-center gap-3 rounded-2xl p-2 text-left active:bg-surface2">
             <Avatar p={p} size={40} /><span className="min-w-0 flex-1 truncate font-semibold">{p.full_name}</span>

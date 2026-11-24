@@ -126,13 +126,13 @@ export default function GroupChat({ groupId, who, onUser }) {
         ? <ChatSearchBar msgs={msgs || []} onJump={jump} onClose={() => setSearching(false)} />
         : (
           <div className="flex items-center bg-surface">
-            <div className="min-w-0 flex-1">{pinned.length ? <PinnedBanner pinned={pinned} onJump={jump} /> : <p className="px-4 py-2 text-xs text-fg/45">গ্রুপ চ্যাট • মেসেজ চেপে ধরে পিন বা কপি করুন</p>}</div>
+            <div className="min-w-0 flex-1">{pinned.length ? <PinnedBanner pinned={pinned} onJump={jump} /> : <p className="px-4 py-2 text-xs text-fg/65">গ্রুপ চ্যাট • মেসেজ চেপে ধরে পিন বা কপি করুন</p>}</div>
             <button onClick={() => setSearching(true)} aria-label="গ্রুপ চ্যাটে খুঁজুন" className="mr-3 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface2"><Search size={16} /></button>
           </div>
         )}
       <div className="flex-1 space-y-1.5 overflow-y-auto p-3">
-        {msgs === null && <p className="py-8 text-center text-fg/50">লোড হচ্ছে…</p>}
-        {msgs?.length === 0 && <p className="py-8 text-center text-fg/50">এখনও কোনো মেসেজ নেই। প্রথম মেসেজটি আপনিই পাঠান 👋</p>}
+        {msgs === null && <p className="py-8 text-center text-fg/65">লোড হচ্ছে…</p>}
+        {msgs?.length === 0 && <p className="py-8 text-center text-fg/65">এখনও কোনো মেসেজ নেই। প্রথম মেসেজটি আপনিই পাঠান 👋</p>}
         {msgs?.map((m, i) => {
           const mine = m.sender_id === user.id
           const day = new Date(m.created_at).toLocaleDateString('bn-BD', { day: 'numeric', month: 'long' })
@@ -140,11 +140,11 @@ export default function GroupChat({ groupId, who, onUser }) {
           const showName = !mine && msgs[i - 1]?.sender_id !== m.sender_id
           return (
             <div key={m.id} id={`m-${m.id}`} className={hl === m.id ? 'rounded-2xl ring-2 ring-coral/60' : ''}>
-              {sep && <p className="my-2 text-center text-xs text-fg/40">{day}</p>}
+              {sep && <p className="my-2 text-center text-xs text-fg/65">{day}</p>}
               <div className={`flex ${mine ? 'justify-end' : ''}`}>
                 <div {...lp(m)} className={`select-none max-w-[80%] rounded-2xl px-3 py-1.5 ${mine ? 'rounded-tr-sm bg-bubble text-white' : 'rounded-tl-sm bg-surface2'}`}>
                   {showName && <button type="button" onClick={() => onUser?.(m.sender_id)} className={`mb-0.5 block text-xs font-bold hover:underline ${nameColor(m.sender_id)}`}>{who[m.sender_id]?.full_name || 'সদস্য'}</button>}
-                  {m.media_url && (!m.media_type || m.media_type === 'image') && <SmartImg src={m.media_url} alt="" reserve="min-h-[10rem] min-w-[12rem]" onClick={() => setZoom(m.media_url)} className="mb-1 max-h-64 cursor-zoom-in rounded-2xl object-cover" />}
+                  {m.media_url && (!m.media_type || m.media_type === 'image') && <SmartImg src={m.media_url} alt="পাঠানো ছবি" reserve="min-h-[10rem] min-w-[12rem]" onClick={() => setZoom(m.media_url)} className="mb-1 max-h-64 cursor-zoom-in rounded-2xl object-cover" />}
                   {m.media_url && m.media_type === 'video' && <video src={m.media_url} controls playsInline preload="metadata" className="mb-1 max-h-64 rounded-2xl" />}
                   {m.media_url && m.media_type === 'audio' && <div className="mb-1"><p className="max-w-[14rem] truncate text-sm font-semibold">🎵 {m.file_name || 'অডিও'}</p><audio src={m.media_url} controls preload="none" className="h-10 w-56" /></div>}
                   {m.media_url && m.media_type === 'file' && (
@@ -156,14 +156,14 @@ export default function GroupChat({ groupId, who, onUser }) {
                   )}
                   {m.content && <p className="whitespace-pre-wrap break-words">{linkify(m.content)}</p>}
                   {m.content && findYt(m.content) && <YouTubeEmbed id={findYt(m.content)} className="mt-1.5 w-64 max-w-full" />}
-                  <p className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-white/60' : 'text-fg/45'}`}>{m.pinned_at && <Pin size={11} aria-label="পিন করা" />}{time(m.created_at)}{m._st === 'sending' && <Clock size={11} aria-label="পাঠানো হচ্ছে" />}{m._st === 'failed' && <AlertCircle size={12} aria-label="পাঠানো যায়নি" className="text-red-300" />}</p>
+                  <p className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-white/90' : 'text-fg/65'}`}>{m.pinned_at && <Pin size={11} aria-label="পিন করা" />}{time(m.created_at)}{m._st === 'sending' && <Clock size={11} aria-label="পাঠানো হচ্ছে" />}{m._st === 'failed' && <AlertCircle size={12} aria-label="পাঠানো যায়নি" className="text-red-300" />}</p>
                 </div>
               </div>
               {m._st === 'failed' && (
                 <div className="mt-1 flex items-center justify-end gap-3 pr-1 text-xs font-semibold">
                   <span className="text-danger">পাঠানো যায়নি</span>
                   <button onClick={() => sendOptimistic(m.content, m.id)} className="text-brand">আবার পাঠান</button>
-                  <button onClick={() => setMsgs((l) => (l || []).filter((x) => x.id !== m.id))} className="text-fg/60">মুছুন</button>
+                  <button onClick={() => setMsgs((l) => (l || []).filter((x) => x.id !== m.id))} className="text-fg/65">মুছুন</button>
                 </div>
               )}
             </div>

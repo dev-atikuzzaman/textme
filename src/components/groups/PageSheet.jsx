@@ -31,7 +31,7 @@ export default function PageSheet({ page, onClose, onDone }) {
     <div className="fixed inset-0 z-[60] flex items-end justify-center bg-ink/50 backdrop-blur-sm" onClick={busy ? undefined : onClose}>
       <div className="max-h-[92vh] w-full max-w-md space-y-3 overflow-y-auto rounded-t-[32px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{page ? 'পেজ এডিট' : 'নতুন পেজ'}</h2>
-          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2"><X size={18} /></button></div>
+          <button disabled={busy} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface2" aria-label="বন্ধ করুন"><X size={18} /></button></div>
         <input className="input" placeholder="পেজের নাম" maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
           {PAGE_CATEGORIES.map((c) => <button key={c} onClick={() => setF({ ...f, category: c })} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold ${f.category === c ? 'bg-ink text-white' : 'bg-surface2'}`}>{c}</button>)}
