@@ -6,7 +6,7 @@ import { mmss } from '../lib/media'
 import Avatar from '../components/Avatar'
 
 import { ringtone } from '../lib/sound'
-import { ICE } from '../lib/rtc'
+import { ICE, ensureIce } from '../lib/rtc'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import { useLoudspeaker } from '../lib/loudspeaker'
 import { ReactBar, Floaters, useFloaters, useDrag, CallButton, MiniCallBar, VideoUpgradePrompt } from '../components/call/CallParts'
@@ -28,6 +28,7 @@ export function CallProvider({ children }) {
   const [upWait, setUpWait] = useState(false)      // আমি ভিডিওতে যেতে চেয়েছি
   const [floats, addFloat] = useFloaters()
   const [dragStyle, drag] = useDrag()
+  useEffect(() => { if (user) ensureIce() }, [user?.id]) // লগ-ইনের পরেই আগেভাগে TURN credential আনা
   const callRef = useRef(null), pc = useRef(null), remote = useRef(null)
   const [loud, setLoud] = useState(false)
   useLoudspeaker(loud && call?.state === 'active', remote.current ? [remote.current] : [])
@@ -116,6 +117,7 @@ export function CallProvider({ children }) {
     let m
     try { m = await lm.acquire(kind) } catch (e) { return toast.error(mediaMsg(e, kind), 9000) }
     setNote(m.note || '')
+    await ensureIce() // TURN credential তৈরি (ক্যাশ থাকলে সাথে সাথে)
     const { data, error } = await supabase.from('messages').insert({
       sender_id: user.id, receiver_id: peer.id, type: 'call',
       content: kind === 'video' ? '📹 ভিডিও কল করছেন' : '📞 অডিও কল করছেন', meta: { kind, status: 'calling' },
@@ -137,6 +139,7 @@ export function CallProvider({ children }) {
     try { m = await lm.acquire(c.kind) } catch (e) { toast.error(mediaMsg(e, c.kind), 9000); return finish('declined') }
     setNote(m.note || '')
     setCall({ ...c, state: 'connecting' })
+    await ensureIce()
     makePC(c.peer.id, c.kind)
     sendTo(c.peer.id, 'accept')
   }

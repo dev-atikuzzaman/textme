@@ -3,7 +3,7 @@ import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, Lock, Minimize2, SwitchC
 import { supabase } from '../lib/supabase'
 import { useAuth } from './Auth'
 import { mmss } from '../lib/media'
-import { ICE } from '../lib/rtc'
+import { ICE, ensureIce } from '../lib/rtc'
 import { ringtone } from '../lib/sound'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import Avatar from '../components/Avatar'
@@ -158,6 +158,7 @@ export function GroupCallProvider({ children }) {
     await r.ready
     if (presenceList(group.id).filter((m) => m.id !== user.id).length >= MAX_GROUP_CALL - 1) { r.refs--; closeRoomIfIdle(group.id); return toast(`একসাথে সর্বোচ্চ ${MAX_GROUP_CALL} জন কলে থাকতে পারে`) }
     try { await lm.acquire(kind) } catch (e) { r.refs--; closeRoomIfIdle(group.id); return toast.error(mediaMsg(e, kind), 9000) }
+    await ensureIce()
     myAt.current = Date.now()
     const g = { group, kind }
     gcRef.current = g; setGc(g); setSecs(0)
