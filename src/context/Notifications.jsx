@@ -5,6 +5,7 @@ import { useAuth } from './Auth'
 import { syncPush } from '../lib/push'
 import { playDing } from '../lib/sound'
 import { loadPrefs, TYPE_CAT, quietNow } from '../lib/notifPrefs'
+import { toast as uiToast, errMsg } from '../lib/ui' // (এই ফাইলে 'toast' নামে নিজস্ব state আছে)
 
 const Ctx = createContext(null)
 export const useNotifs = () => useContext(Ctx)
@@ -50,7 +51,8 @@ export function NotifProvider({ children }) {
   }, [])
 
   const markAllRead = useCallback(async () => {
-    await supabase.from('notifications').update({ read: true }).eq('read', false)
+    const { error } = await supabase.from('notifications').update({ read: true }).eq('read', false)
+    if (error) return uiToast.error('সব পড়া হিসেবে চিহ্নিত করা যায়নি: ' + errMsg(error))
     setItems((l) => l.map((n) => ({ ...n, read: true })))
   }, [])
 

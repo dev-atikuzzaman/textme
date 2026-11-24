@@ -9,7 +9,7 @@ import { ringtone } from '../lib/sound'
 import { ICE } from '../lib/rtc'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import { useLoudspeaker } from '../lib/loudspeaker'
-import { ReactBar, Floaters, useFloaters, useDrag } from '../components/call/CallParts'
+import { ReactBar, Floaters, useFloaters, useDrag, CallButton, MiniCallBar, VideoUpgradePrompt } from '../components/call/CallParts'
 import { toast } from '../lib/ui'
 
 const Ctx = createContext(null)
@@ -67,7 +67,8 @@ export function CallProvider({ children }) {
     clearTimeout(ringTimer.current); clearInterval(clock.current); stopRing()
     if (c.dir === 'out' && c.msgId) {
       const duration = c.startedAt ? Math.round((Date.now() - c.startedAt) / 1000) : 0
-      await supabase.from('messages').update({ meta: { kind: c.kind, status, duration } }).eq('id', c.msgId)
+      const { error } = await supabase.from('messages').update({ meta: { kind: c.kind, status, duration } }).eq('id', c.msgId)
+      if (error) console.warn('কলের স্ট্যাটাস সংরক্ষণ হয়নি', error.message) // কল ইতোমধ্যে শেষ; ব্যবহারকারীকে বিরক্ত করার দরকার নেই
     }
     pc.current?.close(); pc.current = null
     lm.release()
@@ -253,14 +254,9 @@ export function CallProvider({ children }) {
     : call.state === 'connecting' ? 'কানেক্ট হচ্ছে…'
     : call.dir === 'out' ? 'রিং হচ্ছে…' : `${isVideo ? 'ভিডিও' : 'অডিও'} কল আসছে…`
   // WhatsApp-স্টাইল গোল বাটন + নিচে লেখা
-  const Ctl = ({ onClick, icon: I, label, active, danger, big, disabled, small, busy }) => (
-    <button onClick={onClick} disabled={disabled} className="flex flex-col items-center gap-2 disabled:opacity-40">
-      <span className={`grid place-items-center rounded-full transition active:scale-90 ${big ? 'h-16 w-16' : small ? 'h-[2.6rem] w-[2.6rem]' : 'h-14 w-14'} ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'} ${busy ? 'animate-pulse' : ''}`}><I size={big ? 28 : small ? 21 : 24} /></span>
-      {label && <span className="text-sm text-white/90">{label}</span>}
-    </button>
-  )
+  const Ctl = CallButton
   const ringingIn = call?.dir === 'in' && call?.state === 'ringing'
-  const E2E = <p className="flex items-center justify-center gap-1.5 text-sm text-white/70"><Lock size={13} />এন্ড-টু-এন্ড এনক্রিপ্টেড</p>
+  const E2E = <p className="flex items-center justify-center gap-1.5 text-sm text-white/85"><Lock size={13} />এন্ড-টু-এন্ড এনক্রিপ্টেড</p>
   const active = call?.state === 'active'
   const hasLocalVideo = isVideo && lm.hasVideo
   // কোন ভিডিওটি বড়: কল চালু হলে ডিফল্টে অপরজন বড়; ছোটটিতে ট্যাপ করলে বদলে যায়। রিং হওয়ার সময় নিজের ক্যামেরা বড়।
@@ -275,13 +271,7 @@ export function CallProvider({ children }) {
   return (
     <Ctx.Provider value={{ startCall, inCall: !!call }}>
       {children}
-      {call && mini && (
-        <button onClick={() => setMini(false)} className="fixed left-1/2 top-[max(0.5rem,env(safe-area-inset-top))] z-[100] flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#0b3d2e] py-1.5 pl-1.5 pr-4 text-white shadow-soft ring-1 ring-white/15">
-          <Avatar p={call.peer} size={34} />
-          <span className="text-left text-sm leading-tight"><b className="block max-w-[9rem] truncate">{call.peer.full_name}</b><span className="text-xs text-white/70">{status}</span></span>
-          <span onClick={(e) => { e.stopPropagation(); hangup() }} className="grid h-8 w-8 place-items-center rounded-full bg-[#e11d48]"><PhoneOff size={16} /></span>
-        </button>
-      )}
+      {call && mini && <MiniCallBar avatar={call.peer} title={call.peer.full_name} subtitle={status} onExpand={() => setMini(false)} onHangup={hangup} />}
       {call && (
         <div className={mini ? 'pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0' : 'fixed inset-0 z-[100] flex flex-col bg-gradient-to-b from-[#0b1f1a] to-[#07120f] text-white'}>
           {/* অপরজনের ভিডিও/অডিও */}
@@ -312,19 +302,7 @@ export function CallProvider({ children }) {
           {(!showCenter || localBig) && <div className="flex-1" />}
 
           {/* ভিডিওতে যাওয়ার অনুরোধ পপ-আপ */}
-          {upAsk && (
-            <div className="absolute inset-0 z-40 grid place-items-center bg-black/60 px-6">
-              <div className="w-full max-w-sm rounded-[28px] bg-surface p-6 text-center text-fg shadow-soft">
-                <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-emerald-700"><Video size={26} /></span>
-                <h3 className="mt-3 text-lg font-bold">ভিডিও কলে যাবেন?</h3>
-                <p className="mt-1 text-sm text-fg/65"><b>{call.peer.full_name}</b> অডিও কল থেকে ভিডিও কলে যেতে চাইছেন। গ্রহণ করলে আপনার ক্যামেরা চালু হবে।</p>
-                <div className="mt-5 flex gap-3">
-                  <button onClick={() => answerUpgrade(false)} className="btn-soft flex-1">না, থাক</button>
-                  <button onClick={() => answerUpgrade(true)} className="btn-primary flex-1"><Video size={18} />ভিডিওতে যান</button>
-                </div>
-              </div>
-            </div>
-          )}
+          {upAsk && <VideoUpgradePrompt name={call.peer.full_name} onAnswer={answerUpgrade} />}
           {upWait && <p className="absolute inset-x-0 top-28 z-30 mx-auto w-fit rounded-full bg-black/55 px-4 py-1.5 text-sm backdrop-blur">অপরজনের উত্তরের অপেক্ষা…</p>}
           {showReact && active && <ReactBar onReact={react} />}
 

@@ -8,7 +8,7 @@ import { ringtone } from '../lib/sound'
 import { useLocalMedia, mediaMsg } from '../lib/useLocalMedia'
 import Avatar from '../components/Avatar'
 import { useLoudspeaker } from '../lib/loudspeaker'
-import { ReactBar, Floaters, useFloaters } from '../components/call/CallParts'
+import { ReactBar, Floaters, useFloaters, CallButton, MiniCallBar } from '../components/call/CallParts'
 import { toast } from '../lib/ui'
 
 // গ্রুপ কল: মেশ WebRTC (প্রত্যেকে প্রত্যেকের সাথে সরাসরি) — সর্বোচ্চ ৬ জন।
@@ -209,11 +209,7 @@ export function GroupCallProvider({ children }) {
   const total = peers.length + 1
   const isVideo = gc?.kind === 'video'
   const cols = total <= 2 ? 'grid-cols-1' : 'grid-cols-2'
-  const Ctl = ({ onClick, icon: I, active, danger, disabled }) => (
-    <button onClick={onClick} disabled={disabled} className="disabled:opacity-40">
-      <span className={`grid h-[2.6rem] w-[2.6rem] place-items-center rounded-full transition active:scale-90 ${danger ? 'bg-[#e11d48] text-white' : active ? 'bg-white text-ink' : 'bg-white/15 text-white'}`}><I size={21} /></span>
-    </button>
-  )
+  const Ctl = (props) => <CallButton small {...props} />
 
   return (
     <Ctx.Provider value={{ startGroupCall, joinGroupCall, watch, live, inGroupCall: gc?.group.id || null }}>
@@ -232,20 +228,14 @@ export function GroupCallProvider({ children }) {
         </div>
       )}
 
-      {gc && mini && (
-        <button onClick={() => setMini(false)} className="fixed left-1/2 top-[max(0.5rem,env(safe-area-inset-top))] z-[100] flex -translate-x-1/2 items-center gap-3 rounded-full bg-[#0b3d2e] py-1.5 pl-1.5 pr-4 text-white shadow-soft ring-1 ring-white/15">
-          <Avatar p={{ full_name: gc.group.name, avatar_url: gc.group.avatar_url }} size={34} />
-          <span className="text-left text-sm leading-tight"><b className="block max-w-[9rem] truncate">{gc.group.name}</b><span className="text-xs text-white/70">{mmss(secs)} • {total} জন</span></span>
-          <span onClick={(e) => { e.stopPropagation(); leave() }} className="grid h-8 w-8 place-items-center rounded-full bg-[#e11d48]"><PhoneOff size={16} /></span>
-        </button>
-      )}
+      {gc && mini && <MiniCallBar avatar={{ full_name: gc.group.name, avatar_url: gc.group.avatar_url }} title={gc.group.name} subtitle={`${mmss(secs)} • ${total} জন`} onExpand={() => setMini(false)} onHangup={leave} />}
       {gc && (
         <div className={mini ? 'pointer-events-none fixed left-0 top-0 h-px w-px overflow-hidden opacity-0' : 'fixed inset-0 z-[100] flex flex-col bg-gradient-to-b from-[#0b1f1a] to-[#07120f] text-white'}>
           <div className="relative z-10 flex items-start gap-3 px-4 pt-[max(1rem,env(safe-area-inset-top))]">
             <button onClick={() => setMini(true)} aria-label="ছোট করুন" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-black/35"><Minimize2 size={19} /></button>
             <div className="min-w-0 flex-1 text-center">
               <p className="truncate text-xl font-bold">{gc.group.name}</p>
-              <p className="flex items-center justify-center gap-1.5 text-sm text-white/70"><Lock size={13} />এন্ড-টু-এন্ড এনক্রিপ্টেড</p>
+              <p className="flex items-center justify-center gap-1.5 text-sm text-white/85"><Lock size={13} />এন্ড-টু-এন্ড এনক্রিপ্টেড</p>
               <p className="mt-0.5 flex items-center justify-center gap-1.5 text-sm text-white/80"><Users size={14} />{total} জন • {mmss(secs)}</p>
             </div>
             <span className="w-11" />
@@ -253,7 +243,7 @@ export function GroupCallProvider({ children }) {
           <div className={`relative z-10 grid min-h-0 flex-1 auto-rows-fr gap-2 p-3 ${cols}`}>
             <Tile stream={lm.stream.current} name={profile.full_name} avatar={profile.avatar_url} local mirror={lm.facing === 'user'} big={total === 3 || total === 5} />
             {peers.map(([id, t]) => <Tile key={id} stream={t.stream} name={t.name} avatar={t.avatar} />)}
-            {peers.length === 0 && <div className="grid place-items-center rounded-3xl bg-white/5 text-center text-white/70"><div><Users className="mx-auto mb-2" />অন্যদের যোগ দেওয়ার অপেক্ষা…</div></div>}
+            {peers.length === 0 && <div className="grid place-items-center rounded-3xl bg-white/5 text-center text-white/85"><div><Users className="mx-auto mb-2" />অন্যদের যোগ দেওয়ার অপেক্ষা…</div></div>}
           </div>
           <Floaters items={floats} />
           {showReact && <ReactBar onReact={react} />}
